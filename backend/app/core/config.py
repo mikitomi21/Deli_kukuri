@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     SENTRY_DSN: HttpUrl | None = None
     DATABASE_URL: PostgresDsn
     CALL_MAX_ATTEMPTS: int = Field(default=2, ge=1)
+    CALL_RETRY_DELAY_MIN: int = Field(default=15, ge=1)
+    MATERIALIZER_HORIZON_H: int = Field(default=48, ge=1)
+    VOICE_SERVICE_URL: str = "http://voice:3000"
+    VOICE_SERVICE_TOKEN: str = ""
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

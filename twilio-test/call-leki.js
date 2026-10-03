@@ -28,7 +28,7 @@ const twilioClient = twilio(
 const MODEL = "gpt-realtime-2.1";
 
 // Leki do odpytania: env LEKI=ibuprofen,paracetamol,aspiryna
-const LEKI = (process.env.LEKI || "ibuprofen,paracetamol,aspiryna")
+const LEKI = process.env.LEKI_JSON ? JSON.parse(process.env.LEKI_JSON) : (process.env.LEKI || "ibuprofen,paracetamol,aspiryna")
   .split(",")
   .map((lek) => lek.trim())
   .filter(Boolean);
@@ -153,10 +153,10 @@ async function sendSummarySms(smsTo, wynik) {
   }
 }
 
-const transcriptsDir = path.join(__dirname, "transcripts");
+const transcriptsDir = process.env.TRANSCRIPTS_DIR || path.join(__dirname, "transcripts");
 
 if (!fs.existsSync(transcriptsDir)) {
-  fs.mkdirSync(transcriptsDir);
+  fs.mkdirSync(transcriptsDir, { recursive: true });
 }
 
 // Stan aktywnych rozmów: callSid -> { transcriptFile, podsumowanieSaved }
@@ -275,7 +275,7 @@ function buildInstructions() {
     : `Nie znasz imienia rozmówcy — jeśli poda je w rozmowie, zapamiętaj je do podsumowania.`;
 
   const teraz = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
+    timeZone: process.env.PACJENT_TZ || "Europe/Warsaw",
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -462,6 +462,11 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
     state.podsumowanieSaved = true;
   }
 
+  // Persist the result in the application when hosted by the gateway.
+  if (process.send) process.send({ event: "summary", sid: callSid,
+    medications: wynik.leki, notes: wynik.podsumowanie,
+    transcript: fs.readFileSync(transcriptFile, "utf8") });
+
   console.log("📝 Podsumowanie zapisane:", podsumowanieFile);
 
   const smsTo = (process.env.SMS_TO || "").trim();
@@ -481,18 +486,19 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
 // transkrypcja idzie do modelu chat (taniego) i wraca jako JSON.
 // finalize (koniec streamu) i poller statusu potrafią odpalić fallback
 // niemal jednocześnie — stąd blokada: jedno podsumowanie = jeden SMS.
-const summariesInFlight = new Set();
+const summariesInFlight = new Map();
 
 async function fallbackSummarize(callSid, transcriptFile) {
   const state = activeCalls.get(callSid);
-  if ((state && state.podsumowanieSaved) || summariesInFlight.has(callSid)) {
+  if (state && state.podsumowanieSaved) {
     return;
   }
-
-  summariesInFlight.add(callSid);
+  if (summariesInFlight.has(callSid)) return summariesInFlight.get(callSid);
+  const pending = runFallbackSummarize(callSid, transcriptFile);
+  summariesInFlight.set(callSid, pending);
 
   try {
-    await runFallbackSummarize(callSid, transcriptFile);
+    await pending;
   } finally {
     summariesInFlight.delete(callSid);
   }
@@ -1252,6 +1258,7 @@ wss.on("connection", (twilioWs) => {
 // ============================================================
 
 server.listen(PORT, () => {
+  if (process.send) process.send({ event: "ready", port: server.address().port });
   console.log("");
   console.log("======================================");
   console.log("🚀 SERVER STARTED — rozmowa o lekach");
@@ -1301,6 +1308,8 @@ async function makeCall(toNumber) {
     twiml: twiml
   });
 
+  if (process.send) process.send({ event: "call_created", sid: call.sid, status: call.status });
+
   console.log("");
   console.log("✅ CALL CREATED");
   console.log("Call SID:", call.sid);
@@ -1331,6 +1340,10 @@ async function makeCall(toNumber) {
       );
 
       if (terminal || Date.now() - startedAt > 300000) {
+        if (!terminal) {
+          await hangupCall(call.sid, "Call duration limit reached");
+          c.status = "canceled";
+        }
         clearInterval(pollTimer);
 
         console.log(`📞 Rozmowa zakończona (status: ${c.status})`);
@@ -1342,6 +1355,8 @@ async function makeCall(toNumber) {
         if (file && (!state || !state.podsumowanieSaved)) {
           await fallbackSummarize(call.sid, file);
         }
+        if (process.send) process.send({ event: "terminal", sid: call.sid,
+          status: c.status, duration_sec: Number(c.duration || 0) });
       }
     } catch {
       // chwilowe błędy API — spróbujemy przy następnym odpytaniu
@@ -1354,6 +1369,15 @@ async function makeCall(toNumber) {
 // ============================================================
 
 const args = process.argv.slice(2);
+
+// The gateway starts dialing only after the private stream listener is ready.
+process.on("message", (message) => {
+  if (message.event === "start_call") {
+    makeCall(message.to).catch(() => {
+      if (process.send) process.send({ event: "call_error" });
+    });
+  }
+});
 const noCall = args.includes("--no-call");
 const testSms = args.includes("--test-sms");
 const toNumber = args.find((a) => a.startsWith("+")) || process.env.TWILIO_TO;

@@ -7,6 +7,8 @@
  * Data lives for the browser session (no persistence). All mutations are
  * immutable so TanStack Query always sees a fresh reference.
  */
+
+import { createUuid } from "@/lib/uuid"
 import type {
   Call,
   CallOutcome,
@@ -18,7 +20,7 @@ import type {
 } from "@/types/dashboard"
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
-const uid = () => crypto.randomUUID()
+const uid = createUuid
 
 function atTime(timeOfDay: string, dayOffset = 0): string {
   const d = new Date()

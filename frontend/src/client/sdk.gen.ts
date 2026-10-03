@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
+import type { callsCreateTestCallData, callsCreateTestCallErrors, callsCreateTestCallResponses, callsReadCallData, callsReadCallErrors, callsReadCallResponses, callsReadCallsData, callsReadCallsErrors, callsReadCallsResponses, callsReadCallTasksData, callsReadCallTasksErrors, callsReadCallTasksResponses, callsReadStatsData, callsReadStatsErrors, callsReadStatsResponses, itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, voicePersistVoiceEventData, voicePersistVoiceEventErrors, voicePersistVoiceEventResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -465,6 +465,193 @@ export class WardsService {
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/wards/{id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class RoutinesService {
+    /**
+     * Read Routines For Ward
+     *
+     * List routines of a ward, with items, dependencies and status.
+     */
+    public static readRoutinesForWard<ThrowOnError extends boolean = true>(options: Options<routinesReadRoutinesForWardData, ThrowOnError>) {
+        return (options.client ?? client).get<routinesReadRoutinesForWardResponses, routinesReadRoutinesForWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/routines',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Routine
+     *
+     * Create a new routine (draft) with items and dependencies in one payload.
+     */
+    public static createRoutine<ThrowOnError extends boolean = true>(options: Options<routinesCreateRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesCreateRoutineResponses, routinesCreateRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/routines',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Delete Routine
+     *
+     * Delete a routine. Only draft routines can be deleted.
+     */
+    public static deleteRoutine<ThrowOnError extends boolean = true>(options: Options<routinesDeleteRoutineData, ThrowOnError>) {
+        return (options.client ?? client).delete<routinesDeleteRoutineResponses, routinesDeleteRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Routine
+     *
+     * Update a routine. Editing an approved/paused routine resets it to `draft`
+     * (changes require re-approval, docs/04-user-stories.md C4).
+     */
+    public static updateRoutine<ThrowOnError extends boolean = true>(options: Options<routinesUpdateRoutineData, ThrowOnError>) {
+        return (options.client ?? client).patch<routinesUpdateRoutineResponses, routinesUpdateRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Approve Routine
+     *
+     * Approve a routine (gates scheduling). 409 when the routine has no
+     * medications or a required routine is not approved (docs/05).
+     */
+    public static approveRoutine<ThrowOnError extends boolean = true>(options: Options<routinesApproveRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesApproveRoutineResponses, routinesApproveRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}/approve',
+            ...options
+        });
+    }
+    
+    /**
+     * Pause Routine
+     *
+     * Pause a routine: the materializer skips paused routines (docs/04, C4).
+     */
+    public static pauseRoutine<ThrowOnError extends boolean = true>(options: Options<routinesPauseRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesPauseRoutineResponses, routinesPauseRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}/pause',
+            ...options
+        });
+    }
+}
+
+export class CallsService {
+    /**
+     * Create Test Call
+     *
+     * Queue an immediate call using an approved routine; the worker places it.
+     */
+    public static createTestCall<ThrowOnError extends boolean = true>(options: Options<callsCreateTestCallData, ThrowOnError>) {
+        return (options.client ?? client).post<callsCreateTestCallResponses, callsCreateTestCallErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/test-call',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Call Tasks
+     *
+     * List scheduled call tasks for a ward.
+     */
+    public static readCallTasks<ThrowOnError extends boolean = true>(options: Options<callsReadCallTasksData, ThrowOnError>) {
+        return (options.client ?? client).get<callsReadCallTasksResponses, callsReadCallTasksErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/call-tasks',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Calls
+     *
+     * Return the ward's real call history and results.
+     */
+    public static readCalls<ThrowOnError extends boolean = true>(options: Options<callsReadCallsData, ThrowOnError>) {
+        return (options.client ?? client).get<callsReadCallsResponses, callsReadCallsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/calls',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Call
+     *
+     * Return the call transcript, result and routine after checking ownership.
+     */
+    public static readCall<ThrowOnError extends boolean = true>(options: Options<callsReadCallData, ThrowOnError>) {
+        return (options.client ?? client).get<callsReadCallResponses, callsReadCallErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/calls/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Stats
+     *
+     * Calculate routine outcomes using the ward's local calendar day.
+     */
+    public static readStats<ThrowOnError extends boolean = true>(options: Options<callsReadStatsData, ThrowOnError>) {
+        return (options.client ?? client).get<callsReadStatsResponses, callsReadStatsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/stats',
+            ...options
+        });
+    }
+}
+
+export class VoiceService {
+    /**
+     * Persist Voice Event
+     *
+     * Persist authenticated provider events, deduplicating final callbacks.
+     */
+    public static persistVoiceEvent<ThrowOnError extends boolean = true>(options: Options<voicePersistVoiceEventData, ThrowOnError>) {
+        return (options.client ?? client).post<voicePersistVoiceEventResponses, voicePersistVoiceEventErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/internal/calls/{task_id}/events',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

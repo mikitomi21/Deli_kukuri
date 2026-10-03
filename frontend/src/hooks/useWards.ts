@@ -9,6 +9,11 @@ import {
   type UpdateWardPayload,
 } from "@/mocks/store"
 import type { WardWithToday } from "@/types/dashboard"
+import { getWardsMode } from "./apiMode"
+import { fetchCalls, fetchWardStats } from "./useCalls"
+import { fetchRoutines } from "./useRoutines"
+
+export { getWardsMode, type WardsMode } from "./apiMode"
 
 /**
  * Ward hooks. The backend ships full wards CRUD since T05, so the tag
@@ -16,18 +21,8 @@ import type { WardWithToday } from "@/types/dashboard"
  *   - unset / other → mocks (dev default, keeps demo data + today stats)
  *   - "empty"       → mocks with an empty list (empty-state preview)
  *   - "0"           → real API: GET/POST/PATCH/DELETE /wards
- * Stats and routines are mock-only today — the backend does not expose them
- * yet, so in API mode they are simply absent (undefined).
+ * API mode enriches wards with persisted routines, calls and statistics.
  */
-
-export type WardsMode = "mocks" | "empty" | "api"
-
-export function getWardsMode(): WardsMode {
-  const value = import.meta.env.VITE_USE_MOCKS
-  if (value === "empty") return "empty"
-  if (value === "0") return "api"
-  return "mocks"
-}
 
 function toWardWithToday(ward: WardPublic): WardWithToday {
   return {
@@ -36,7 +31,33 @@ function toWardWithToday(ward: WardPublic): WardWithToday {
     phone_e164: ward.phone_e164,
     tz: ward.tz ?? "Europe/Warsaw",
     active: ward.active,
-    // TODO(api): stats/routines land with a later backend task
+  }
+}
+
+async function enrichWard(ward: WardPublic): Promise<WardWithToday> {
+  const [routines, calls, stats] = await Promise.all([
+    fetchRoutines(ward.id),
+    fetchCalls(ward.id),
+    fetchWardStats(ward.id),
+  ])
+  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ward.tz ?? "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  const today = dateFormatter.format(new Date())
+  return {
+    ...toWardWithToday(ward),
+    ...stats,
+    routines: routines.map((routine) => {
+      const latest = calls.find(
+        (call) =>
+          call.routine_id === routine.id &&
+          dateFormatter.format(new Date(call.started_at)) === today,
+      )
+      return { ...routine, today_status: latest?.result?.outcome ?? "pending" }
+    }),
   }
 }
 
@@ -45,7 +66,7 @@ export async function fetchWards(): Promise<WardWithToday[]> {
 
   if (mode === "api") {
     const { data } = await WardsService.readWards({ query: { limit: 500 } })
-    return data.data.map(toWardWithToday)
+    return Promise.all(data.data.map(enrichWard))
   }
 
   const wards = await mockListWards()
@@ -57,7 +78,7 @@ export async function fetchWard(id: string): Promise<WardWithToday> {
 
   if (mode === "api") {
     const { data } = await WardsService.readWard({ path: { id } })
-    return toWardWithToday(data)
+    return enrichWard(data)
   }
 
   return mockGetWard(id)

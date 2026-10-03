@@ -32,6 +32,8 @@ services:
       - "8080:8080"
 
   backend:
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     build:
@@ -41,7 +43,7 @@ services:
     command:
       - bash
       - -c
-      - scripts/prestart.sh && exec fastapi dev --host 0.0.0.0
+      - scripts/prestart.sh && exec fastapi dev --host 0.0.0.0 --port 8000
     volumes:
       - ./backend/app:/app/backend/app
       # TODO: remove once coverage is done locally
@@ -91,6 +93,8 @@ services:
 
   worker:
     image: backend:latest
+    env_file:
+      - .env
     command:
       - celery
       - -A
@@ -101,6 +105,7 @@ services:
       - ./backend/app:/app/backend/app
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
     depends_on:
       redis:
         condition: service_healthy
@@ -110,6 +115,8 @@ services:
   # Jeden proces beat — nie duplikować (docs/07, decyzja 2)
   beat:
     image: backend:latest
+    env_file:
+      - .env
     command:
       - celery
       - -A
@@ -120,10 +127,39 @@ services:
       - ./backend/app:/app/backend/app
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
     depends_on:
       redis:
         condition: service_healthy
       backend:
+        condition: service_healthy
+
+  voice:
+    build:
+      context: ./twilio-test
+    env_file:
+      - .env
+    environment:
+      TWILIO_FROM: ${TWILIO_FROM:-${TWILIO_FROM_NUMBER:-}}
+      BACKEND_INTERNAL_URL: http://backend:8000
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    profiles: ["tunnel"]
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
+    command: ["http", "http://voice:3000", "--url=${PUBLIC_URL:-}"]
+    restart: unless-stopped
+    depends_on:
+      voice:
         condition: service_healthy
 
   mailpit:

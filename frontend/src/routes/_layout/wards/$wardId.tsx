@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from "@tanstack/react-router"
 import {
   ArrowLeft,
   CalendarClock,
@@ -37,10 +42,10 @@ import { fetchCalls, fetchCallTasks, startTestCall } from "@/hooks/useCalls"
 import useCustomToast from "@/hooks/useCustomToast"
 import { fetchWard } from "@/hooks/useWards"
 import i18n from "@/i18n"
-import { handleError } from "@/utils"
+import { callStartErrorKey } from "@/lib/apiErrors"
 
 export const Route = createFileRoute("/_layout/wards/$wardId")({
-  component: WardDetail,
+  component: WardRoute,
   head: () => ({
     meta: [
       {
@@ -49,6 +54,16 @@ export const Route = createFileRoute("/_layout/wards/$wardId")({
     ],
   }),
 })
+
+function WardRoute() {
+  const showingCall = useRouterState({
+    select: (state) =>
+      state.matches.some(
+        (match) => match.routeId === "/_layout/wards/$wardId/calls/$callId",
+      ),
+  })
+  return showingCall ? <Outlet /> : <WardDetail />
+}
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString(i18n.language, {
@@ -74,22 +89,18 @@ function WardDetail() {
   } = useQuery({
     queryKey: ["ward", wardId],
     queryFn: () => fetchWard(wardId),
+    refetchInterval: 5000,
   })
 
   const testCall = useMutation({
     mutationFn: () => startTestCall(wardId),
-    onSuccess: (call) => {
-      showSuccessToast(
-        t("wardDetail.testCallResult", {
-          outcome: call.result
-            ? t(`outcome.${call.result.outcome}`)
-            : t("wardDetail.noOutcome"),
-        }),
-      )
+    onSuccess: () => {
+      showSuccessToast(t("wardDetail.callQueued"))
       queryClient.invalidateQueries({ queryKey: ["ward", wardId] })
       queryClient.invalidateQueries({ queryKey: ["calls", wardId] })
+      queryClient.invalidateQueries({ queryKey: ["call-tasks", wardId] })
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (error) => showErrorToast(t(callStartErrorKey(error))),
   })
 
   if (isPending) {
@@ -143,6 +154,7 @@ function WardDetail() {
                 size="sm"
                 onClick={() => testCall.mutate()}
                 disabled={testCall.isPending}
+                aria-busy={testCall.isPending}
               >
                 <PhoneOff aria-hidden className="rotate-135" />
                 {t("wardDetail.callNow")}
@@ -226,10 +238,12 @@ function RoutinesSection({ wardId }: { wardId: string }) {
   const { isPending, data: ward } = useQuery({
     queryKey: ["ward", wardId],
     queryFn: () => fetchWard(wardId),
+    refetchInterval: 5000,
   })
   const { data: callTasks } = useQuery({
     queryKey: ["call-tasks", wardId],
     queryFn: () => fetchCallTasks(wardId),
+    refetchInterval: 5000,
   })
 
   if (isPending || !ward) {
@@ -365,6 +379,7 @@ function CallsSection({ wardId }: { wardId: string }) {
   const { isPending, data: calls } = useQuery({
     queryKey: ["calls", wardId],
     queryFn: () => fetchCalls(wardId),
+    refetchInterval: 5000,
   })
 
   if (isPending) {
@@ -424,10 +439,26 @@ function CallsSection({ wardId }: { wardId: string }) {
                     {call.attempt_no > 1 &&
                       ` · ${t("wardDetail.attemptLower", { number: call.attempt_no })}`}
                   </p>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Phone aria-hidden className="size-3" />
+                    {t(`wardDetail.callStatus.${call.status}`)}
+                  </p>
                 </div>
-                {call.result && (
-                  <TodayOutcomeBadge status={call.result.outcome} />
-                )}
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {call.result && (
+                    <span className="text-xs text-muted-foreground">
+                      {t("wardDetail.medicationOutcome")}
+                    </span>
+                  )}
+                  {call.result ? (
+                    <TodayOutcomeBadge status={call.result.outcome} />
+                  ) : (
+                    <TodayOutcomeBadge status="pending" />
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {t("wardDetail.viewCall")}
+                  </span>
+                </div>
               </Link>
             </li>
           ))}

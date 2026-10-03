@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { MedicationsService } from "@/client"
 import { mockMedications } from "@/mocks/store"
@@ -6,6 +6,11 @@ import { mockMedications } from "@/mocks/store"
 import { fetchMedications, filterMedications } from "./useMedications"
 
 describe("fetchMedications — mocks mode (default)", () => {
+  beforeEach(() => vi.stubEnv("VITE_USE_MOCKS", "1"))
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
   it("returns the test catalog without calling the API", async () => {
     const spy = vi.spyOn(MedicationsService, "readMedications")
     const result = await fetchMedications()

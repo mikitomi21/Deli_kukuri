@@ -336,6 +336,7 @@ class CallTask(TimestampedModel, table=True):
     routine_id: uuid.UUID = Field(
         foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
     )
+
     scheduled_at: datetime = Field(sa_type=DateTime(timezone=True))
     attempt_no: int = Field(default=1, ge=1)
     max_attempts: int = Field(default_factory=get_call_max_attempts, ge=1)
@@ -355,6 +356,65 @@ class CallTask(TimestampedModel, table=True):
             name="ck_calltask_status",
         ),
     )
+
+
+class CallTaskPublic(SQLModel):
+    id: uuid.UUID
+    routine_id: uuid.UUID
+    scheduled_at: datetime
+    attempt_no: int
+    max_attempts: int
+    status: str
+    created_at: datetime | None = None
+
+
+class CallTasksPublic(SQLModel):
+    data: list[CallTaskPublic]
+    count: int
+
+
+class CallResultPublic(SQLModel):
+    outcome: str
+    confidence: float
+    transcript_full: str
+    notes: str | None = None
+
+
+class CallTurnPublic(SQLModel):
+    turn_no: int
+    question: str
+    speech_result: str
+    confidence: float
+    parsed: str
+
+
+class CallPublic(SQLModel):
+    id: uuid.UUID
+    ward_id: uuid.UUID
+    call_task_id: uuid.UUID
+    routine_id: uuid.UUID
+    routine: dict[str, str]
+    status: str
+    started_at: datetime
+    duration_sec: int
+    attempt_no: int
+    result: CallResultPublic | None = None
+    turns: list[CallTurnPublic] = []
+
+
+class CallsPublic(SQLModel):
+    data: list[CallPublic]
+    count: int
+
+
+class DailyStats(SQLModel):
+    took: int
+    total: int
+
+
+class WardStatsPublic(SQLModel):
+    today: DailyStats
+    week_pct: int
 
 
 class CallStatus:

@@ -58,7 +58,7 @@ export interface CallTask {
   routine_id: string
   routine_name: string
   scheduled_at: string
-  status: "pending" | "in_progress" | "completed" | "canceled"
+  status: "pending" | "in_progress" | "completed" | "canceled" | "failed"
   attempt_no: number
 }
 
@@ -77,7 +77,15 @@ export interface Call {
   /** Routine the call belongs to (null for ad-hoc calls). */
   routine_id: string | null
   routine: { name: string; time_of_day: string }
-  status: "in_progress" | "completed"
+  status:
+    | "queued"
+    | "ringing"
+    | "in_progress"
+    | "completed"
+    | "busy"
+    | "failed"
+    | "no_answer"
+    | "canceled"
   started_at: string
   duration_sec: number
   attempt_no: number
@@ -85,6 +93,7 @@ export interface Call {
     outcome: CallOutcome
     confidence: number
     transcript_full: string
+    notes?: string | null
   } | null
   turns: CallTurn[]
 }
