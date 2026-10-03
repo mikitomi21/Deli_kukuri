@@ -2,6 +2,7 @@ services:
 
   proxy:
     restart: always
+    mem_limit: 128m
     ports:
       # Listen on port 80, default for HTTP, necessary to redirect to HTTPS
       - "80:80"
@@ -33,9 +34,11 @@ services:
 
   db:
     restart: always
+    mem_limit: 512m
 
   adminer:
     restart: always
+    mem_limit: 96m
     labels:
       # Route HTTPS traffic for the Adminer subdomain
       - traefik.http.routers.adminer-https.rule=Host(`adminer.${DOMAIN:?Variable not set}`)
@@ -46,8 +49,16 @@ services:
 
   backend:
     restart: always
+    # Obraz buduje i pushuje CI (Docker Hub) — na VPS nic się nie buduje
+    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze, np. docker.io/timosch99/dzwonilek:latest}
+    # Migracje + seed (superuser, katalog leków) przed startem aplikacji
+    command:
+      - bash
+      - -c
+      - scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
     environment:
       FRONTEND_HOST: https://${DOMAIN:?Variable not set}
+    mem_limit: 512m
     labels:
       # Route HTTPS traffic for this domain
       - traefik.http.routers.backend-https.rule=Host(`${DOMAIN:?Variable not set}`)
@@ -55,6 +66,54 @@ services:
       - traefik.http.routers.backend-https.tls=true
       # Use the Let's Encrypt resolver
       - traefik.http.routers.backend-https.tls.certresolver=le
+
+  # Celery + Redis (docs/02-architecture.md, docs/07-scheduling-escalation.md)
+  redis:
+    image: redis:7-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    mem_limit: 96m
+
+  worker:
+    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze}
+    restart: always
+    command:
+      - celery
+      - -A
+      - app.worker.celery_app
+      - worker
+      - --loglevel=INFO
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    mem_limit: 256m
+
+  # Jeden proces beat — nie duplikować (docs/07, decyzja 2)
+  beat:
+    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze}
+    restart: always
+    command:
+      - celery
+      - -A
+      - app.worker.celery_app
+      - beat
+      - --loglevel=INFO
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    mem_limit: 96m
 
 volumes:
   # Create a volume to store the certificates, even if the container is recreated
