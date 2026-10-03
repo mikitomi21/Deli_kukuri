@@ -18,7 +18,7 @@ def seed_medications(session: Session) -> int:
     Katalog jest globalny i read-only w MVP — seed to jedyne źródło danych
     (docs/03-data-model.md, Medication).
     """
-    medicines: list[dict] = json.loads(
+    medicines: list[dict[str, str]] = json.loads(
         (FIXTURES_DIR / "medicines.json").read_text(encoding="utf-8")
     )
     added = 0

@@ -1,7 +1,8 @@
 import uuid
 from datetime import UTC, datetime
+from typing import Annotated
 
-from pydantic import EmailStr
+from pydantic import EmailStr, StringConstraints
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -57,6 +58,7 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
+    wards: list[Ward] = Relationship(back_populates="caregiver", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -144,6 +146,58 @@ class MedicationPublic(MedicationBase):
 
 class MedicationsPublic(SQLModel):
     data: list[MedicationPublic]
+    count: int
+
+
+# E.164: "+" + country code + number, np. +48600100200 (docs/03-data-model.md, Ward)
+# (Annotated zamiast Field(regex=) — regex= w SQLModel 0.0.39 jest ignorowany)
+PHONE_E164_PATTERN = r"^\+[1-9]\d{6,14}$"
+E164Phone = Annotated[str, StringConstraints(pattern=PHONE_E164_PATTERN, max_length=16)]
+
+
+# Shared properties
+class WardBase(SQLModel):
+    full_name: str = Field(min_length=1, max_length=255)
+    phone_e164: E164Phone
+    tz: str = Field(default="Europe/Warsaw", max_length=64)
+
+
+# Properties to receive via API on creation
+class WardCreate(WardBase):
+    pass
+
+
+# Properties to receive via API on update, all are optional
+class WardUpdate(SQLModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+    phone_e164: E164Phone | None = None
+    tz: str | None = Field(default=None, max_length=64)
+
+
+# Database model, database table inferred from class name
+class Ward(WardBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    active: bool = True
+    caregiver_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    caregiver: User | None = Relationship(back_populates="wards")
+
+
+# Properties to return via API, id is always required
+class WardPublic(WardBase):
+    id: uuid.UUID
+    active: bool
+    caregiver_id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class WardsPublic(SQLModel):
+    data: list[WardPublic]
     count: int
 
 
