@@ -15,8 +15,13 @@ import "./i18n"
 import { isAuthenticationError, retryApiQuery } from "./lib/apiErrors"
 import { routeTree } from "./routeTree.gen"
 
+// API base URL: explicit VITE_API_URL wins; in dev (no .env) default to the
+// local backend; in production the panel is served by the backend itself, so
+// same-origin requests are correct.
 client.setConfig({
-  baseURL: import.meta.env.VITE_API_URL ?? "",
+  baseURL:
+    import.meta.env.VITE_API_URL ??
+    (import.meta.env.DEV ? "http://localhost:8000" : ""),
   auth: () => localStorage.getItem("access_token") || "",
 })
 

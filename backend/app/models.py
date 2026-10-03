@@ -125,8 +125,8 @@ class ItemsPublic(SQLModel):
     count: int
 
 
-# Katalog globalny, współdzielony przez opiekunów; read-only w MVP
-# (zasilany tylko seedem — docs/03-data-model.md).
+# Katalog globalny, współdzielony przez opiekunów; odczyt dla wszystkich,
+# zmiany tylko dla admina (seed + CRUD w admin panelu — docs/03-data-model.md).
 class MedicationBase(SQLModel):
     name: str = Field(index=True, min_length=1, max_length=255)
     dosage: str = Field(min_length=1, max_length=100)
@@ -136,6 +136,13 @@ class MedicationBase(SQLModel):
 
 class MedicationCreate(MedicationBase):
     pass
+
+
+class MedicationUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    dosage: str | None = Field(default=None, min_length=1, max_length=100)
+    form: str | None = Field(default=None, max_length=100)
+    instructions: str | None = Field(default=None, max_length=255)
 
 
 # Database model, database table inferred from class name

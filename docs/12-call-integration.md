@@ -2,6 +2,10 @@
 
 The `origin/feature/twilio` branch is merged into this branch. Its Twilio/OpenAI
 Realtime implementation in `twilio-test/call-leki.js` runs behind `gateway.js`.
+The branch also includes `origin/main` through `cd173e6`, retaining medication
+editing/deletion, routine payload mapping and API mode as the default. The shared
+API client is regenerated from the combined backend schema. Local frontend `.env`
+overrides remain ignored; use `frontend/.env.example` for configuration.
 Each call uses a separate child process with the ward's name, timezone and
 medications from the approved routine. The gateway authenticates backend
 requests and Twilio WebSocket upgrades, and persists summaries and final
@@ -23,7 +27,8 @@ VOICE_SERVICE_TOKEN=
 VOICE_SERVICE_URL=http://voice:3000
 ```
 
-`TWILIO_FROM` is also supported. Set `VITE_USE_MOCKS=0` in `frontend/.env`.
+`TWILIO_FROM` is also supported. API mode is the default; `VITE_USE_MOCKS=mocks`
+explicitly enables demo data and `empty` previews the empty dashboard.
 The existing local configuration already contains a generated private token.
 Never commit credentials. Trial accounts require verified destination numbers.
 
@@ -91,4 +96,13 @@ docker compose exec frontend bun --bun run test:unit
 docker compose exec frontend bun --bun run build
 ```
 
-Gateway tests: `npm test` in `twilio-test/` after `npm ci`.
+Gateway tests: `npm test` in `twilio-test/` after `npm ci`, or run them with
+the built Docker image and mounted test sources:
+
+```sh
+docker compose run --rm --no-deps -e NODE_PATH=/app/node_modules -v "./twilio-test:/fixtures" voice node --test /fixtures/gateway.test.js
+```
+
+The browser suite also checks medication editing through the real API, blocked
+routine creation for inactive wards, call detail navigation after reload, and
+session recovery. Provider calls in this suite are simulated.

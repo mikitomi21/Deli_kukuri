@@ -201,7 +201,7 @@ function WardDetail() {
         </div>
       </div>
 
-      <WardTabs wardId={wardId} />
+      <WardTabs wardId={wardId} wardActive={ward.active} />
 
       <WardEditDialog ward={ward} open={editOpen} onOpenChange={setEditOpen} />
       <WardDeactivateDialog
@@ -213,7 +213,13 @@ function WardDetail() {
   )
 }
 
-function WardTabs({ wardId }: { wardId: string }) {
+function WardTabs({
+  wardId,
+  wardActive,
+}: {
+  wardId: string
+  wardActive: boolean
+}) {
   const { t } = useTranslation("wards")
   return (
     <Tabs defaultValue="routines">
@@ -224,7 +230,7 @@ function WardTabs({ wardId }: { wardId: string }) {
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
-        <RoutinesSection wardId={wardId} />
+        <RoutinesSection wardId={wardId} wardActive={wardActive} />
       </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />
@@ -233,7 +239,13 @@ function WardTabs({ wardId }: { wardId: string }) {
   )
 }
 
-function RoutinesSection({ wardId }: { wardId: string }) {
+function RoutinesSection({
+  wardId,
+  wardActive,
+}: {
+  wardId: string
+  wardActive: boolean
+}) {
   const { t } = useTranslation("wards")
   const { isPending, data: ward } = useQuery({
     queryKey: ["ward", wardId],
@@ -319,12 +331,18 @@ function RoutinesSection({ wardId }: { wardId: string }) {
                 {t("wardDetail.routinesDescription")}
               </CardDescription>
             </div>
-            <AddRoutineDialog wardId={wardId}>
-              <Button variant="outline" size="sm">
-                <Plus aria-hidden />
-                {t("wardDetail.addRoutine")}
-              </Button>
-            </AddRoutineDialog>
+            {!wardActive ? (
+              <p className="text-xs text-muted-foreground">
+                {t("wardDetail.routinesInactiveHint")}
+              </p>
+            ) : (
+              <AddRoutineDialog wardId={wardId}>
+                <Button variant="outline" size="sm">
+                  <Plus aria-hidden />
+                  {t("wardDetail.addRoutine")}
+                </Button>
+              </AddRoutineDialog>
+            )}
           </div>
         </CardHeader>
         <CardContent>

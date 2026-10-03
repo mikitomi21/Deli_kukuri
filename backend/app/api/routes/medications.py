@@ -1,13 +1,20 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import col, func, select
 
-from app.api.deps import CurrentUser, SessionDep
-from app.models import Medication, MedicationPublic, MedicationsPublic
+from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.models import (
+    Medication,
+    MedicationPublic,
+    MedicationsPublic,
+    MedicationUpdate,
+    Message,
+)
 
-# Katalog globalny i read-only w MVP — zasilany wyłącznie seedem (docs/05).
+# Katalog globalny: odczyt dla zalogowanych, zmiany tylko dla admina (docs/05).
 router = APIRouter(prefix="/medications", tags=["medications"])
 
 
@@ -51,3 +58,72 @@ def read_medication(
     if not medication:
         raise HTTPException(status_code=404, detail="Medication not found")
     return medication
+
+
+@router.patch(
+    "/{id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=MedicationPublic,
+)
+def update_medication(
+    session: SessionDep,
+    id: uuid.UUID,
+    medication_in: MedicationUpdate,
+    _current_user: CurrentUser,
+) -> Any:
+    """
+    Update a medication (superuser only).
+    """
+    medication = session.get(Medication, id)
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
+
+    update_data = medication_in.model_dump(exclude_unset=True)
+    if "name" in update_data or "dosage" in update_data:
+        new_name = update_data.get("name", medication.name)
+        new_dosage = update_data.get("dosage", medication.dosage)
+        duplicate = session.exec(
+            select(Medication).where(
+                Medication.name == new_name,
+                Medication.dosage == new_dosage,
+                Medication.id != id,
+            )
+        ).first()
+        if duplicate:
+            raise HTTPException(
+                status_code=409,
+                detail="A medication with this name and dosage already exists",
+            )
+
+    medication.sqlmodel_update(update_data)
+    session.add(medication)
+    session.commit()
+    session.refresh(medication)
+    return medication
+
+
+@router.delete(
+    "/{id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=Message,
+)
+def delete_medication(
+    session: SessionDep, id: uuid.UUID, _current_user: CurrentUser
+) -> Message:
+    """
+    Delete a medication from the catalog (superuser only).
+    """
+    medication = session.get(Medication, id)
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
+
+    session.delete(medication)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Medication is referenced by routine items and cannot be deleted",
+        )
+    return Message(message="Medication deleted successfully")

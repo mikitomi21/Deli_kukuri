@@ -1,7 +1,6 @@
 /**
  * Domain types shaped after the docs/05-api-spec.md contract.
- * Fields not yet available on the backend (routines, calls, stats) are
- * delivered by the mock layer (src/mocks/store.ts) and marked accordingly.
+ * API and demo modes share these shapes for routines, calls and statistics.
  */
 
 export type RoutineStatus = "draft" | "approved" | "paused"
@@ -17,13 +16,15 @@ export interface Ward {
   active: boolean
 }
 
-/** Ward enriched with today's data. TODO(api): backend has no stats/routines yet. */
+/**
+ * Ward enriched with routines, persisted call outcomes and adherence statistics.
+ */
 export interface WardWithToday extends Ward {
-  /** Today's summary: took / total routines (mock only). */
+  /** Today's summary: took / total routines. */
   today?: { took: number; total: number }
-  /** Adherence over the last 7 days, percent (mock only). */
+  /** Adherence over the last 7 days, percent. */
   week_pct?: number
-  /** Ward routines with today's outcomes (mock only). */
+  /** Ward routines with today's outcomes. */
   routines?: RoutineWithOutcome[]
 }
 

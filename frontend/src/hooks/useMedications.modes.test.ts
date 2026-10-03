@@ -1,29 +1,29 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { MedicationsService } from "@/client"
 import { mockMedications } from "@/mocks/store"
 
 import { fetchMedications, filterMedications } from "./useMedications"
 
-describe("fetchMedications — mocks mode (default)", () => {
-  beforeEach(() => vi.stubEnv("VITE_USE_MOCKS", "1"))
-  afterEach(() => {
-    vi.unstubAllEnvs()
-    vi.restoreAllMocks()
-  })
+describe("fetchMedications — mocks mode (VITE_USE_MOCKS=mocks)", () => {
   it("returns the test catalog without calling the API", async () => {
+    // Pin the mode so the test does not depend on the real frontend/.env
+    vi.stubEnv("VITE_USE_MOCKS", "1")
     const spy = vi.spyOn(MedicationsService, "readMedications")
-    const result = await fetchMedications()
+    try {
+      const result = await fetchMedications()
 
-    expect(spy).not.toHaveBeenCalled()
-    expect(result).toEqual(mockMedications)
-    expect(result.length).toBeGreaterThan(0)
-
-    spy.mockRestore()
+      expect(spy).not.toHaveBeenCalled()
+      expect(result).toEqual(mockMedications)
+      expect(result.length).toBeGreaterThan(0)
+    } finally {
+      spy.mockRestore()
+      vi.unstubAllEnvs()
+    }
   })
 })
 
-describe("fetchMedications — API mode (VITE_USE_MOCKS=0)", () => {
+describe("fetchMedications — API mode (default, no env needed)", () => {
   it("calls the real GET /medications endpoint", async () => {
     const fake: Array<{ id: string; name: string; dosage: string }> = [
       { id: "uuid-1", name: "Warfarin", dosage: "5 mg" },
@@ -36,7 +36,8 @@ describe("fetchMedications — API mode (VITE_USE_MOCKS=0)", () => {
         response: new Response(),
       } as never)
 
-    vi.stubEnv("VITE_USE_MOCKS", "0")
+    // unset env = API mode (the new default)
+    vi.stubEnv("VITE_USE_MOCKS", "")
     try {
       const result = await fetchMedications()
       expect(spy).toHaveBeenCalledOnce()

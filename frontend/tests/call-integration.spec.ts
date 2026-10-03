@@ -2,6 +2,59 @@ import { expect, test } from "@playwright/test"
 
 const api = `${process.env.CALL_TEST_API_URL}/api/v1`
 
+test("the merged medication editor saves through the real API in Polish", async ({
+  page,
+  request,
+}) => {
+  const login = await request.post(`${api}/login/access-token`, {
+    form: {
+      username: process.env.FIRST_SUPERUSER!,
+      password: process.env.FIRST_SUPERUSER_PASSWORD!,
+    },
+  })
+  const headers = {
+    Authorization: `Bearer ${(await login.json()).access_token}`,
+  }
+  const catalog = await request.get(`${api}/medications/`, { headers })
+  const medication = (await catalog.json()).data[0]
+  try {
+    await page.goto("/admin")
+    await page
+      .getByPlaceholder("Szukaj leków po nazwie, dawce lub postaci…")
+      .fill(medication.name)
+    const row = page
+      .getByRole("row")
+      .filter({ hasText: medication.name })
+      .first()
+    await row.getByRole("button", { name: "Otwórz menu działań leku" }).click()
+    await page.getByRole("menuitem", { name: "Edytuj lek" }).click()
+    await page
+      .getByPlaceholder("np. po posiłku")
+      .fill("Integration instructions")
+    await page.getByRole("button", { name: "Zapisz", exact: true }).click()
+    await expect(
+      page.getByText("Lek został zaktualizowany", { exact: true }),
+    ).toBeVisible()
+    await expect
+      .poll(
+        async () =>
+          (
+            await (
+              await request.get(`${api}/medications/${medication.id}`, {
+                headers,
+              })
+            ).json()
+          ).instructions,
+      )
+      .toBe("Integration instructions")
+  } finally {
+    await request.patch(`${api}/medications/${medication.id}`, {
+      headers,
+      data: { instructions: medication.instructions },
+    })
+  }
+})
+
 test.beforeEach(async ({ page, request }) => {
   page.on("pageerror", (error) => console.error(error.message))
   page.on("console", (message) => {
@@ -169,6 +222,23 @@ for (const mode of ["manual", "scheduled"] as const) {
       await page.reload()
       await expect(
         page.getByText("Podsumowanie rozmowy", { exact: true }),
+      ).toBeVisible()
+      await page.getByRole("link", { name: "Wróć do podopiecznego" }).click()
+      await expect(
+        page.getByRole("heading", { name: ward.full_name }),
+      ).toBeVisible()
+      const deactivated = await request.delete(`${api}/wards/${ward.id}`, {
+        headers,
+      })
+      expect(deactivated.ok()).toBeTruthy()
+      await page.reload()
+      await expect(
+        page.getByRole("button", { name: "Dodaj rutynę" }),
+      ).toHaveCount(0)
+      await expect(
+        page.getByText(
+          "Podopieczny jest dezaktywowany — dodawanie nowych rutyn jest wyłączone.",
+        ),
       ).toBeVisible()
     } finally {
       await request.post(`${api}/routines/${routine.id}/pause`, { headers })

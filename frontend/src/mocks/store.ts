@@ -1,8 +1,7 @@
 /**
- * In-memory mock "backend" covering every docs/05-api-spec.md endpoint that
- * the real backend does not ship yet (routines, call-tasks, calls, test-call,
- * stats). Wards/medications exist on the backend (T05) and go through the
- * generated client — see src/hooks/useWards.ts.
+ * In-memory demo "backend" for the docs/05-api-spec.md endpoints.
+ * VITE_USE_MOCKS=mocks explicitly enables demo data. Wards, medications,
+ * routines, calls and statistics use the generated API client by default.
  *
  * Data lives for the browser session (no persistence). All mutations are
  * immutable so TanStack Query always sees a fresh reference.
@@ -15,6 +14,7 @@ import type {
   CallTask,
   Routine,
   RoutineItem,
+  RoutineWithOutcome,
   WardStats,
   WardWithToday,
 } from "@/types/dashboard"
@@ -456,6 +456,18 @@ export async function deactivateWard(id: string): Promise<void> {
 export async function listRoutines(wardId: string): Promise<Routine[]> {
   await delay()
   return structuredClone(db.find((w) => w.ward.id === wardId)?.routines ?? [])
+}
+
+/** Routines enriched with today's outcome — what the ward detail tab renders. */
+export async function listRoutinesWithOutcomes(
+  wardId: string,
+): Promise<RoutineWithOutcome[]> {
+  await delay()
+  const mock = db.find((w) => w.ward.id === wardId)
+  if (!mock) return []
+  return structuredClone(
+    mock.routines.map((r) => ({ ...r, today_status: todayOutcome(mock, r) })),
+  )
 }
 
 export interface RoutinePayload {

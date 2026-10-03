@@ -18,9 +18,9 @@ export { getWardsMode, type WardsMode } from "./apiMode"
 /**
  * Ward hooks. The backend ships full wards CRUD since T05, so the tag
  * VITE_USE_MOCKS (frontend/.env) picks the data source:
- *   - unset / other → mocks (dev default, keeps demo data + today stats)
+ *   - unset / "0" / "false" → real API (default)
+ *   - "mocks" / "1" / "true" → demo data
  *   - "empty"       → mocks with an empty list (empty-state preview)
- *   - "0"           → real API: GET/POST/PATCH/DELETE /wards
  * API mode enriches wards with persisted routines, calls and statistics.
  */
 

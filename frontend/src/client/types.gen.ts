@@ -316,6 +316,28 @@ export type MedicationPublic = {
 };
 
 /**
+ * MedicationUpdate
+ */
+export type MedicationUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Dosage
+     */
+    dosage?: string | null;
+    /**
+     * Form
+     */
+    form?: string | null;
+    /**
+     * Instructions
+     */
+    instructions?: string | null;
+};
+
+/**
  * MedicationsPublic
  */
 export type MedicationsPublic = {
@@ -1466,6 +1488,36 @@ export type medicationsReadMedicationsResponses = {
 
 export type medicationsReadMedicationsResponse = medicationsReadMedicationsResponses[keyof medicationsReadMedicationsResponses];
 
+export type medicationsDeleteMedicationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/medications/{id}';
+};
+
+export type medicationsDeleteMedicationErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsDeleteMedicationError = medicationsDeleteMedicationErrors[keyof medicationsDeleteMedicationErrors];
+
+export type medicationsDeleteMedicationResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type medicationsDeleteMedicationResponse = medicationsDeleteMedicationResponses[keyof medicationsDeleteMedicationResponses];
+
 export type medicationsReadMedicationData = {
     body?: never;
     path: {
@@ -1495,6 +1547,36 @@ export type medicationsReadMedicationResponses = {
 };
 
 export type medicationsReadMedicationResponse = medicationsReadMedicationResponses[keyof medicationsReadMedicationResponses];
+
+export type medicationsUpdateMedicationData = {
+    body: MedicationUpdate;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/medications/{id}';
+};
+
+export type medicationsUpdateMedicationErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsUpdateMedicationError = medicationsUpdateMedicationErrors[keyof medicationsUpdateMedicationErrors];
+
+export type medicationsUpdateMedicationResponses = {
+    /**
+     * Successful Response
+     */
+    200: MedicationPublic;
+};
+
+export type medicationsUpdateMedicationResponse = medicationsUpdateMedicationResponses[keyof medicationsUpdateMedicationResponses];
 
 export type wardsReadWardsData = {
     body?: never;

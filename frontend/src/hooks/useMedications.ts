@@ -5,8 +5,8 @@ import { mockMedications } from "@/mocks/store"
 /**
  * Medication catalog (read-only, shared — docs/05-api-spec.md).
  * The tag VITE_USE_MOCKS picks the source:
- *   - mocks (default) → test catalog from src/mocks/store.ts
- *   - "0" (API)       → GET /api/v1/medications?q= (ILIKE search, shipped in T05)
+ *   - unset / "0" (API, default) → GET /api/v1/medications?q= (ILIKE search)
+ *   - "mocks" / "1"              → test catalog from src/mocks/store.ts
  */
 
 export type CatalogMedication = Pick<

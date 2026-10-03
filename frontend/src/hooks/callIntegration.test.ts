@@ -72,6 +72,7 @@ describe("real call and routine API integration", () => {
       body: {
         name: "Morning",
         time_of_day: "09:00",
+        days: "daily",
         depends_on: [],
         items: [{ medication_id: "med-id", amount_label: "1 tablet" }],
       },
