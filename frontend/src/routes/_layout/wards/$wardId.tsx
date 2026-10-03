@@ -16,7 +16,6 @@ import {
   Pill,
   Plus,
   Sparkles,
-  UserX,
   Trash2,
 } from "lucide-react"
 import { useState } from "react"
