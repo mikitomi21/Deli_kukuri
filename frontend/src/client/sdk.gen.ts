@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsDeleteMedicationData, medicationsDeleteMedicationErrors, medicationsDeleteMedicationResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, medicationsUpdateMedicationData, medicationsUpdateMedicationErrors, medicationsUpdateMedicationResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -380,6 +380,20 @@ export class MedicationsService {
     }
     
     /**
+     * Delete Medication
+     *
+     * Delete a medication from the catalog (superuser only).
+     */
+    public static deleteMedication<ThrowOnError extends boolean = true>(options: Options<medicationsDeleteMedicationData, ThrowOnError>) {
+        return (options.client ?? client).delete<medicationsDeleteMedicationResponses, medicationsDeleteMedicationErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/medications/{id}',
+            ...options
+        });
+    }
+    
+    /**
      * Read Medication
      *
      * Get medication by ID.
@@ -390,6 +404,24 @@ export class MedicationsService {
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/medications/{id}',
             ...options
+        });
+    }
+    
+    /**
+     * Update Medication
+     *
+     * Update a medication (superuser only).
+     */
+    public static updateMedication<ThrowOnError extends boolean = true>(options: Options<medicationsUpdateMedicationData, ThrowOnError>) {
+        return (options.client ?? client).patch<medicationsUpdateMedicationResponses, medicationsUpdateMedicationErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/medications/{id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
         });
     }
 }
@@ -470,6 +502,102 @@ export class WardsService {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
+        });
+    }
+}
+
+export class RoutinesService {
+    /**
+     * Read Routines For Ward
+     *
+     * List routines of a ward, with items, dependencies and status.
+     */
+    public static readRoutinesForWard<ThrowOnError extends boolean = true>(options: Options<routinesReadRoutinesForWardData, ThrowOnError>) {
+        return (options.client ?? client).get<routinesReadRoutinesForWardResponses, routinesReadRoutinesForWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/routines',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Routine
+     *
+     * Create a new routine (draft) with items and dependencies in one payload.
+     */
+    public static createRoutine<ThrowOnError extends boolean = true>(options: Options<routinesCreateRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesCreateRoutineResponses, routinesCreateRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/routines',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Delete Routine
+     *
+     * Delete a routine. Only draft routines can be deleted.
+     */
+    public static deleteRoutine<ThrowOnError extends boolean = true>(options: Options<routinesDeleteRoutineData, ThrowOnError>) {
+        return (options.client ?? client).delete<routinesDeleteRoutineResponses, routinesDeleteRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Routine
+     *
+     * Update a routine. Editing an approved/paused routine resets it to `draft`
+     * (changes require re-approval, docs/04-user-stories.md C4).
+     */
+    public static updateRoutine<ThrowOnError extends boolean = true>(options: Options<routinesUpdateRoutineData, ThrowOnError>) {
+        return (options.client ?? client).patch<routinesUpdateRoutineResponses, routinesUpdateRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Approve Routine
+     *
+     * Approve a routine (gates scheduling). 409 when the routine has no
+     * medications or a required routine is not approved (docs/05).
+     */
+    public static approveRoutine<ThrowOnError extends boolean = true>(options: Options<routinesApproveRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesApproveRoutineResponses, routinesApproveRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}/approve',
+            ...options
+        });
+    }
+    
+    /**
+     * Pause Routine
+     *
+     * Pause a routine: the materializer skips paused routines (docs/04, C4).
+     */
+    public static pauseRoutine<ThrowOnError extends boolean = true>(options: Options<routinesPauseRoutineData, ThrowOnError>) {
+        return (options.client ?? client).post<routinesPauseRoutineResponses, routinesPauseRoutineErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/routines/{id}/pause',
+            ...options
         });
     }
 }

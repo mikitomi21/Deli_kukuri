@@ -143,6 +143,28 @@ export type MedicationPublic = {
 };
 
 /**
+ * MedicationUpdate
+ */
+export type MedicationUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Dosage
+     */
+    dosage?: string | null;
+    /**
+     * Form
+     */
+    form?: string | null;
+    /**
+     * Instructions
+     */
+    instructions?: string | null;
+};
+
+/**
  * MedicationsPublic
  */
 export type MedicationsPublic = {
@@ -200,6 +222,165 @@ export type PrivateUserCreate = {
      * Is Verified
      */
     is_verified?: boolean;
+};
+
+/**
+ * RoutineCreate
+ */
+export type RoutineCreate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Time Of Day
+     */
+    time_of_day: string;
+    /**
+     * Days
+     */
+    days?: string;
+    /**
+     * Items
+     */
+    items?: Array<RoutineItemCreate>;
+    /**
+     * Depends On
+     */
+    depends_on?: Array<string>;
+};
+
+/**
+ * RoutineDependencyPublic
+ */
+export type RoutineDependencyPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Status
+     */
+    status: string;
+};
+
+/**
+ * RoutineItemCreate
+ */
+export type RoutineItemCreate = {
+    /**
+     * Medication Id
+     */
+    medication_id: string;
+    /**
+     * Amount Label
+     */
+    amount_label: string;
+};
+
+/**
+ * RoutineItemPublic
+ */
+export type RoutineItemPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Medication Id
+     */
+    medication_id: string;
+    /**
+     * Amount Label
+     */
+    amount_label: string;
+    medication?: MedicationPublic | null;
+};
+
+/**
+ * RoutinePublic
+ */
+export type RoutinePublic = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Time Of Day
+     */
+    time_of_day: string;
+    /**
+     * Days
+     */
+    days?: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Ward Id
+     */
+    ward_id: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Items
+     */
+    items?: Array<RoutineItemPublic>;
+    /**
+     * Depends On
+     */
+    depends_on?: Array<RoutineDependencyPublic>;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * RoutineUpdate
+ */
+export type RoutineUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Time Of Day
+     */
+    time_of_day?: string | null;
+    /**
+     * Days
+     */
+    days?: string | null;
+    /**
+     * Items
+     */
+    items?: Array<RoutineItemCreate> | null;
+    /**
+     * Depends On
+     */
+    depends_on?: Array<string> | null;
+};
+
+/**
+ * RoutinesPublic
+ */
+export type RoutinesPublic = {
+    /**
+     * Data
+     */
+    data: Array<RoutinePublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 /**
@@ -1087,6 +1268,36 @@ export type medicationsReadMedicationsResponses = {
 
 export type medicationsReadMedicationsResponse = medicationsReadMedicationsResponses[keyof medicationsReadMedicationsResponses];
 
+export type medicationsDeleteMedicationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/medications/{id}';
+};
+
+export type medicationsDeleteMedicationErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsDeleteMedicationError = medicationsDeleteMedicationErrors[keyof medicationsDeleteMedicationErrors];
+
+export type medicationsDeleteMedicationResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type medicationsDeleteMedicationResponse = medicationsDeleteMedicationResponses[keyof medicationsDeleteMedicationResponses];
+
 export type medicationsReadMedicationData = {
     body?: never;
     path: {
@@ -1116,6 +1327,36 @@ export type medicationsReadMedicationResponses = {
 };
 
 export type medicationsReadMedicationResponse = medicationsReadMedicationResponses[keyof medicationsReadMedicationResponses];
+
+export type medicationsUpdateMedicationData = {
+    body: MedicationUpdate;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/medications/{id}';
+};
+
+export type medicationsUpdateMedicationErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsUpdateMedicationError = medicationsUpdateMedicationErrors[keyof medicationsUpdateMedicationErrors];
+
+export type medicationsUpdateMedicationResponses = {
+    /**
+     * Successful Response
+     */
+    200: MedicationPublic;
+};
+
+export type medicationsUpdateMedicationResponse = medicationsUpdateMedicationResponses[keyof medicationsUpdateMedicationResponses];
 
 export type wardsReadWardsData = {
     body?: never;
@@ -1265,6 +1506,195 @@ export type wardsUpdateWardResponses = {
 };
 
 export type wardsUpdateWardResponse = wardsUpdateWardResponses[keyof wardsUpdateWardResponses];
+
+export type routinesReadRoutinesForWardData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/wards/{ward_id}/routines';
+};
+
+export type routinesReadRoutinesForWardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesReadRoutinesForWardError = routinesReadRoutinesForWardErrors[keyof routinesReadRoutinesForWardErrors];
+
+export type routinesReadRoutinesForWardResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinesPublic;
+};
+
+export type routinesReadRoutinesForWardResponse = routinesReadRoutinesForWardResponses[keyof routinesReadRoutinesForWardResponses];
+
+export type routinesCreateRoutineData = {
+    body: RoutineCreate;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: never;
+    url: '/api/v1/wards/{ward_id}/routines';
+};
+
+export type routinesCreateRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesCreateRoutineError = routinesCreateRoutineErrors[keyof routinesCreateRoutineErrors];
+
+export type routinesCreateRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinePublic;
+};
+
+export type routinesCreateRoutineResponse = routinesCreateRoutineResponses[keyof routinesCreateRoutineResponses];
+
+export type routinesDeleteRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/routines/{id}';
+};
+
+export type routinesDeleteRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesDeleteRoutineError = routinesDeleteRoutineErrors[keyof routinesDeleteRoutineErrors];
+
+export type routinesDeleteRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type routinesDeleteRoutineResponse = routinesDeleteRoutineResponses[keyof routinesDeleteRoutineResponses];
+
+export type routinesUpdateRoutineData = {
+    body: RoutineUpdate;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/routines/{id}';
+};
+
+export type routinesUpdateRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesUpdateRoutineError = routinesUpdateRoutineErrors[keyof routinesUpdateRoutineErrors];
+
+export type routinesUpdateRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinePublic;
+};
+
+export type routinesUpdateRoutineResponse = routinesUpdateRoutineResponses[keyof routinesUpdateRoutineResponses];
+
+export type routinesApproveRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/routines/{id}/approve';
+};
+
+export type routinesApproveRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesApproveRoutineError = routinesApproveRoutineErrors[keyof routinesApproveRoutineErrors];
+
+export type routinesApproveRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinePublic;
+};
+
+export type routinesApproveRoutineResponse = routinesApproveRoutineResponses[keyof routinesApproveRoutineResponses];
+
+export type routinesPauseRoutineData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/routines/{id}/pause';
+};
+
+export type routinesPauseRoutineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type routinesPauseRoutineError = routinesPauseRoutineErrors[keyof routinesPauseRoutineErrors];
+
+export type routinesPauseRoutineResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutinePublic;
+};
+
+export type routinesPauseRoutineResponse = routinesPauseRoutineResponses[keyof routinesPauseRoutineResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;
