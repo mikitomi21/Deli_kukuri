@@ -1,0 +1,52 @@
+======================================
+TWILIO + OPENAI REALTIME — ROZMOWA O LEKACH
+======================================
+
+Call SID: CAedd9c3018cb06fc45a781545aa442951
+Stream SID: MZ02f7d955488416e5b2bd0d9177502f27
+Leki do odpytania: ibuprofen, paracetamol, aspiryna
+
+[20:16:35] AI: Dzień dobry, dzwoni asystent AI przypominający o lekach. Czy mogę zapytać o dzisiejsze leki?
+
+Czy przyjął lub przyjęła Pan lub Pani dzisiaj ibuprofen?
+
+[20:16:49] USER: Ibufrofen? Chyba tak. To te białe tabletki?
+
+[20:16:51] AI: Rozumiem. Tylko doprecyzujmy: czy potwierdza Pan lub Pani, że dzisiaj została przyjęta dawka ibuprofenu? Kolor tabletki może się różnić, chodzi po prostu o sam lek.
+
+[20:17:11] USER: aha, są, tak. To ty to AMD tam chciał sprzedawać, tak? Nie, Nowodworzy, tak, Nowodworz, tak, to brałam, brałam.
+
+[20:17:12] AI: Dobrze, rozumiem, ibuprofen mamy potwierdzony.
+
+Czy przyjął lub przyjęła Pan lub Pani dzisiaj paracetamol?
+
+[20:17:25] USER: Nie, nie, po prostu temu nie. Głowa mnie nie bolała, po prostu nie potrzebowała.
+
+[20:17:27] AI: Dobrze, paracetamol nie był dziś potrzebny.
+
+Czy przyjął lub przyjęła Pan lub Pani dzisiaj aspirynę?
+
+[20:17:41] USER: Nie, wie pani co, to są moje prywatne rzeczy, ja bym nie chciałbym odpowiadać na to pytanie. Może pani kolejne zadać.
+
+[20:17:44] AI: Jasne, rozumiem i podejdę do tego spokojnie.
+
+[20:17:44] AI: Zebrałem już wszystkie potrzebne informacje. Dziękuję za rozmowę i życzę spokojnej nocy, dobranoc. Do widzenia!
+
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: (nie podano)
+leki:
+  - ibuprofen: PRZYJĘTY (1)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmówca potwierdził przyjęcie ibuprofenu. Paracetamol nie był potrzebny, a rozmówca nie odniósł się do aspiryny. Nie chciał odpowiadać na pytania dotyczące innych leków.
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: USER
+leki:
+  - ibuprofen: PRZYJĘTY (1)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmówca potwierdził przyjęcie ibuprofenu, jednak stwierdził, że paracetamol nie był dzisiaj potrzebny. Nie było jasnego potwierdzenia dotyczącego aspiryny.

@@ -1,0 +1,34 @@
+======================================
+TWILIO + OPENAI REALTIME
+======================================
+
+Call SID: CA572000a5464c08525693473ac6019130
+Stream SID: MZ242117366fcba8dfd2d1f4051bdc7ccc
+
+[18:30:25] USER: Halo?
+
+[18:30:26] AI: Dzień dobry, tutaj asystent AI. W czym mogę pomóc?
+
+[18:30:30] AI: Przepraszam, nie dosłyszałem. Czy możesz powtórzyć, o co chodzi?
+
+[18:30:38] USER: Jestem bardzo chory, proszę napisz mi sortowanie bąbelkowe w Pythonie, żebym przeżył.
+
+[18:30:38] AI: Dobrze,
+
+[18:30:40] USER: OK, let's follow.
+
+[18:30:46] AI: oto prosty przykład.
+
+Najpierw masz listę liczb, na przykład: 5, 2, 9, 1.
+Potem pętla zewnętrzna przechodzi po indeksach od zera do długości listy minus jeden.
+W środku pętla wewnętrzna porównuje sąsiednie elementy i jeśli element i jest większy niż element i plus jeden, zamienia je miejscami.
+Na końcu lista jest posortowana.
+
+Chcesz, żebym powiedział to bardziej krok po kroku, czy wystarczy ten opis?
+
+[18:30:47] AI: Jasne
+
+[18:30:52] USER: No, mówi, mówi.
+
+[18:30:52] AI: Oto prosta wersja w Pythonie:
+

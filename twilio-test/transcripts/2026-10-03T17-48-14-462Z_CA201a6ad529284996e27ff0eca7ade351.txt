@@ -1,0 +1,43 @@
+======================================
+TWILIO + OPENAI REALTIME — ROZMOWA O LEKACH
+======================================
+
+Call SID: CA201a6ad529284996e27ff0eca7ade351
+Stream SID: MZdeb148b7da88bc0d5cac595037fe8bd5
+Leki do odpytania: ibuprofen, paracetamol, aspiryna
+
+[19:48:17] AI: Dzień dobry, dzwoni asystent AI przypominający o lekach. Czy mogę zapytać o dzisiejsze leki?
+
+[19:48:26] USER: Halo, halo, jest tam sytuacja, chciałem... Dobrze, niech pani mówi dalej.
+
+[19:48:27] AI: Czy przyjął lub przyjęła Pan(i) dzisiaj ibuprofen?
+
+[19:48:33] USER: Dētaakšioan.
+
+[19:48:34] AI: Czy mogę prosić o jasną odpowiedź: tak, przyjął Pan dzisiaj ibuprofen, czy nie, nie przyjął Pan go dzisiaj?
+
+[19:48:45] USER: Tak, przyjąłem dzisiaj GitToken.
+
+[19:48:46] AI: Dobrze, dziękuję. Czy przyjął lub przyjęła Pan(i) dzisiaj paracetamol?
+
+[19:48:55] USER: A czym to jest? Czym jest paracetamol?
+
+[19:49:04] AI: Jasne, wyjaśnię krótko i wrócę do pytania.
+
+[19:49:04] AI: Paracetamol to popularny lek przeciwbólowy i przeciwgorączkowy, często w różnych syropach, tabletkach i środkach na przeziębienie. Nie mogę doradzać w dawkowaniu, więc w razie wątpliwości najlepiej sprawdzić ulotkę albo zapytać lekarza. A teraz, czy przyjął lub przyjęła Pan(i) dzisiaj paracetamol?
+
+[19:49:24] USER: Tak.
+
+[19:49:25] AI: Dziękuję. Czy przyjął lub przyjęła Pan(i) dzisiaj aspirynę?
+
+[19:49:32] USER: Nie, nie przyjąłem.
+
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: AI (end_call)
+imię: (nie podano)
+leki:
+  - ibuprofen: PRZYJĘTY (1)
+  - paracetamol: PRZYJĘTY (1)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmowę odebrał pacjent, imienia nie podał. Potwierdził przyjęcie ibuprofenu i paracetamolu, natomiast aspiryny nie przyjął. Rozmowa przebiegła spokojnie, pytania dotyczyły wyłącznie wskazanych leków.

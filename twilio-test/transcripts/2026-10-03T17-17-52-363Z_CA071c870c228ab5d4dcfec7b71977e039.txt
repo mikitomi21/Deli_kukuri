@@ -1,0 +1,49 @@
+======================================
+TWILIO + OPENAI REALTIME — ROZMOWA O LEKACH
+======================================
+
+Call SID: CA071c870c228ab5d4dcfec7b71977e039
+Stream SID: MZfca864cc8dc9f11e5543d6fdc6b1eed0
+Leki do odpytania: ibuprofen, paracetamol, aspiryna
+
+[19:17:54] AI: Dzień dobry, d
+
+[19:17:59] USER: Ja mogę podtrzymać, ale jego konstrukty jest trzeba dopasować do tego, co wy będziecie robić.
+
+[19:18:07] USER: No właśnie, a mi jajce te modele mówi, że tam jest na tamtym branży coś porobione,
+
+[19:18:07] AI: Dzień dobry, dzw
+
+[19:18:19] AI: Dzień dobry,
+
+[19:18:19] USER: Halo? No to w branżu,
+
+[19:18:20] AI: Dobrze,
+
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: (nie podano)
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: W transkrypcji nie pojawiły się żadne informacje na temat przyjmowanych leków. Rozmowa skupia się na innych tematach, bez odniesień do ibuprofenu, paracetamolu czy aspiryny.
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: USER
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmowa nie dotyczyła przyjmowania leków. Nie ma jasnych informacji na temat jakichkolwiek leków. Użytkownik nie wspomniał o ibuprofenie, paracetamolu ani aspirynie.
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: USER
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Użytkownik rozmawia z AI, jednak w transkrypcji nie ma żadnych odniesień do przyjmowania leków. Nie wymienia konkretnych leków ani nie potwierdza ich stosowania.
