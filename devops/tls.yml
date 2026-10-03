@@ -1,0 +1,11 @@
+# Dynamiczna konfiguracja TLS dla Traefika (własny certyfikat z cyberfolks).
+# Skopiuj na serwer:  /opt/dzwonilek/certs/tls.yml
+# Wymaga plików w tym samym katalogu:
+#   fullchain.crt   (certyfikat + CA pośredniczący, leaf pierwszy)
+#   dzwonilek.pl.key (klucz prywatny, chmod 600)
+# Traefik sam dopasuje ten certyfikat po SNI dla dzwonilek.pl (ma pierwszeństwo
+# przed Let's Encrypt); www.dzwonilek.pl zostaje na Let's Encrypt.
+tls:
+  certificates:
+    - certFile: /certs-custom/fullchain.crt
+      keyFile: /certs-custom/dzwonilek.pl.key
