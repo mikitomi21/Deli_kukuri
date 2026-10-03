@@ -11,7 +11,8 @@ wysyła transkrypcję do OpenAI, które dla każdego leku wywnioskowuje z tekstu
 Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS z szablonem
 Content Template (SMS_TEMPLATE_SID: "Pan/i {{1}} nie wzięła następujących
 leków: {{2}}") z pełnego konta Twilio (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/
-SMS_FROM) na numer podany jako TRZECI argument — {{1}} = PACJENT,
+SMS_FROM) na numer podany jako TRZECI argument — {{1}} = imię powiedziane
+w rozmowie (wyciągnięte przez GPT z transkrypcji) lub 4. argument CLI,
 {{2}} = lista niezażytych leków (przecinki, "!" na końcu). Jeśli wszystkie
 leki mają 1 — SMS nie jest wysyłany. Gdyby wysyłka SMS padła, skrypt robi
 fallback: połączenie głosowe odczytujące listę niezażytych leków (TTS).
@@ -44,10 +45,10 @@ ROZMOWA = [f"Czy brała lub brał Pan(i) dzisiaj lek {lek}?" for lek in LEKI]
 
 # Szablon Content Template (konsola: Messaging → Content Template Builder):
 # "Pan/i {{1}} nie wzięła następujących leków: {{2}}"
+# {{1}} = imię wypowiedziane przez rozmówcę (GPT wyciąga je z transkrypcji),
+#         ewentualnie nadpisywane 4. argumentem z linii poleceń
+# {{2}} = lista niezażytych leków (przecinki, "!" na końcu) — budowane w kodzie
 SMS_TEMPLATE_SID = "HX5902b613312fa5e9275702207a99966b"
-
-# Imię wstawiane do szablonu jako {{1}}
-PACJENT = "Jakub"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_FILE = os.path.join(SCRIPT_DIR, ".env")
@@ -184,8 +185,10 @@ def gpt_wynik_leki(api_key, model, leki, transkrypcja_tekst):
         "Dostaniesz listę leków oraz transkrypcję. Dla każdego leku z listy "
         "wywnioskuj z wypowiedzi rozmówcy, czy lek został przyjęty: 1 — tak, "
         "0 — nie (odpowiedzi wymijające lub bez potwierdzenia traktuj jako 0). "
-        'Odpowiedz WYŁĄCZNIE obiektem JSON postaci {"<nazwa leku>": 0|1} '
-        "z kluczami identycznymi jak na liście leków, bez dodatkowego tekstu."
+        'Odpowiedz WYŁĄCZNIE obiektem JSON postaci {"imie": "<imię lub null>", '
+        '"<nazwa leku>": 0|1} — do "imie" włóż imię rozmówcy, jeśli wypowiedziało '
+        "je w transkrypcji (tylko imię, bez nazwiska), a jeśli go nie podało — null. "
+        "Klucze leków identyczne jak na liście leków, bez dodatkowego tekstu."
     )
     user = "Leki: " + ", ".join(leki) + "\n\nTranskrypcja:\n" + transkrypcja_tekst
     data = http_json(
@@ -414,12 +417,22 @@ def main():
         print("\n(pomijam SMS — podaj numer odbiorcy jako trzeci argument)")
         return
     niewziete = leki_niewziete(wynik)
+    imie = str(wynik.get("imie") or "").strip()
+    if len(sys.argv) > 3:
+        imie = sys.argv[3]
+    if imie:
+        print(f"Imię rozmówcy (do szablonu): {imie}")
+    else:
+        print("(rozmówca nie podał imienia — pole {{1}} w SMS będzie puste)")
     if not niewziete:
         print("\nWszystkie leki zażyte (1) — SMS nie wysłany.")
         return
-    body = f"Pan {PACJENT} nie wziął następujących leków: {', '.join(niewziete)}"  # tekst do fallbacku głosowego
+    if imie:
+        body = f"Pan {imie} nie wziął następujących leków: {', '.join(niewziete)}"
+    else:
+        body = f"Nie wzięto następujących leków: {', '.join(niewziete)}"
     try:
-        msg = send_sms(env, sms_to, PACJENT, niewziete)
+        msg = send_sms(env, sms_to, imie, niewziete)
         print(f"\nSMS (szablon {SMS_TEMPLATE_SID}) wysłany do {sms_to}")
         print(f"  SID: {msg['sid']}, status: {msg['status']}")
         print(f"  Niezażyte leki: {', '.join(niewziete)}")
