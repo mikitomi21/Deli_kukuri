@@ -35,6 +35,7 @@ import { WardDeactivateDialog } from "@/components/Wards/WardDeactivateDialog"
 import { WardEditDialog } from "@/components/Wards/WardEditDialog"
 import { fetchCalls, fetchCallTasks, startTestCall } from "@/hooks/useCalls"
 import useCustomToast from "@/hooks/useCustomToast"
+import { fetchRoutines } from "@/hooks/useRoutines"
 import { fetchWard } from "@/hooks/useWards"
 import i18n from "@/i18n"
 import { handleError } from "@/utils"
@@ -189,7 +190,7 @@ function WardDetail() {
         </div>
       </div>
 
-      <WardTabs wardId={wardId} />
+      <WardTabs wardId={wardId} wardActive={ward.active} />
 
       <WardEditDialog ward={ward} open={editOpen} onOpenChange={setEditOpen} />
       <WardDeactivateDialog
@@ -201,7 +202,13 @@ function WardDetail() {
   )
 }
 
-function WardTabs({ wardId }: { wardId: string }) {
+function WardTabs({
+  wardId,
+  wardActive,
+}: {
+  wardId: string
+  wardActive: boolean
+}) {
   const { t } = useTranslation("wards")
   return (
     <Tabs defaultValue="routines">
@@ -212,7 +219,7 @@ function WardTabs({ wardId }: { wardId: string }) {
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
-        <RoutinesSection wardId={wardId} />
+        <RoutinesSection wardId={wardId} wardActive={wardActive} />
       </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />
@@ -221,18 +228,26 @@ function WardTabs({ wardId }: { wardId: string }) {
   )
 }
 
-function RoutinesSection({ wardId }: { wardId: string }) {
+function RoutinesSection({
+  wardId,
+  wardActive,
+}: {
+  wardId: string
+  wardActive: boolean
+}) {
   const { t } = useTranslation("wards")
-  const { isPending, data: ward } = useQuery({
-    queryKey: ["ward", wardId],
-    queryFn: () => fetchWard(wardId),
+  // Routines come from their own query (["routines", wardId]) — in API mode
+  // the ward payload does not embed them (src/hooks/useWards.ts).
+  const { isPending, data: routines = [] } = useQuery({
+    queryKey: ["routines", wardId],
+    queryFn: () => fetchRoutines(wardId),
   })
   const { data: callTasks } = useQuery({
     queryKey: ["call-tasks", wardId],
     queryFn: () => fetchCallTasks(wardId),
   })
 
-  if (isPending || !ward) {
+  if (isPending) {
     return (
       <div
         className="grid gap-2"
@@ -246,7 +261,6 @@ function RoutinesSection({ wardId }: { wardId: string }) {
     )
   }
 
-  const routines = ward.routines ?? []
   const upcoming = (callTasks ?? []).filter((task) => task.status === "pending")
 
   return (
@@ -305,12 +319,18 @@ function RoutinesSection({ wardId }: { wardId: string }) {
                 {t("wardDetail.routinesDescription")}
               </CardDescription>
             </div>
-            <AddRoutineDialog wardId={wardId}>
-              <Button variant="outline" size="sm">
-                <Plus aria-hidden />
-                {t("wardDetail.addRoutine")}
-              </Button>
-            </AddRoutineDialog>
+            {!wardActive ? (
+              <p className="text-xs text-muted-foreground">
+                {t("wardDetail.routinesInactiveHint")}
+              </p>
+            ) : (
+              <AddRoutineDialog wardId={wardId}>
+                <Button variant="outline" size="sm">
+                  <Plus aria-hidden />
+                  {t("wardDetail.addRoutine")}
+                </Button>
+              </AddRoutineDialog>
+            )}
           </div>
         </CardHeader>
         <CardContent>

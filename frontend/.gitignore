@@ -29,3 +29,7 @@ openapi.json
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Local env files (use .env.example as the template)
+.env
+!.env.example

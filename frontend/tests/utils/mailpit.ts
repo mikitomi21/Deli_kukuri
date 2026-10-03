@@ -17,7 +17,7 @@ export async function waitForEmailHtml({
 
   while (Date.now() < deadline) {
     const response = await request.get(
-      `${process.env.MAILPIT_HOST}/api/v1/search`,
+      `${process.env.MAILPIT_HOST ?? "http://localhost:8025"}/api/v1/search`,
       {
         params: { query, limit: 1 },
       },
@@ -27,7 +27,7 @@ export async function waitForEmailHtml({
 
     if (email) {
       const htmlResponse = await request.get(
-        `${process.env.MAILPIT_HOST}/view/${email.ID}.html`,
+        `${process.env.MAILPIT_HOST ?? "http://localhost:8025"}/view/${email.ID}.html`,
       )
 
       if (!htmlResponse.ok()) {
