@@ -1,0 +1,38 @@
+======================================
+TWILIO + OPENAI REALTIME — ROZMOWA O LEKACH
+======================================
+
+Call SID: CA85f59e05e8031b278b977d948ee49a07
+Stream SID: MZeae80b577f838a3181d4674b4f0f0da9
+Leki do odpytania: ibuprofen, paracetamol, aspiryna
+
+[19:24:51] AI: Dzień dobry, dzwoni asystent AI przypominający o lekach. Czy mogę zapytać o dzisiejsze leki? Na początek, czy przyjął lub przyjęła Pan(i) dzisiaj ibuprofen?
+
+[19:24:56] USER: we need to
+
+[19:24:59] AI: Jasne, daj mi chwilę, żeby odnieść się do tego, co Pan powiedział.
+
+[19:24:59] AI: Czy przyjął lub przyjęła Pan(i) dzisiaj ibuprofen? Jeśli trudno mi to usłyszeć, proszę powiedzieć krótko: tak, nie, albo że nie pamięta.
+
+[19:25:05] USER: Stop, nie ma 0,7.
+
+[19:25:09] AI: Nie udało mi się uzyskać jasnej odpowiedzi, więc uznaję, że ibuprofen nie został dziś przyjęty. Teraz kolejne pytanie: czy przyjął lub przyjęła Pan(i) dzisiaj paracetamol?
+
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: (nie podano)
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmówca nie udzielił jasnych odpowiedzi na pytania dotyczące przyjmowania leków. Nie potwierdził przyjęcia ibuprofenu ani paracetamolu. Nie ma informacji o przyjmowaniu aspiryny.
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: GPT (fallback po rozłączeniu)
+imię: USER
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: NIEPRZYJĘTY (0)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmówca nie potwierdził przyjęcia ibuprofenu ani paracetamolu. Nie było również mowy o aspirynie, więc nie ma jasnych informacji na temat przyjmowania tych leków dzisiaj.

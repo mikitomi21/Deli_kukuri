@@ -1,0 +1,7 @@
+======================================
+TWILIO + OPENAI REALTIME
+======================================
+
+Call SID: CAc228a04838b1b1213d9b6931fe8fe492
+Stream SID: MZbdb6ea1fd4c5f2d8fd5f7c2ccea5c59d
+

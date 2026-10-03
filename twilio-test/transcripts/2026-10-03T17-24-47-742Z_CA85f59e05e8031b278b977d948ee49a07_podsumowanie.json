@@ -1,0 +1,12 @@
+{
+  "call_sid": "CA85f59e05e8031b278b977d948ee49a07",
+  "zrodlo": "GPT (fallback po rozłączeniu)",
+  "zapisano_o": "2026-10-03T17:25:18.768Z",
+  "imie": "USER",
+  "leki": {
+    "ibuprofen": 0,
+    "paracetamol": 0,
+    "aspiryna": 0
+  },
+  "podsumowanie": "Rozmówca nie potwierdził przyjęcia ibuprofenu ani paracetamolu. Nie było również mowy o aspirynie, więc nie ma jasnych informacji na temat przyjmowania tych leków dzisiaj."
+}

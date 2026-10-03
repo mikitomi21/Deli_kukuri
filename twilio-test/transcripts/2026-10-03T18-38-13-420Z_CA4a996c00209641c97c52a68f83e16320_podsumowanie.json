@@ -1,0 +1,12 @@
+{
+  "call_sid": "CA4a996c00209641c97c52a68f83e16320",
+  "zrodlo": "AI (end_call)",
+  "zapisano_o": "2026-10-03T18:41:02.692Z",
+  "imie": "",
+  "leki": {
+    "ibuprofen": 0,
+    "paracetamol": 1,
+    "aspiryna": 0
+  },
+  "podsumowanie": "Rozmowę odebrał pacjent. Potwierdził przyjęcie paracetamolu, natomiast ibuprofenu nie przyjął. W przypadku aspiryny nie udało się uzyskać jednoznacznej odpowiedzi, więc została oznaczona jako nieprzyjęta. Rozmowa przebiegła spokojnie, z krótkimi wyjaśnieniami czym są leki."
+}
