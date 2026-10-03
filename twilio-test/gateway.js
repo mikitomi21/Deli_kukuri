@@ -22,10 +22,26 @@ function createGateway({ env = process.env, spawn = fork, deliver = fetch } = {}
   const streams = new WebSocket.Server({ noServer: true });
   const calls = new Map();
 
-  app.get("/health", (_req, res) => res.json({ ready: Boolean(
-    env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM &&
-    env.OPENAI_API_KEY && env.PUBLIC_URL && env.VOICE_SERVICE_TOKEN
-  ) }));
+  app.get("/health", (_req, res) => {
+    const requiredConfig = [
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN",
+      "TWILIO_FROM",
+      "OPENAI_API_KEY",
+      "PUBLIC_URL",
+      "VOICE_SERVICE_TOKEN",
+    ];
+    const missingConfig = requiredConfig.filter((name) => !env[name]);
+    const ready = missingConfig.length === 0;
+
+    if (!ready) {
+      console.warn(
+        `[voice] Health check not ready; missing configuration: ${missingConfig.join(", ")}`,
+      );
+    }
+
+    res.json({ ready });
+  });
 
   async function callback(taskId, event) {
     for (let attempt = 0; attempt < 5; attempt++) {
