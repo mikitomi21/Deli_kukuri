@@ -11,22 +11,23 @@ import {
 import type { WardWithToday } from "@/types/dashboard"
 
 /**
- * Ward hooks. The backend ships full wards CRUD since T05, so the tag
- * VITE_USE_MOCKS (frontend/.env) picks the data source:
- *   - unset / other → mocks (dev default, keeps demo data + today stats)
- *   - "empty"       → mocks with an empty list (empty-state preview)
- *   - "0"           → real API: GET/POST/PATCH/DELETE /wards
- * Stats and routines are mock-only today — the backend does not expose them
- * yet, so in API mode they are simply absent (undefined).
+ * Ward hooks. The backend ships full wards CRUD since T05, so the
+ * VITE_USE_MOCKS tag (optional, see frontend/.env.example) picks the source:
+ *   - unset / "0" / "false" → real API (default): GET/POST/PATCH/DELETE /wards
+ *   - "mocks" / "1" / "true" → in-memory mock store (demo data + today stats)
+ *   - "empty"               → mocks with an empty list (empty-state preview)
+ * Stats are mock-only today — the backend does not expose them yet, so in
+ * API mode they are simply absent (undefined). Routines are fetched
+ * separately, see src/hooks/useRoutines.ts.
  */
 
 export type WardsMode = "mocks" | "empty" | "api"
 
 export function getWardsMode(): WardsMode {
-  const value = import.meta.env.VITE_USE_MOCKS
+  const value = import.meta.env.VITE_USE_MOCKS?.trim().toLowerCase()
   if (value === "empty") return "empty"
-  if (value === "0") return "api"
-  return "mocks"
+  if (value === "mocks" || value === "1" || value === "true") return "mocks"
+  return "api"
 }
 
 function toWardWithToday(ward: WardPublic): WardWithToday {
@@ -36,7 +37,7 @@ function toWardWithToday(ward: WardPublic): WardWithToday {
     phone_e164: ward.phone_e164,
     tz: ward.tz ?? "Europe/Warsaw",
     active: ward.active,
-    // TODO(api): stats/routines land with a later backend task
+    // TODO(api): stats land with a later backend task (docs/05 SHOULD)
   }
 }
 

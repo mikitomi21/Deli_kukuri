@@ -133,6 +133,7 @@
     "routinesDescription": "Approved routines are scheduled for calls",
     "addRoutine": "Add routine",
     "routinesEmpty": "This ward has no routines yet. Add the first routine so DzwoniLek can start calling.",
+    "routinesInactiveHint": "The ward is deactivated — adding new routines is disabled.",
     "callsEmpty": "No calls yet — history will appear after the first phone call.",
     "callsTitle": "Call history",
     "callsDescription": "Click a call to see the transcript",

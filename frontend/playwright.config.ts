@@ -28,6 +28,10 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL,
 
+    /* The app picks its UI language from navigator.language; pin Polish so
+       assertions on translated labels (e.g. "Zaloguj się") are deterministic. */
+    locale: 'pl-PL',
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },

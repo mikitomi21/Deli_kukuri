@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { AxiosError } from "axios"
 
 import {
   type Body_login_login_access_token as AccessToken,
@@ -22,7 +23,24 @@ const useAuth = () => {
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: async () => (await UsersService.readUserMe()).data,
+    queryFn: async () => {
+      try {
+        return (await UsersService.readUserMe()).data
+      } catch (err) {
+        // Stale token (user deleted from the DB, revoked session): the API
+        // answers 401/403/404. Drop the token and go back to the login panel
+        // instead of rendering a broken "logged in" shell with no way back.
+        if (
+          err instanceof AxiosError &&
+          [401, 403, 404].includes(err.response?.status ?? 0)
+        ) {
+          localStorage.removeItem("access_token")
+          navigate({ to: "/login" })
+          return null
+        }
+        throw err
+      }
+    },
     enabled: isLoggedIn(),
   })
 
