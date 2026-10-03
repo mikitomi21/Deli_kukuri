@@ -8,14 +8,12 @@ mowy pl-PL), a po odpowiedzi na ostatnie pytanie kończy rozmowę. Następnie
 wysyła transkrypcję do OpenAI, które dla każdego leku wywnioskowuje z tekstu
 0 (nieprzyjęty) lub 1 (przyjęty) i zwraca JSON {"nazwa_leku": 0|1}.
 
-Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS-a na numer podany
-jako TRZECI argument z treścią "Pan Jakub nie zażył: <leki>". Jeśli wszystkie
-leki mają 1 — SMS nie jest wysyłany. SMS wysyłany jest z konta z kluczy
-SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/SMS_FROM (pełne konto — konto trial nie
-pozwala wysyłać własnej treści SMS, błąd 572006); gdy ich brak, użyte
-zostanie konto główne i numer CALL_FROM. Jeśli wysyłka SMS się nie powiedzie
-(np. konto bez zatwierdzonego KYC w Trust Hub — błąd 20003), skrypt robi
-fallback: połączenie głosowe odczytujące ten sam komunikat (TTS).
+Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS z szablonem
+Content Template (SMS_TEMPLATE_SID — stała treść "Pan Jakub nie wziął
+wszystkich leków") z pełnego konta Twilio (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/
+SMS_FROM) na numer podany jako TRZECI argument. Jeśli wszystkie leki mają 1 —
+SMS nie jest wysyłany. Gdyby wysyłka SMS padła (np. brak KYC), skrypt robi
+fallback: połączenie głosowe odczytujące listę niezażytych leków (TTS).
 
 Użycie:
     python dzwon_sms.py <numer-dokad> <numer-od> <numer-odbiorcy-sms>
@@ -42,6 +40,10 @@ LEKI = ["ibuprofen", "paracetamol", "aspiryna"]
 # Pytania bota generowane z listy leków: bot mówi pytanie, czeka na odpowiedź,
 # ... po odpowiedzi na ostatnie pytanie kończy rozmowę.
 ROZMOWA = [f"Czy brała lub brał Pan(i) dzisiaj lek {lek}?" for lek in LEKI]
+
+# Szablon Content Template (konsola: Messaging → Content Template Builder)
+# używany do SMS-a z wynikiem — stała treść: "Pan Jakub nie wziął wszystkich leków"
+SMS_TEMPLATE_SID = "HX976048a53e1a278363c1ca50c7ec49a6"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_FILE = os.path.join(SCRIPT_DIR, ".env")
@@ -222,10 +224,11 @@ def leki_niewziete(wynik):
     return out
 
 
-def send_sms(env, to_number, body):
-    """Wysyła SMS. Preferuje osobne konto SMS_* (pełne konto Twilio —
-    konto trial odrzuca własną treść SMS błędem 572006); w fallback używa
-    konta głównego i numeru CALL_FROM."""
+def send_sms(env, to_number):
+    """Wysyła SMS z szablonem Content Template (stała treść z konsoli:
+    "Pan Jakub nie wziął wszystkich leków") z pełnego konta Twilio
+    (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/SMS_FROM). Szablon omija blokadę
+    własnej treści SMS (błędy 572006/20003 na koncie bez KYC)."""
     sid = env.get("SMS_ACCOUNT_SID") or env["TWILIO_ACCOUNT_SID"]
     token = env.get("SMS_AUTH_TOKEN") or env["TWILIO_AUTH_TOKEN"]
     from_number = env.get("SMS_FROM") or env["CALL_FROM"]
@@ -236,7 +239,13 @@ def send_sms(env, to_number, body):
     auth = base64.b64encode(f"{sid}:{token}".encode()).decode()
     req.add_header("Authorization", "Basic " + auth)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    data = urllib.parse.urlencode({"To": to_number, "From": from_number, "Body": body}).encode()
+    data = urllib.parse.urlencode(
+        {
+            "To": to_number,
+            "From": from_number,
+            "ContentSid": SMS_TEMPLATE_SID,
+        }
+    ).encode()
     try:
         with urllib.request.urlopen(req, data) as resp:
             return json.loads(resp.read().decode())
@@ -402,11 +411,12 @@ def main():
     if not niewziete:
         print("\nWszystkie leki zażyte (1) — SMS nie wysłany.")
         return
-    body = "Pan Jakub nie zażył: " + ", ".join(niewziete)
+    body = "Pan Jakub nie zażył: " + ", ".join(niewziete)  # lista do konsoli i fallbacku głosowego
     try:
-        msg = send_sms(env, sms_to, body)
-        print(f"\nSMS wysłany do {sms_to} (SID: {msg['sid']}, status: {msg['status']})")
-        print(f"Treść: {body}")
+        msg = send_sms(env, sms_to)
+        print(f"\nSMS (szablon {SMS_TEMPLATE_SID}) wysłany do {sms_to}")
+        print(f"  SID: {msg['sid']}, status: {msg['status']}")
+        print(f"  Niezażyte leki: {', '.join(niewziete)}")
         return
     except RuntimeError as e:
         print(f"\nBłąd wysyłki SMS: {e}", file=sys.stderr)
