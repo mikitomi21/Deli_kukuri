@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -109,6 +109,41 @@ class ItemPublic(ItemBase):
 
 class ItemsPublic(SQLModel):
     data: list[ItemPublic]
+    count: int
+
+
+# Katalog globalny, współdzielony przez opiekunów; read-only w MVP
+# (zasilany tylko seedem — docs/03-data-model.md).
+class MedicationBase(SQLModel):
+    name: str = Field(index=True, min_length=1, max_length=255)
+    dosage: str = Field(min_length=1, max_length=100)
+    form: str | None = Field(default=None, max_length=100)
+    instructions: str | None = Field(default=None, max_length=255)
+
+
+class MedicationCreate(MedicationBase):
+    pass
+
+
+# Database model, database table inferred from class name
+class Medication(MedicationBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+    __table_args__ = (UniqueConstraint("name", "dosage"),)
+
+
+# Properties to return via API, id is always required
+class MedicationPublic(MedicationBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class MedicationsPublic(SQLModel):
+    data: list[MedicationPublic]
     count: int
 
 

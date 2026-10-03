@@ -113,6 +113,72 @@ export type ItemsPublic = {
 };
 
 /**
+ * MedicationCreate
+ */
+export type MedicationCreate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Dosage
+     */
+    dosage: string;
+    /**
+     * Form
+     */
+    form?: string | null;
+    /**
+     * Instructions
+     */
+    instructions?: string | null;
+};
+
+/**
+ * MedicationPublic
+ */
+export type MedicationPublic = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Dosage
+     */
+    dosage: string;
+    /**
+     * Form
+     */
+    form?: string | null;
+    /**
+     * Instructions
+     */
+    instructions?: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * MedicationsPublic
+ */
+export type MedicationsPublic = {
+    /**
+     * Data
+     */
+    data: Array<MedicationPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * Message
  */
 export type Message = {
@@ -920,6 +986,65 @@ export type itemsUpdateItemResponses = {
 };
 
 export type itemsUpdateItemResponse = itemsUpdateItemResponses[keyof itemsUpdateItemResponses];
+
+export type medicationsReadMedicationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/medications/';
+};
+
+export type medicationsReadMedicationsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsReadMedicationsError = medicationsReadMedicationsErrors[keyof medicationsReadMedicationsErrors];
+
+export type medicationsReadMedicationsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MedicationsPublic;
+};
+
+export type medicationsReadMedicationsResponse = medicationsReadMedicationsResponses[keyof medicationsReadMedicationsResponses];
+
+export type medicationsCreateMedicationData = {
+    body: MedicationCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/medications/';
+};
+
+export type medicationsCreateMedicationErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type medicationsCreateMedicationError = medicationsCreateMedicationErrors[keyof medicationsCreateMedicationErrors];
+
+export type medicationsCreateMedicationResponses = {
+    /**
+     * Successful Response
+     */
+    200: MedicationPublic;
+};
+
+export type medicationsCreateMedicationResponse = medicationsCreateMedicationResponses[keyof medicationsCreateMedicationResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

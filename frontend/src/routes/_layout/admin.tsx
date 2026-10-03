@@ -2,9 +2,16 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Suspense } from "react"
 
-import { type UserPublic, UsersService } from "@/client"
+import {
+  type MedicationPublic,
+  MedicationsService,
+  type UserPublic,
+  UsersService,
+} from "@/client"
+import AddMedication from "@/components/Admin/AddMedication"
 import AddUser from "@/components/Admin/AddUser"
 import { columns, type UserTableData } from "@/components/Admin/columns"
+import { medicationColumns } from "@/components/Admin/medicationColumns"
 import { DataTable } from "@/components/Common/DataTable"
 import PendingUsers from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
@@ -14,6 +21,18 @@ function getUsersQueryOptions() {
     queryFn: async () =>
       (await UsersService.readUsers({ query: { skip: 0, limit: 100 } })).data,
     queryKey: ["users"],
+  }
+}
+
+function getMedicationsQueryOptions() {
+  return {
+    queryFn: async () =>
+      (
+        await MedicationsService.readMedications({
+          query: { skip: 0, limit: 100 },
+        })
+      ).data,
+    queryKey: ["medications"],
   }
 }
 
@@ -30,7 +49,7 @@ export const Route = createFileRoute("/_layout/admin")({
   head: () => ({
     meta: [
       {
-        title: "Admin - FastAPI Template",
+        title: "Admin - Kukurin Mafia",
       },
     ],
   }),
@@ -56,6 +75,25 @@ function UsersTable() {
   )
 }
 
+function MedicationsTableContent() {
+  const { data: medications } = useSuspenseQuery(getMedicationsQueryOptions())
+
+  return (
+    <DataTable
+      columns={medicationColumns}
+      data={medications.data as MedicationPublic[]}
+    />
+  )
+}
+
+function MedicationsTable() {
+  return (
+    <Suspense fallback={<PendingUsers />}>
+      <MedicationsTableContent />
+    </Suspense>
+  )
+}
+
 function Admin() {
   return (
     <div className="flex flex-col gap-6">
@@ -69,6 +107,16 @@ function Admin() {
         <AddUser />
       </div>
       <UsersTable />
+      <div className="mt-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Medications</h1>
+          <p className="text-muted-foreground">
+            Global drug catalog available to all caregivers in routines
+          </p>
+        </div>
+        <AddMedication />
+      </div>
+      <MedicationsTable />
     </div>
   )
 }
