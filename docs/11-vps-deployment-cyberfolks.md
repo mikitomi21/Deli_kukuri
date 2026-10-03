@@ -248,10 +248,17 @@ docker compose --env-file .env -f compose.yml -f compose.deploy.yml down
 
 ---
 
-## 8. Co celowo NIE jest częścią tego wdrożenia (na teraz)
+## 8. Sprzątanie szablonowych workflow (zrobione)
 
-- `deploy.yml` (FastAPI Cloud) — szablonowy, wymaga osobnych sekretów; wyłącz go,
-  jeśli przeszkadza w zakładce Actions.
-- `deploy-docker-compose.yml` (self-hosted runner + build na serwerze) — zastąpiony
-  przez `deploy-vps.yml`; kandydat do usunięcia.
-- Workflow szablonowe odpalają się na `master` — nasz pipeline patrzy na `main`.
+Szablonowe workflow (test-backend, test-docker-compose, playwright, smokeshow,
+zizmor, pre-commit, release'owe i martwe deployowe) zostały **usunięte** —
+ zakładały zakomitowany `.env` i generowały czerwone runy po jego usunięciu.
+
+W `.github/workflows` zostało:
+
+- `deploy-vps.yml` — nasz jedyny pipeline CI/CD (test → build → push → deploy przy merge do `main`),
+- `add-to-project.yml`, `issue-manager.yml` — automatyzacje issue'owe (nie CI).
+
+Testy i tak odpalają się jako pierwszy job pipeline'u (`test`) — merge do `main`
+bez zielonego testu nie zbuduje ani nie wdroży obrazu. Szablonowe e2e Playwright
+wrócą jako osobny workflow, gdy będzie po co (dev środowiska na runnerach).
