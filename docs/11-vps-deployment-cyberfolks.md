@@ -9,7 +9,8 @@
 ## 0. Jak działa pipeline (`.github/workflows/deploy-vps.yml`)
 
 ```
-push do main
+PR (zawsze): test
+Run workflow na main (ręcznie po merge'u): test → build → push → deploy
    │
    ▼
 ┌─────────┐   ┌──────────────┐   ┌────────────────┐   ┌─────────────────┐
@@ -23,7 +24,7 @@ push do main
 - **build & push** — jeden obraz `backend` (frontend jest wbudowany w obraz — `backend/Dockerfile`), tagowany `latest` + `sha`. Buduje się **na runnerze GitHuba**, nie na VPS — 1 vCPU/2 GB by tego nie udźwignął.
 - **deploy** — SCP plików compose na VPS, potem `docker compose pull backend` + `up -d` (migracje + seed odpala `prestart.sh` w komendzie kontenera — wszystko idempotentne). Na serwerze nie ma repo ani gita.
 
-Ręczne wywołanie: zakładka **Actions → Deploy to VPS → Run workflow**.
+Trigger: **pull_request** odpala job `test`; **Run workflow** (na gałęzi `main`, po merge'u) odpala pełny łańcuch test → build → push → deploy.
 
 ---
 
@@ -187,8 +188,9 @@ używa (serwer ciągnie obraz z publicznego repo anonimowo, patrz krok 1.6).
 ```bash
 git checkout -b feature/x
 # ...zmiany...
-git push origin feature/x        # PR → odpala się job "test"
-# merge do main                  # → test → build → push → automatyczny deploy
+git push origin feature/x        # PR → odpalają się testy (backend + frontend)
+# merge do main
+# GitHub → Actions → "Deploy to VPS" → Run workflow (gałąź: main)  ← deploy ręczny
 ```
 
 **Rollback** do poprzedniej wersji (obrazy tagowane są SHA-m):
