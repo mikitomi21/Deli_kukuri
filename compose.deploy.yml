@@ -74,9 +74,7 @@ services:
       VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
       TWILIO_FROM: ${TWILIO_FROM}
       TWILIO_TO: ${TWILIO_TO}
-      # Voice gateway (docs/12) — internal Docker network, no Traefik involved.
-      VOICE_SERVICE_URL: http://voice:3000
-      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
+
     mem_limit: 512m
     labels:
       # Route HTTPS traffic (apex + www) — Let's Encrypt, auto-renewal.
@@ -154,8 +152,6 @@ services:
       VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
       TWILIO_FROM: ${TWILIO_FROM}
       TWILIO_TO: ${TWILIO_TO}
-      VOICE_SERVICE_URL: http://voice:3000
-      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
 
     depends_on:
       redis:
@@ -186,8 +182,6 @@ services:
       VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
       TWILIO_FROM: ${TWILIO_FROM}
       TWILIO_TO: ${TWILIO_TO}
-      VOICE_SERVICE_URL: http://voice:3000
-      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
 
     depends_on:
       redis:
