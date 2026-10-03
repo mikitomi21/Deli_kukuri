@@ -103,7 +103,8 @@
     "demoDataBadge": "Demo data",
     "noRoutinesYet": "This ward has no routines yet.",
     "addFirstRoutine": "Add first routine",
-    "nextCall": "Next call: {{name}} · {{time}}",
+    "nextCallLabel": "Next call",
+    "nextCall": "{{name}} · {{time}}",
     "noUpcoming": "No scheduled calls",
     "approvedCount": "Approved: {{approved}}",
     "draftsCount": "Drafts: {{drafts}}"

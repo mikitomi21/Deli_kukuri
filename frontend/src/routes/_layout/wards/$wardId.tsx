@@ -474,7 +474,17 @@ function RoutinesSection({
   }
 
   const routines = ward.routines ?? []
-  const upcoming = (callTasks ?? []).filter((task) => task.status === "pending")
+  const pending = (callTasks ?? []).filter((task) => task.status === "pending")
+  // Show only the nearest day of pending calls — later days stay scheduled but
+  // would only clutter the ward view (scheduler horizon spans multiple days).
+  const nearestDay = pending.length
+    ? new Date(
+        Math.min(...pending.map((task) => Date.parse(task.scheduled_at))),
+      ).toDateString()
+    : null
+  const upcoming = pending.filter(
+    (task) => new Date(task.scheduled_at).toDateString() === nearestDay,
+  )
 
   return (
     <div className="flex flex-col gap-6">
