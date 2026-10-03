@@ -8,9 +8,12 @@ mowy pl-PL), a po odpowiedzi na ostatnie pytanie kończy rozmowę. Następnie
 wysyła transkrypcję do OpenAI, które dla każdego leku wywnioskowuje z tekstu
 0 (nieprzyjęty) lub 1 (przyjęty) i zwraca JSON {"nazwa_leku": 0|1}.
 
-Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS-a (z numeru CALL_FROM)
-na numer podany jako TRZECI argument z treścią "Pan Jakub nie zażył: <leki>".
-Jeśli wszystkie leki mają 1 — SMS nie jest wysyłany.
+Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS-a na numer podany
+jako TRZECI argument z treścią "Pan Jakub nie zażył: <leki>". Jeśli wszystkie
+leki mają 1 — SMS nie jest wysyłany. SMS wysyłany jest z konta z kluczy
+SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/SMS_FROM (pełne konto — konto trial nie
+pozwala wysyłać własnej treści SMS, błąd 572006); gdy ich brak, użyte
+zostanie konto główne i numer CALL_FROM.
 
 Użycie:
     python dzwon_sms.py <numer-dokad> <numer-od> <numer-odbiorcy-sms>
@@ -218,12 +221,25 @@ def leki_niewziete(wynik):
 
 
 def send_sms(env, to_number, body):
-    account = env["TWILIO_ACCOUNT_SID"]
-    return twilio_api(env, "POST", f"https://api.twilio.com/2010-04-01/Accounts/{account}/Messages.json", {
-        "To": to_number,
-        "From": env["CALL_FROM"],
-        "Body": body,
-    })
+    """Wysyła SMS. Preferuje osobne konto SMS_* (pełne konto Twilio —
+    konto trial odrzuca własną treść SMS błędem 572006); w fallback używa
+    konta głównego i numeru CALL_FROM."""
+    sid = env.get("SMS_ACCOUNT_SID") or env["TWILIO_ACCOUNT_SID"]
+    token = env.get("SMS_AUTH_TOKEN") or env["TWILIO_AUTH_TOKEN"]
+    from_number = env.get("SMS_FROM") or env["CALL_FROM"]
+    req = urllib.request.Request(
+        f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json",
+        method="POST",
+    )
+    auth = base64.b64encode(f"{sid}:{token}".encode()).decode()
+    req.add_header("Authorization", "Basic " + auth)
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    data = urllib.parse.urlencode({"To": to_number, "From": from_number, "Body": body}).encode()
+    try:
+        with urllib.request.urlopen(req, data) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"Twilio SMS -> {e.code}: {e.read().decode()[:300]}") from None
 
 
 def main():
