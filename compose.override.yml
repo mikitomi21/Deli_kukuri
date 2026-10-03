@@ -57,6 +57,10 @@ services:
       WATCHFILES_FORCE_POLLING: "true"
 
   frontend:
+    image: frontend:latest
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "5173:5173"
     volumes:

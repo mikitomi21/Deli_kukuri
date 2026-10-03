@@ -1,0 +1,53 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Tag obrazu z docker.io/timosch99/dzwonilek (latest = ostatni z CI; sha = rollback)'
+        required: false
+        default: 'latest'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (tylko po to, by mieć pliki compose)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Wyślij pliki compose na VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "compose.yml,compose.deploy.yml"
+          target: /opt/dzwonilek
+          overwrite: true
+      - name: Pull obrazu (${{ inputs.image_tag }}) i restart stacka
+        uses: appleboy/ssh-action@v1.2.4
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: IMAGE_TAG
+          script: |
+            set -e
+            cd /opt/dzwonilek
+            # ściągnij wybrany tag i otaguj go lokalnie jako latest (compose ma latest na sztywno)
+            docker pull docker.io/timosch99/dzwonilek:${IMAGE_TAG}
+            docker tag docker.io/timosch99/dzwonilek:${IMAGE_TAG} docker.io/timosch99/dzwonilek:latest
+            docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d --remove-orphans
+            docker image prune -f

@@ -7,7 +7,8 @@ from sqlmodel import Session, delete
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import Item, User
+from app.models import Item, Medication, User
+from tests.utils.routine import TEST_MEDICATION_PREFIX
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -20,6 +21,11 @@ def db() -> Generator[Session]:
         statement = delete(Item)
         session.execute(statement)
         statement = delete(User)
+        session.execute(statement)
+        # Leki utworzone przez testy (tests.utils.routine) — katalog ma zostać czysty
+        statement = delete(Medication).where(  # type: ignore[assignment]
+            Medication.name.like(f"{TEST_MEDICATION_PREFIX}%")
+        )
         session.execute(statement)
         session.commit()
 
