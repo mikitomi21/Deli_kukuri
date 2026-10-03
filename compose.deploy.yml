@@ -63,6 +63,17 @@ services:
       - bash scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
     environment:
       FRONTEND_HOST: https://${DOMAIN:?Variable not set}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
       # Voice gateway (docs/12) — internal Docker network, no Traefik involved.
       VOICE_SERVICE_URL: http://voice:3000
       VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
@@ -134,8 +145,18 @@ services:
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
       VOICE_SERVICE_URL: http://voice:3000
       VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
+
     depends_on:
       redis:
         condition: service_healthy
@@ -155,8 +176,19 @@ services:
       - --loglevel=INFO
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
       VOICE_SERVICE_URL: http://voice:3000
       VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
+
     depends_on:
       redis:
         condition: service_healthy
