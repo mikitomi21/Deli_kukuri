@@ -63,6 +63,17 @@ services:
       - bash scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
     environment:
       FRONTEND_HOST: https://${DOMAIN:?Variable not set}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
     mem_limit: 512m
     labels:
       # Route HTTPS traffic (apex + www) — Let's Encrypt, auto-renewal.
@@ -100,6 +111,15 @@ services:
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
     depends_on:
       redis:
         condition: service_healthy
@@ -119,6 +139,16 @@ services:
       - --loglevel=INFO
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
     depends_on:
       redis:
         condition: service_healthy
