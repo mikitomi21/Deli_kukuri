@@ -306,6 +306,18 @@ export type MedicationPublic = {
      */
     instructions?: string | null;
     /**
+     * Generic Name (FDA / INN)
+     */
+    generic_name?: string | null;
+    /**
+     * Raw openFDA drug label data
+     */
+    fda_raw?: string | null;
+    /**
+     * Polish AI summary of the medication
+     */
+    ai_summary?: string | null;
+    /**
      * Id
      */
     id: string;
@@ -335,6 +347,18 @@ export type MedicationUpdate = {
      * Instructions
      */
     instructions?: string | null;
+    /**
+     * Generic Name (FDA / INN)
+     */
+    generic_name?: string | null;
+    /**
+     * Raw openFDA drug label data
+     */
+    fda_raw?: string | null;
+    /**
+     * Polish AI summary of the medication
+     */
+    ai_summary?: string | null;
 };
 
 /**

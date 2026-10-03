@@ -8,11 +8,14 @@ import {
 import {
   ArrowLeft,
   CalendarClock,
+  ChevronRight,
   Clock,
   Pencil,
   Phone,
   PhoneOff,
+  Pill,
   Plus,
+  Sparkles,
   UserX,
 } from "lucide-react"
 import { useState } from "react"
@@ -40,6 +43,7 @@ import { WardDeactivateDialog } from "@/components/Wards/WardDeactivateDialog"
 import { WardEditDialog } from "@/components/Wards/WardEditDialog"
 import { fetchCalls, fetchCallTasks, startTestCall } from "@/hooks/useCalls"
 import useCustomToast from "@/hooks/useCustomToast"
+import { fetchMedications } from "@/hooks/useMedications"
 import { fetchWard } from "@/hooks/useWards"
 import i18n from "@/i18n"
 import { callStartErrorKey } from "@/lib/apiErrors"
@@ -227,15 +231,184 @@ function WardTabs({
         <TabsTrigger value="routines">
           {t("wardDetail.tabRoutines")}
         </TabsTrigger>
+        <TabsTrigger value="medications">
+          {t("wardDetail.tabMedications")}
+        </TabsTrigger>
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
         <RoutinesSection wardId={wardId} wardActive={wardActive} />
       </TabsContent>
+      <TabsContent value="medications" className="mt-4">
+        <WardMedicationsSection wardId={wardId} />
+      </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />
       </TabsContent>
     </Tabs>
+  )
+}
+
+function WardMedicationsSection({ wardId }: { wardId: string }) {
+  const { t } = useTranslation("wards")
+  const { isPending, data: ward } = useQuery({
+    queryKey: ["ward", wardId],
+    queryFn: () => fetchWard(wardId),
+  })
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["medications", "catalog", ""],
+    queryFn: () => fetchMedications(),
+  })
+
+  if (isPending || !ward) {
+    return (
+      <div
+        className="grid gap-2"
+        role="status"
+        aria-busy="true"
+        aria-label={t("wardDetail.loadingRoutines")}
+      >
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    )
+  }
+
+  const routines = ward.routines ?? []
+  const medMap = new Map<
+    string,
+    {
+      id: string
+      name: string
+      dosage: string
+      routines: Array<{ routineName: string; time: string; amount: string }>
+    }
+  >()
+
+  for (const routine of routines) {
+    for (const item of routine.items ?? []) {
+      const key = item.medication_id || `${item.medication_name}-${item.dosage}`
+      const existing = medMap.get(key)
+      const routineInfo = {
+        routineName: routine.name,
+        time: routine.time_of_day,
+        amount: item.amount_label,
+      }
+      if (existing) {
+        existing.routines.push(routineInfo)
+      } else {
+        medMap.set(key, {
+          id: item.medication_id,
+          name: item.medication_name,
+          dosage: item.dosage,
+          routines: [routineInfo],
+        })
+      }
+    }
+  }
+
+  const medications = Array.from(medMap.values())
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Pill aria-hidden className="size-4 text-primary" />
+          {t("wardDetail.medicationsTitle")}
+        </CardTitle>
+        <CardDescription>
+          {t("wardDetail.medicationsDescription")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {medications.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Pill aria-hidden className="size-5" />
+            </div>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t("wardDetail.medicationsEmpty")}
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {medications.map((med) => {
+              const catalogItem = catalog.find(
+                (c) =>
+                  c.id === med.id ||
+                  (c.name.toLowerCase() === med.name.toLowerCase() &&
+                    c.dosage === med.dosage),
+              )
+              const targetId = med.id || catalogItem?.id
+              const hasAI = !!catalogItem?.ai_summary
+
+              return (
+                <ListRow
+                  key={med.id || med.name}
+                  className="flex-wrap sm:flex-nowrap"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Pill aria-hidden className="size-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {med.name}
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="font-mono text-xs"
+                        >
+                          {med.dosage}
+                        </Badge>
+                        {catalogItem?.generic_name && (
+                          <Badge variant="outline" className="text-xs">
+                            {catalogItem.generic_name}
+                          </Badge>
+                        )}
+                        {hasAI && (
+                          <Badge
+                            variant="outline"
+                            className="border-primary/30 text-primary text-xs flex items-center gap-1"
+                          >
+                            <Sparkles aria-hidden className="size-3" />
+                            AI
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {med.routines.map((r, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                          >
+                            {r.routineName} ({r.time}) · {r.amount}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
+                    {targetId ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          to="/medications/$medicationId"
+                          params={{ medicationId: targetId }}
+                        >
+                          {t("wardDetail.viewMedicationDetails")}
+                          <ChevronRight aria-hidden className="size-4 ml-1" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                </ListRow>
+              )
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 

@@ -17,6 +17,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutMedicationsMedicationIdRouteImport } from './routes/_layout/medications/$medicationId'
 import { Route as LayoutWardsWardIdRouteImport } from './routes/_layout/wards/$wardId'
 import { Route as LayoutWardsWardIdCallsCallIdRouteImport } from './routes/_layout/wards/$wardId/calls/$callId'
 
@@ -59,6 +60,12 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutMedicationsMedicationIdRoute =
+  LayoutMedicationsMedicationIdRouteImport.update({
+    id: '/medications/$medicationId',
+    path: '/medications/$medicationId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutWardsWardIdRoute = LayoutWardsWardIdRouteImport.update({
   id: '/wards/$wardId',
   path: '/wards/$wardId',
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/settings': typeof LayoutSettingsRoute
+  '/medications/$medicationId': typeof LayoutMedicationsMedicationIdRoute
   '/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
   '/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
   '/admin': typeof LayoutAdminRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/medications/$medicationId': typeof LayoutMedicationsMedicationIdRoute
   '/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
   '/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
@@ -103,6 +112,7 @@ export interface FileRoutesById {
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/medications/$medicationId': typeof LayoutMedicationsMedicationIdRoute
   '/_layout/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
   '/_layout/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/settings'
+    | '/medications/$medicationId'
     | '/wards/$wardId'
     | '/wards/$wardId/calls/$callId'
   fileRoutesByTo: FileRoutesByTo
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/settings'
     | '/'
+    | '/medications/$medicationId'
     | '/wards/$wardId'
     | '/wards/$wardId/calls/$callId'
   id:
@@ -139,6 +151,7 @@ export interface FileRouteTypes {
     | '/_layout/admin'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/medications/$medicationId'
     | '/_layout/wards/$wardId'
     | '/_layout/wards/$wardId/calls/$callId'
   fileRoutesById: FileRoutesById
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/medications/$medicationId': {
+      id: '/_layout/medications/$medicationId'
+      path: '/medications/$medicationId'
+      fullPath: '/medications/$medicationId'
+      preLoaderRoute: typeof LayoutMedicationsMedicationIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/wards/$wardId': {
       id: '/_layout/wards/$wardId'
       path: '/wards/$wardId'
@@ -241,6 +261,7 @@ interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutMedicationsMedicationIdRoute: typeof LayoutMedicationsMedicationIdRoute
   LayoutWardsWardIdRoute: typeof LayoutWardsWardIdRouteWithChildren
 }
 
@@ -248,6 +269,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutMedicationsMedicationIdRoute: LayoutMedicationsMedicationIdRoute,
   LayoutWardsWardIdRoute: LayoutWardsWardIdRouteWithChildren,
 }
 

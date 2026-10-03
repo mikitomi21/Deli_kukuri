@@ -158,6 +158,13 @@
       "no_answer": "Połączenie nieodebrane",
       "canceled": "Połączenie anulowane"
     },
+    "tabMedications": "Leki",
+    "medicationsTitle": "Leki podopiecznego",
+    "medicationsDescription": "Wszystkie leki przyjmowane w ramach zaplanowanych rutyn podopiecznego",
+    "medicationsEmpty": "Ten podopieczny nie ma jeszcze leków w swoich rutynach. Dodaj lek do rutyny, aby pojawił się w tym zestawieniu.",
+    "routinesAssigned": "W rutynach: {{routines}}",
+    "viewMedicationDetails": "Szczegóły leku",
+    "aiTip": "Wskazówka AI",
     "attemptLower": "próba {{number}}",
     "durationSec": "{{number}} s"
   },
@@ -183,5 +190,29 @@
     "parsedNo": "nie",
     "parsedUnclear": "niejasne",
     "transcriptTitle": "Pełny transkrypt"
+  },
+  "medicationDetail": {
+    "pageTitle": "Szczegóły leku",
+    "back": "Wróć",
+    "genericNameBadge": "Substancja czynna (INN/FDA): {{name}}",
+    "dosageBadge": "Dawka: {{dosage}}",
+    "formBadge": "Postać: {{form}}",
+    "standardInstructions": "Zalecenie z recepty",
+    "aiSectionTitle": "Podsumowanie AI dla opiekuna",
+    "aiSectionSubtitle": "Kluczowe informacje wyekstrahowane z dokumentacji medycznej i ulotki leku",
+    "whatItIsTitle": "Czym jest ten lek?",
+    "howToTakeTitle": "Z czym brać i czym popijać?",
+    "whenToTakeTitle": "Kiedy najlepiej przyjmować?",
+    "warningsTitle": "Ważne ostrzeżenia i czego unikać",
+    "fdaSectionTitle": "Oryginalna dokumentacja U.S. FDA (English)",
+    "fdaSectionSubtitle": "Oficjalne dane rejestrowe leku z bazy openFDA",
+    "fdaBadge": "Baza openFDA",
+    "fdaIndications": "Wskazania terapeutyczne (Indications & Usage)",
+    "fdaDosage": "Dawkowanie i podawanie (Dosage & Administration)",
+    "fdaWarnings": "Ostrzeżenia i środki ostrożności (Warnings & Precautions)",
+    "fdaFoodSafety": "Informacje dla pacjenta i dieta (Food Safety / Patient Info)",
+    "loading": "Ładowanie szczegółów leku...",
+    "errorTitle": "Nie udało się pobrać danych leku",
+    "notFound": "Nie znaleziono leku w bazie danych."
   }
 }
