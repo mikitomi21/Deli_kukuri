@@ -1,9 +1,7 @@
 name: Deploy to VPS
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -58,6 +56,8 @@ jobs:
   build-push:
     name: Build & push image (Docker Hub)
     needs: test
+    # Deploy odpalamy ręcznie (Run workflow) po merge'u do main
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -89,6 +89,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     needs: build-push
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
