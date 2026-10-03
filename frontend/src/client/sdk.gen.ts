@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsDeleteMedicationData, medicationsDeleteMedicationErrors, medicationsDeleteMedicationResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, medicationsUpdateMedicationData, medicationsUpdateMedicationErrors, medicationsUpdateMedicationResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -380,6 +380,20 @@ export class MedicationsService {
     }
     
     /**
+     * Delete Medication
+     *
+     * Delete a medication from the catalog (superuser only).
+     */
+    public static deleteMedication<ThrowOnError extends boolean = true>(options: Options<medicationsDeleteMedicationData, ThrowOnError>) {
+        return (options.client ?? client).delete<medicationsDeleteMedicationResponses, medicationsDeleteMedicationErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/medications/{id}',
+            ...options
+        });
+    }
+    
+    /**
      * Read Medication
      *
      * Get medication by ID.
@@ -390,6 +404,24 @@ export class MedicationsService {
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/medications/{id}',
             ...options
+        });
+    }
+    
+    /**
+     * Update Medication
+     *
+     * Update a medication (superuser only).
+     */
+    public static updateMedication<ThrowOnError extends boolean = true>(options: Options<medicationsUpdateMedicationData, ThrowOnError>) {
+        return (options.client ?? client).patch<medicationsUpdateMedicationResponses, medicationsUpdateMedicationErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/medications/{id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
         });
     }
 }

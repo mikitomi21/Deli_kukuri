@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import type { MedicationPublic } from "@/client"
 import i18n from "@/i18n"
+import { MedicationActionsMenu } from "./MedicationActionsMenu"
 
 // Column definitions live outside components: use a fixed-t translator
 // bound to the admin namespace for headers.
@@ -34,6 +35,15 @@ export const medicationColumns: ColumnDef<MedicationPublic>[] = [
       <span className="text-muted-foreground">
         {row.original.instructions ?? "—"}
       </span>
+    ),
+  },
+  {
+    id: "actions",
+    header: () => <span className="sr-only">Actions</span>,
+    cell: ({ row }) => (
+      <div className="flex justify-end">
+        <MedicationActionsMenu medication={row.original} />
+      </div>
     ),
   },
 ]

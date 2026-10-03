@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -16,6 +16,7 @@ import { medicationColumns } from "@/components/Admin/medicationColumns"
 import { DataTable } from "@/components/Common/DataTable"
 import { PageHeader } from "@/components/Common/PageHeader"
 import PendingTable from "@/components/Pending/PendingUsers"
+import { Input } from "@/components/ui/input"
 import useAuth from "@/hooks/useAuth"
 import i18n from "@/i18n"
 
@@ -61,13 +62,29 @@ export const Route = createFileRoute("/_layout/admin")({
 function UsersTableContent() {
   const { user: currentUser } = useAuth()
   const { data: users } = useSuspenseQuery(getUsersQueryOptions())
+  const [search, setSearch] = useState("")
+  const needle = search.trim().toLowerCase()
 
-  const tableData: UserTableData[] = users.data.map((user: UserPublic) => ({
-    ...user,
-    isCurrentUser: currentUser?.id === user.id,
-  }))
+  const tableData: UserTableData[] = users.data
+    .map((user: UserPublic) => ({
+      ...user,
+      isCurrentUser: currentUser?.id === user.id,
+    }))
+    .filter((user) =>
+      `${user.full_name ?? ""} ${user.email}`.toLowerCase().includes(needle),
+    )
 
-  return <DataTable columns={columns} data={tableData} />
+  return (
+    <div className="flex flex-col gap-4">
+      <Input
+        placeholder="Search users by name or email…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-sm"
+      />
+      <DataTable columns={columns} data={tableData} />
+    </div>
+  )
 }
 
 function UsersTable() {
@@ -80,12 +97,26 @@ function UsersTable() {
 
 function MedicationsTableContent() {
   const { data: medications } = useSuspenseQuery(getMedicationsQueryOptions())
+  const [search, setSearch] = useState("")
+  const needle = search.trim().toLowerCase()
+
+  const tableData = (medications.data as MedicationPublic[]).filter(
+    (medication) =>
+      `${medication.name} ${medication.dosage ?? ""} ${medication.form ?? ""}`
+        .toLowerCase()
+        .includes(needle),
+  )
 
   return (
-    <DataTable
-      columns={medicationColumns}
-      data={medications.data as MedicationPublic[]}
-    />
+    <div className="flex flex-col gap-4">
+      <Input
+        placeholder="Search medications by name, dosage or form…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-sm"
+      />
+      <DataTable columns={medicationColumns} data={tableData} />
+    </div>
   )
 }
 
