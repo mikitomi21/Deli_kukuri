@@ -3,6 +3,7 @@ from typing import Literal, Self
 
 from pydantic import (
     EmailStr,
+    Field,
     HttpUrl,
     PostgresDsn,
     computed_field,
@@ -29,6 +30,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
     DATABASE_URL: PostgresDsn
+    CALL_MAX_ATTEMPTS: int = Field(default=2, ge=1)
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
