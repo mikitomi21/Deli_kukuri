@@ -11,7 +11,7 @@
   "addMedication": {
     "trigger": "About the catalog",
     "title": "Medication catalog",
-    "description": "The catalog is global, shared, and read-only in the MVP — routines reference medications exclusively through this catalog. The data is seeded by a seed script (34 popular medications).",
+    "description": "The catalog is global and shared — routines reference medications exclusively through this catalog. It comes preloaded with a set of popular medications.",
     "close": "Close"
   },
   "addUser": {
@@ -95,14 +95,18 @@
     "addWard": "Add ward",
     "todayTitle": "Today",
     "todaySubtitle": "Routines and call results for your wards",
+    "scheduledBadge": "{{total}} scheduled",
     "statWards": "Wards",
     "statTakenToday": "Taken today",
     "statRemainingToday": "Remaining today",
     "statNeedsAttention": "Needs attention",
     "demoDataBadge": "Demo data",
-    "routinesPending": "Routines and statistics will appear once the backend endpoints are implemented.",
-    "noRoutines": "No routines — ",
-    "addFirstRoutine": "add your first routine"
+    "noRoutinesYet": "This ward has no routines yet.",
+    "addFirstRoutine": "Add first routine",
+    "nextCall": "Next call: {{name}} · {{time}}",
+    "noUpcoming": "No scheduled calls",
+    "approvedCount": "Approved: {{approved}}",
+    "draftsCount": "Drafts: {{drafts}}"
   },
   "medicationActions": {
     "edit": "Edit medication",

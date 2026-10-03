@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQueries, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
+  CalendarClock,
   CircleAlert,
   CircleCheck,
   Phone,
@@ -9,7 +10,6 @@ import {
   Users,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { ListRow } from "@/components/Common/ListRow"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { StatCard } from "@/components/Common/StatCard"
 import { Badge } from "@/components/ui/badge"
@@ -22,14 +22,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AddRoutineDialog } from "@/components/Wards/AddRoutineDialog"
 import { AddWardDialog } from "@/components/Wards/AddWardDialog"
-import {
-  RoutineStatusBadge,
-  TodayOutcomeBadge,
-} from "@/components/Wards/RoutineStatusBadge"
+import { fetchCallTasks } from "@/hooks/useCalls"
+import { fetchRoutines } from "@/hooks/useRoutines"
 import { fetchWards, getWardsMode } from "@/hooks/useWards"
 import i18n from "@/i18n"
+import type {
+  CallTask,
+  RoutineWithOutcome,
+  WardWithToday,
+} from "@/types/dashboard"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -42,16 +44,62 @@ export const Route = createFileRoute("/_layout/")({
   }),
 })
 
-function TodaySummary({ took, total }: { took: number; total: number }) {
+function formatDashboardDateTime(iso: string): string {
+  return new Date(iso).toLocaleString(i18n.language, {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function TodaySummary({
+  took,
+  total,
+  scheduled,
+  needsAttention,
+}: {
+  took: number
+  total: number
+  scheduled: boolean
+  needsAttention: boolean
+}) {
   const { t } = useTranslation("admin")
-  const allGood = took === total && total > 0
+  if (total === 0) return null
+  if (needsAttention) {
+    return (
+      <Badge variant="destructive">
+        {t("dashboard.summaryNeedsAttention")} · {took}/{total}
+      </Badge>
+    )
+  }
+  if (took === total) {
+    return (
+      <Badge variant="default">
+        {t("dashboard.summaryAllGood")} · {took}/{total}
+      </Badge>
+    )
+  }
+  if (scheduled) {
+    // Real calls have not reported yet — neutral info, not an alarm
+    return (
+      <Badge variant="outline">
+        {t("dashboard.scheduledBadge", { total })}
+      </Badge>
+    )
+  }
+  // Pending without failures: stay silent instead of crying wolf
+  return null
+}
+
+// A routine needs attention only when a call actually went wrong (not
+// taken / unclear / no answer). Planned-but-not-yet-called does not count.
+function routineNeedsAttention(r: RoutineWithOutcome): boolean {
   return (
-    <Badge variant={allGood ? "default" : "destructive"}>
-      {allGood
-        ? t("dashboard.summaryAllGood")
-        : t("dashboard.summaryNeedsAttention")}{" "}
-      · {took}/{total}
-    </Badge>
+    r.status === "approved" &&
+    r.today_status !== undefined &&
+    r.today_status !== "took" &&
+    r.today_status !== "pending"
   )
 }
 
@@ -67,17 +115,68 @@ function Dashboard() {
   })
   const mocksMode = getWardsMode() !== "api"
 
-  const totalToday = (wards ?? []).reduce(
-    (acc, ward) => ({
-      took: acc.took + (ward.today?.took ?? 0),
-      total: acc.total + (ward.today?.total ?? 0),
+  // Routines come per ward from their own query in every mode — the API ward
+  // payload does not embed them; mocks keep them for backwards compatibility.
+  const routinesQueries = useQueries({
+    queries: (wards ?? []).map((ward) => ({
+      queryKey: ["routines", ward.id],
+      queryFn: () => fetchRoutines(ward.id),
+    })),
+  })
+  // The schedule (call-tasks) drives the "next call" summary line; derived
+  // from approved routines, so it refreshes whenever routines change.
+  const callTasksQueries = useQueries({
+    queries: (wards ?? []).map((ward) => ({
+      queryKey: ["call-tasks", ward.id],
+      queryFn: () => fetchCallTasks(ward.id),
+    })),
+  })
+  const routinesByWard = new Map<string, RoutineWithOutcome[] | undefined>(
+    (wards ?? []).map((ward, index) => [ward.id, routinesQueries[index]?.data]),
+  )
+  const nextCallByWard = new Map<string, CallTask | undefined>(
+    (wards ?? []).map((ward, index) => [
+      ward.id,
+      callTasksQueries[index]?.data?.[0],
+    ]),
+  )
+  const routinesPendingSet = new Set(
+    (wards ?? [])
+      .filter((_, index) => routinesQueries[index]?.isPending)
+      .map((ward) => ward.id),
+  )
+
+  const effectiveToday = (
+    ward: WardWithToday,
+    routines: RoutineWithOutcome[] | undefined,
+  ): { took: number; total: number } | undefined => {
+    if (ward.today) return ward.today
+    if (!routines) return undefined
+    const approved = routines.filter((r) => r.status === "approved")
+    return {
+      took: approved.filter((r) => r.today_status === "took").length,
+      total: approved.length,
+    }
+  }
+
+  const wardsWithToday = (wards ?? []).map((ward) => ({
+    ward,
+    routines: routinesByWard.get(ward.id),
+    today: effectiveToday(ward, routinesByWard.get(ward.id)),
+  }))
+
+  const totalToday = wardsWithToday.reduce(
+    (acc, { today }) => ({
+      took: acc.took + (today?.took ?? 0),
+      total: acc.total + (today?.total ?? 0),
     }),
     { took: 0, total: 0 },
   )
-  const wardsNeedingAttention = (wards ?? []).filter(
-    (ward) =>
-      ward.today &&
-      (ward.today.took < ward.today.total || ward.today.total === 0),
+  // "Needs attention" = a call actually went wrong today (not taken / unclear
+  // / no answer). Planned-but-not-yet-called does not count — otherwise every
+  // ward with approved routines would be flagged before the first call.
+  const wardsNeedingAttention = wardsWithToday.filter(({ routines }) =>
+    (routines ?? []).some(routineNeedsAttention),
   ).length
 
   if (isPending) {
@@ -185,89 +284,111 @@ function Dashboard() {
       </div>
 
       <ul className="grid gap-4 md:grid-cols-2">
-        {wards.map((ward) => (
-          <li key={ward.id}>
-            <Card className="flex h-full flex-col">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <CardTitle>
-                      <Link
-                        to="/wards/$wardId"
-                        params={{ wardId: ward.id }}
-                        className="hover:underline"
-                      >
-                        {ward.full_name}
-                      </Link>
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-1.5">
-                      <Phone aria-hidden className="size-3" />
-                      {ward.phone_e164}
-                    </CardDescription>
+        {wardsWithToday.map(({ ward, routines, today }) => {
+          const isRoutinesPending = routinesPendingSet.has(ward.id)
+          const routineList = routines ?? []
+          const nextCall = nextCallByWard.get(ward.id)
+          const approved = routineList.filter(
+            (r) => r.status === "approved",
+          ).length
+          const drafts = routineList.filter((r) => r.status === "draft").length
+          return (
+            <li key={ward.id}>
+              <Card className="flex h-full flex-col">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <CardTitle>
+                        <Link
+                          to="/wards/$wardId"
+                          params={{ wardId: ward.id }}
+                          className="hover:underline"
+                        >
+                          {ward.full_name}
+                        </Link>
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-1.5">
+                        <Phone aria-hidden className="size-3" />
+                        {ward.phone_e164}
+                      </CardDescription>
+                    </div>
+                    {today && (
+                      <TodaySummary
+                        took={today.took}
+                        total={today.total}
+                        scheduled={!ward.today}
+                        needsAttention={routineList.some(routineNeedsAttention)}
+                      />
+                    )}
                   </div>
-                  {ward.today && (
-                    <TodaySummary
-                      took={ward.today.took}
-                      total={ward.today.total}
-                    />
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                {!ward.routines ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("dashboard.routinesPending")}
-                  </p>
-                ) : ward.routines.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("dashboard.noRoutines")}{" "}
-                    <AddRoutineDialog wardId={ward.id}>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col justify-between gap-4">
+                  {isRoutinesPending ? (
+                    <div className="grid gap-2" role="status" aria-busy="true">
+                      <Skeleton className="h-8 w-full" />
+                      <Skeleton className="h-8 w-3/4" />
+                    </div>
+                  ) : routineList.length === 0 ? (
+                    // Guide to the ward page — routine management lives there
+                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                      <p>{t("dashboard.noRoutinesYet")}</p>
                       <Button
-                        variant="link"
+                        asChild
+                        variant="outline"
                         size="sm"
-                        className="h-auto p-0 text-sm underline underline-offset-2"
+                        className="w-fit"
                       >
-                        {t("dashboard.addFirstRoutine")}
+                        <Link
+                          to="/wards/$wardId"
+                          params={{ wardId: ward.id }}
+                          search={{ addRoutine: true }}
+                        >
+                          <Plus aria-hidden />
+                          {t("dashboard.addFirstRoutine")}
+                        </Link>
                       </Button>
-                    </AddRoutineDialog>
-                    .
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {ward.routines.map((routine) => (
-                      <ListRow key={routine.id}>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
-                            {routine.name}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {routine.items
-                              .map(
-                                (item) =>
-                                  `${item.medication_name} ${item.dosage}`,
-                              )
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {routine.time_of_day}
+                    </div>
+                  ) : (
+                    // Overview, not management: the ward page owns the full
+                    // routine list — here only the next call and counts
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarClock
+                          aria-hidden
+                          className="size-4 shrink-0 text-muted-foreground"
+                        />
+                        {nextCall ? (
+                          <span className="min-w-0 truncate">
+                            {t("dashboard.nextCall", {
+                              name: nextCall.routine_name,
+                              time: formatDashboardDateTime(
+                                nextCall.scheduled_at,
+                              ),
+                            })}
                           </span>
-                          {routine.today_status &&
-                          routine.status === "approved" ? (
-                            <TodayOutcomeBadge status={routine.today_status} />
-                          ) : (
-                            <RoutineStatusBadge status={routine.status} />
-                          )}
-                        </div>
-                      </ListRow>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-          </li>
-        ))}
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {t("dashboard.noUpcoming")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="font-normal">
+                          {t("dashboard.approvedCount", { approved })}
+                        </Badge>
+                        {drafts > 0 && (
+                          <Badge variant="outline" className="font-normal">
+                            {t("dashboard.draftsCount", { drafts })}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

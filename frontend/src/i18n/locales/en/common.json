@@ -40,5 +40,48 @@
   },
   "logo": {
     "brand": "DzwoniLek"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "genericField": "This field",
+    "wardNotFound": "Ward not found",
+    "routineNotFound": "Routine not found",
+    "medicationNotFound": "Medication not found in the catalog",
+    "itemNotFound": "Item not found",
+    "userNotFound": "User not found",
+    "routineSelfDependency": "A routine cannot depend on itself",
+    "routineNoMedications": "Cannot approve a routine without medications",
+    "routineDependencyNotApproved": "Cannot approve: required routine “{{name}}” is not approved",
+    "routineDependencyNotApprovedGeneric": "Cannot approve: a required routine is not approved",
+    "routinePauseApprovedOnly": "Only approved routines can be paused",
+    "invalidCredentials": "Incorrect email or password",
+    "inactiveUser": "This account is inactive",
+    "invalidToken": "Invalid or expired link. Please request a new one.",
+    "incorrectPassword": "Incorrect password",
+    "samePassword": "The new password must differ from the current one",
+    "emailExists": "A user with this email already exists",
+    "notEnoughPermissions": "You don't have permission to perform this action",
+    "superuserDeleteSelf": "Superuser accounts cannot delete themselves",
+    "nullFields": "Optional fields cannot be empty",
+    "fieldRequired": "“{{field}}” is required",
+    "fieldTooShort": "“{{field}}” must be at least {{limit}} characters",
+    "fieldTooLong": "“{{field}}” can be at most {{limit}} characters",
+    "fieldInvalid": "“{{field}}” has an invalid format",
+    "amountNumeric": "The medication amount must be a number, e.g. 1 or 0.5",
+    "callNotFound": "Call not found",
+    "testCallNoRoutine": "This ward has no approved routine — approve one to enable calls"
+  },
+  "fields": {
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "timezone": "Time zone",
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "currentPassword": "Current password",
+    "name": "Name",
+    "time": "Time",
+    "days": "Days",
+    "amount": "Amount"
   }
 }

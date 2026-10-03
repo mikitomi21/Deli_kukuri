@@ -129,7 +129,7 @@ function seed(): MockWard[] {
             medication_id: "med-1",
             medication_name: "Warfarin",
             dosage: "5 mg",
-            amount_label: "1 tabletka",
+            amount_label: "1",
           },
         ],
       },
@@ -145,7 +145,7 @@ function seed(): MockWard[] {
             medication_id: "med-3",
             medication_name: "Bisoprolol",
             dosage: "2,5 mg",
-            amount_label: "pół tabletki",
+            amount_label: "0,5",
           },
         ],
       },
@@ -161,13 +161,13 @@ function seed(): MockWard[] {
             medication_id: "med-1",
             medication_name: "Warfarin",
             dosage: "5 mg",
-            amount_label: "1 tabletka",
+            amount_label: "1",
           },
           {
             medication_id: "med-2",
             medication_name: "Metformina",
             dosage: "850 mg",
-            amount_label: "1 tabletka",
+            amount_label: "1",
           },
         ],
       },
@@ -248,7 +248,7 @@ function seed(): MockWard[] {
             medication_id: "med-2",
             medication_name: "Metformina",
             dosage: "850 mg",
-            amount_label: "1 tabletka",
+            amount_label: "1",
           },
         ],
       },
@@ -264,7 +264,7 @@ function seed(): MockWard[] {
             medication_id: "med-4",
             medication_name: "Atorwastatyna",
             dosage: "20 mg",
-            amount_label: "1 tabletka",
+            amount_label: "1",
           },
         ],
       },
@@ -311,7 +311,7 @@ function seed(): MockWard[] {
             medication_id: "med-6",
             medication_name: "Hydrochlorotiazyd",
             dosage: "12,5 mg",
-            amount_label: "1 kropla",
+            amount_label: "1",
           },
         ],
       },
@@ -443,8 +443,8 @@ export async function updateWard(
   return withOutcomes(mock)
 }
 
-/** Soft delete per docs/04 B2: hidden from the dashboard, history stays. */
-export async function deactivateWard(id: string): Promise<void> {
+/** Hard delete: the ward and its mock history are removed. */
+export async function deleteWard(id: string): Promise<void> {
   await delay()
   const mock = db.find((w) => w.ward.id === id)
   if (!mock) throw new Error("Nie znaleziono podopiecznego")
@@ -477,11 +477,23 @@ export interface RoutinePayload {
   depends_on?: string[]
 }
 
+/** Mirrors the RoutineItemCreate validation on the backend (models.py). */
+function validateRoutinePayload(payload: RoutinePayload): void {
+  if (
+    payload.items.some(
+      (item) => !/^\d+(?:[.,]\d+)?$/.test(item.amount_label.trim()),
+    )
+  ) {
+    throw new Error("Ilość musi być liczbą, np. 1 albo 0,5")
+  }
+}
+
 export async function createRoutine(
   wardId: string,
   payload: RoutinePayload,
 ): Promise<Routine> {
   await delay()
+  validateRoutinePayload(payload)
   const mock = db.find((w) => w.ward.id === wardId)
   if (!mock) throw new Error("Nie znaleziono podopiecznego")
   const routine: Routine = {
@@ -502,6 +514,7 @@ export async function updateRoutine(
   payload: RoutinePayload,
 ): Promise<Routine> {
   await delay()
+  validateRoutinePayload(payload)
   const mock = db.find((w) => w.routines.some((r) => r.id === routineId))
   const routine = mock?.routines.find((r) => r.id === routineId)
   if (!mock || !routine) throw new Error("Nie znaleziono rutyny")
@@ -521,11 +534,10 @@ export async function deleteRoutine(routineId: string): Promise<void> {
   const mock = db.find((w) => w.routines.some((r) => r.id === routineId))
   const routine = mock?.routines.find((r) => r.id === routineId)
   if (!mock || !routine) throw new Error("Nie znaleziono rutyny")
-  if (routine.status !== "draft") {
-    // docs/05: DELETE is allowed for drafts only
-    throw new Error("Usunąć można tylko rutyny w szkicu (draft)")
-  }
+  // Any status can be deleted (parity with the backend); scheduled tasks
+  // are derived from approved routines, so they vanish with it
   mock.routines = mock.routines.filter((r) => r.id !== routineId)
+  mock.callTasks = mock.callTasks.filter((t) => t.routine_id !== routineId)
 }
 
 export async function approveRoutine(routineId: string): Promise<Routine> {

@@ -58,7 +58,10 @@ export function AddWardDialog({ children }: AddWardDialogProps) {
         full_name: z
           .string()
           .min(1, { message: t("addWard.validation.fullNameRequired") })
-          .max(100, { message: t("addWard.validation.fullNameMaxLength") }),
+          .max(100, { message: t("addWard.validation.fullNameMaxLength") })
+          .refine((value) => value.trim().length > 0, {
+            message: t("addWard.validation.fullNameRequired"),
+          }),
         phone: z
           .string()
           .min(1, { message: t("addWard.validation.phoneRequired") })

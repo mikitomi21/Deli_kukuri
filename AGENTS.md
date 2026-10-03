@@ -11,7 +11,7 @@ Projekt: **OpiekunAI** (roboczo repo „Deli kukuri") — asystent głosowy przy
 ## Podział pracy (nie wychodź poza swój zakres)
 
 - Frontend = FE scope: komponenty, hooki, mocki, testy FE.
-- **Backend i endpointy API dodaje inna osoba — nie twórz ani nie modyfikuj plików `backend/`**, nawet gdy coś tam „brakuje" (zgłoś zamiast naprawiać).
+- Backend (`backend/`) może być modyfikowany w ramach zadania, gdy tego wymaga (np. godzenie konfliktów, integracja kontraktu API, poprawki modeli). Domyślnie endpointy API rozwija osoba od backendu, ale nie zgłaszaj zamiast naprawiać — jeśli zmiana w `backend/` jest potrzebna do domknięcia zadania, wprowadź ją bezpośrednio.
 - Frontend pracuje na warstwie mocków (`src/mocks/`, flaga `VITE_USE_MOCKS`), która ma kształt kontraktu z `docs/05-api-spec.md`; przełączenie na realny backend = podmiana ciał funkcji w hookach (miejsca oznaczone `// TODO(api):`), bez zmian w komponentach.
 
 ## Zasady UI (obowiązkowe przy każdej pracy nad frontendem)

@@ -1,9 +1,18 @@
+import re
 import uuid
 from datetime import UTC, datetime, time
 from typing import Annotated, Any
+from zoneinfo import ZoneInfo
 
-from pydantic import AliasChoices, EmailStr, StringConstraints
-from sqlalchemy import JSON, CheckConstraint, DateTime, Index, UniqueConstraint, func
+from pydantic import AliasChoices, EmailStr, StringConstraints, field_validator
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    Index,
+    UniqueConstraint,
+    func,
+)
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -133,6 +142,20 @@ class MedicationBase(SQLModel):
     form: str | None = Field(default=None, max_length=100)
     instructions: str | None = Field(default=None, max_length=255)
 
+    @field_validator("dosage")
+    @classmethod
+    def dosage_non_negative(cls, value: str) -> str:
+        # Dose must start with a non-negative number ("5 mg", "12,5 mg",
+        # "0,5 ml", combination doses "160/4,5 µg"); "-5 mg" or pure text
+        # is meaningless for reminders
+        if not re.match(
+            r"^\d+(?:[.,]\d+)?(?:/\d+(?:[.,]\d+)?)?(?:\s.*)?$", value.strip()
+        ):
+            raise ValueError(
+                "dosage must be a non-negative amount, e.g. '5 mg'"
+            )
+        return value.strip()
+
 
 class MedicationCreate(MedicationBase):
     pass
@@ -175,6 +198,25 @@ class WardBase(SQLModel):
     phone_e164: E164Phone
     tz: str = Field(default="Europe/Warsaw", max_length=64)
 
+    @field_validator("full_name")
+    @classmethod
+    def full_name_not_blank(cls, value: str) -> str:
+        # Whitespace-only names would pass min_length but are unusable
+        if not value.strip():
+            raise ValueError("full_name cannot be blank")
+        return value.strip()
+
+    @field_validator("tz")
+    @classmethod
+    def tz_must_be_iana_zone(cls, value: str) -> str:
+        # The materializer localizes call times with this zone; an invalid
+        # one would only blow up at call time, so reject it at the API edge
+        try:
+            ZoneInfo(value)
+        except Exception:
+            raise ValueError("tz must be a valid IANA time zone") from None
+        return value
+
 
 # Properties to receive via API on creation
 class WardCreate(WardBase):
@@ -186,6 +228,25 @@ class WardUpdate(SQLModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
     phone_e164: E164Phone | None = None
     tz: str | None = Field(default=None, max_length=64)
+
+    @field_validator("full_name")
+    @classmethod
+    def full_name_not_blank(cls, value: str | None) -> str | None:
+        if value is not None:
+            if not value.strip():
+                raise ValueError("full_name cannot be blank")
+            return value.strip()
+        return value
+
+    @field_validator("tz")
+    @classmethod
+    def tz_must_be_iana_zone(cls, value: str | None) -> str | None:
+        if value is not None:
+            try:
+                ZoneInfo(value)
+            except Exception:
+                raise ValueError("tz must be a valid IANA time zone") from None
+        return value
 
 
 # Database model, database table inferred from class name
@@ -229,10 +290,27 @@ class RoutineBase(SQLModel):
         serialization_alias="days",
     )
 
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("name cannot be blank")
+        return value.strip()
+
 
 class RoutineItemCreate(SQLModel):
     medication_id: uuid.UUID
-    amount_label: str = Field(min_length=1, max_length=255)
+    amount_label: str = Field(min_length=1, max_length=16)
+
+    @field_validator("amount_label")
+    @classmethod
+    def amount_label_numeric(cls, value: str) -> str:
+        # Quantity is a plain number ("1", "0,5"); text like "jedna tabletka"
+        # would be read out verbatim in the call script, so reject it here
+        stripped = value.strip()
+        if not re.match(r"^\d+(?:[.,]\d+)?$", stripped):
+            raise ValueError("amount_label must be a number, e.g. '1' or '0,5'")
+        return stripped
 
 
 # Properties to receive via API on creation: items + dependencies w jednym payloadzie
@@ -253,6 +331,15 @@ class RoutineUpdate(SQLModel):
     )
     items: list[RoutineItemCreate] | None = None
     depends_on: list[uuid.UUID] | None = None
+
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, value: str | None) -> str | None:
+        if value is not None:
+            if not value.strip():
+                raise ValueError("name cannot be blank")
+            return value.strip()
+        return value
 
 
 # Database model, database table inferred from class name
