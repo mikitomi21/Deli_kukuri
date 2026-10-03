@@ -1,5 +1,6 @@
-from contextlib import asynccontextmanager
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import sentry_sdk
@@ -21,7 +22,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     seed_all()
     yield
 
