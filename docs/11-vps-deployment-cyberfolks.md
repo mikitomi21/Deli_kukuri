@@ -25,7 +25,7 @@ deploy: osobny, RĘCZNY workflow (deploy-vps.yml → Run workflow)
 - **build & push** — jeden obraz `backend` (frontend jest wbudowany w obraz — `backend/Dockerfile`), tagowany `latest` + `sha`. Buduje się **na runnerze GitHuba**, nie na VPS — 1 vCPU/2 GB by tego nie udźwignął.
 - **deploy** — SCP plików compose na VPS, potem `docker compose pull backend` + `up -d` (migracje + seed odpala `prestart.sh` w komendzie kontenera — wszystko idempotentne). Na serwerze nie ma repo ani gita.
 
-Dwa workflow: **ci.yml** — `pull_request` odpala job `test`, `merge do main` (push) odpala test → build → push obrazu; **deploy-vps.yml** — tylko ręczny (Run workflow), wdraża wybrany tag obrazu na VPS.
+Dwa workflow: **ci.yml** — `pull_request` odpala job `test`, `merge do main` (push) odpala test → build → push obrazu; **deploy-vps.yml** — tylko ręczny (Run workflow), wdraża wybrany tag obrazu na VPS. Obraz jest na sztywno w `compose.deploy.yml` (`docker.io/timosch99/dzwonilek:latest`) — deploy robi lokalny retag wybranego taga na `latest` (rollback bez zmian w compose).
 
 ---
 
@@ -99,9 +99,6 @@ FIRST_SUPERUSER_PASSWORD=<WYGENEROWANE-MOCNE-HASLO>
 # Postgres — wygeneruj: openssl rand -hex 16
 POSTGRES_PASSWORD=<WYGENEROWANE-HASLO-DO-BAZY>
 DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5432/app
-
-# Obraz z CI (dokładnie taka ścieżka, jak pokazuje push w GitHub Actions)
-DOCKER_IMAGE_BACKEND=docker.io/timosch99/dzwonilek:latest
 
 # E-mail (produkcja: SMTP cyberfolks albo dowolny dostawca; dev używał Mailpita)
 SMTP_HOST=mail.<twoja-domena-mailowa>
