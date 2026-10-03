@@ -21,13 +21,13 @@
   },
   "medicationPicker": {
     "selectedAria": "Selected medications",
-    "amountPlaceholder": "Amount, e.g. 1 tablet",
+    "amountPlaceholder": "Amount, e.g. 1 or 0.5",
     "amountFor": "Amount for {{name}}",
     "removeFor": "Remove {{name}} from routine",
     "searchPlaceholder": "Search the medication catalog, e.g. warf…",
     "searchAria": "Search the medication catalog",
     "loadingAria": "Loading medication catalog",
-    "emptyCatalog": "Medication not found in the database — the catalog is read-only in the MVP."
+    "emptyCatalog": "No medication with this name was found. Try a different search."
   },
   "routineActions": {
     "actionsFor": "Actions for routine {{name}}",
@@ -37,7 +37,7 @@
     "pause": "Pause",
     "delete": "Delete",
     "deleteTitle": "Delete routine?",
-    "deleteDescription": "Routine “{{name}}” will be permanently deleted. Only draft routines can be deleted.",
+    "deleteDescription": "Routine “{{name}}” will be permanently deleted and its scheduled calls canceled. This action cannot be undone.",
     "cancel": "Cancel",
     "deleteConfirm": "Delete routine",
     "approvedToast": "Routine approved — call has been scheduled",
@@ -75,7 +75,8 @@
       "nameMaxLength": "Maximum of 100 characters",
       "timeFormat": "Enter the time in HH:MM format",
       "noMedications": "Add at least one medication to the routine",
-      "amountRequired": "Enter the amount for each medication"
+      "amountRequired": "Enter the amount for each medication",
+      "amountNumeric": "The amount must be a number, e.g. 1 or 0.5"
     }
   },
   "routineStatus": {
@@ -90,12 +91,12 @@
     "no_answer": "No answer",
     "pending": "Scheduled"
   },
-  "wardDeactivate": {
-    "title": "Deactivate ward?",
-    "description": "{{name}} will disappear from the dashboard and the system will no longer call them. Call history is preserved.",
+  "wardDelete": {
+    "title": "Delete ward?",
+    "description": "{{name}} will be permanently deleted together with their routines and call history. This action cannot be undone.",
     "cancel": "Cancel",
-    "confirm": "Deactivate",
-    "successToast": "Ward has been deactivated"
+    "confirm": "Delete",
+    "successToast": "Ward has been deleted"
   },
   "wardEdit": {
     "title": "Edit ward",
@@ -118,7 +119,7 @@
     "weekBadge": "Last 7 days: {{pct}}%",
     "callNow": "Call now",
     "edit": "Edit",
-    "deactivate": "Deactivate",
+    "delete": "Delete",
     "testCallResult": "Test call finished: {{outcome}}",
     "callQueued": "The call has been queued. Its result will appear in the history.",
     "callFailed": "Could not start the call. Please try again.",
@@ -142,7 +143,6 @@
     "routinesDescription": "Approved routines are scheduled for calls",
     "addRoutine": "Add routine",
     "routinesEmpty": "This ward has no routines yet. Add the first routine so DzwoniLek can start calling.",
-    "routinesInactiveHint": "The ward is deactivated — adding new routines is disabled.",
     "callsEmpty": "No calls yet — history will appear after the first phone call.",
     "callsTitle": "Call history",
     "callsDescription": "Click a call to see the summary and transcript",

@@ -107,15 +107,19 @@ def delete_ward(
     session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
     """
-    Deactivate a ward (soft delete): inactive wards are skipped by the materializer.
+    Permanently delete a ward. Routines, call tasks and calls cascade
+    via FK ondelete=CASCADE (docs/03-data-model.md).
     """
     ward = session.get(Ward, id)
     if not ward or (
         not current_user.is_superuser and ward.caregiver_id != current_user.id
     ):
         raise HTTPException(status_code=404, detail="Ward not found")
-    ward.active = False
-    session.add(ward)
+    session.delete(ward)
     session.commit()
-    session.refresh(ward)
-    return Message(message="Ward deactivated successfully")
+    return Message(message="Ward deleted successfully")
+
+
+# Call tasks are served by app/api/routes/calls.py (GET /wards/{ward_id}/call-tasks)
+# — the schedule is materialized into the calltask table by the worker, so the
+# endpoint lives with the rest of the call domain there.

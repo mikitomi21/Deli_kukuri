@@ -73,7 +73,7 @@ export function RoutineDialog({
         <DialogTrigger asChild>{children}</DialogTrigger>
       )}
       {open && (
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
           <RoutineFormBody
             wardId={wardId}
             routine={routine}
@@ -103,10 +103,16 @@ function RoutineFormBody({
   onSuccess?: () => void
 }) {
   const [step, setStep] = useState(0)
-  const [name, setName] = useState("")
-  const [timeOfDay, setTimeOfDay] = useState("")
-  const [items, setItems] = useState<RoutineItem[]>([])
-  const [dependsOn, setDependsOn] = useState<string[]>([])
+  // Edit mode starts prefilled with the routine's current values; the body
+  // remounts on every open, so plain initial state is enough (no reset effects).
+  const [name, setName] = useState(routine?.name ?? "")
+  const [timeOfDay, setTimeOfDay] = useState(routine?.time_of_day ?? "")
+  const [items, setItems] = useState<RoutineItem[]>(
+    routine ? structuredClone(routine.items) : [],
+  )
+  const [dependsOn, setDependsOn] = useState<string[]>(
+    routine ? [...routine.depends_on] : [],
+  )
   const [stepError, setStepError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const { t } = useTranslation("wards")
@@ -128,6 +134,13 @@ function RoutineFormBody({
       if (items.length === 0) return t("routineDialog.errors.noMedications")
       if (items.some((item) => item.amount_label.trim() === "")) {
         return t("routineDialog.errors.amountRequired")
+      }
+      if (
+        items.some(
+          (item) => !/^\d+(?:[.,]\d+)?$/.test(item.amount_label.trim()),
+        )
+      ) {
+        return t("routineDialog.errors.amountNumeric")
       }
     }
     return null
@@ -170,6 +183,9 @@ function RoutineFormBody({
 
   const timeInvalid =
     stepError !== null && step === 0 && !TIME_PATTERN.test(timeOfDay)
+
+  const negativeAmount = (label: string) =>
+    label.trim() !== "" && !/^\d+(?:[.,]\d+)?$/.test(label.trim())
 
   return (
     <>
@@ -261,7 +277,11 @@ function RoutineFormBody({
             <p className="text-sm">
               <Label>{t("routineDialog.pickMeds")}</Label>
             </p>
-            <MedicationPicker value={items} onChange={setItems} />
+            <MedicationPicker
+              value={items}
+              onChange={setItems}
+              amountInvalid={negativeAmount}
+            />
           </div>
         )}
 

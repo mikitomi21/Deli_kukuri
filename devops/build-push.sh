@@ -39,4 +39,11 @@ echo "==> Push: ${FULL} (+ latest)"
 docker push "${FULL}"
 docker push "docker.io/${IMAGE}:latest"
 
-echo "==> OK: ${FULL}"
+# Voice gateway (Twilio + OpenAI Realtime, docs/12) — separate image, stable
+# "voice" tag; compose.deploy.yml references it and deploy.sh pulls it.
+VOICE_FULL="docker.io/${IMAGE}:voice"
+echo "==> Build: ${VOICE_FULL}"
+docker build -t "${VOICE_FULL}" ./twilio-test
+docker push "${VOICE_FULL}"
+
+echo "==> OK: ${FULL} + ${VOICE_FULL}"

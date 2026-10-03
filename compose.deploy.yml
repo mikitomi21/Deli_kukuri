@@ -63,6 +63,18 @@ services:
       - bash scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
     environment:
       FRONTEND_HOST: https://${DOMAIN:?Variable not set}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
+
     mem_limit: 512m
     labels:
       # Route HTTPS traffic (apex + www) — Let's Encrypt, auto-renewal.
@@ -75,6 +87,37 @@ services:
       - traefik.http.routers.backend-https.tls=true
       # Use the Let's Encrypt resolver
       - traefik.http.routers.backend-https.tls.certresolver=le
+
+  # Voice gateway (Twilio Media Streams + OpenAI Realtime, docs/12).
+  # Public: Twilio dials the media stream at https://voice.${DOMAIN} — Traefik
+  # upgrades WebSockets natively; the cert MUST stay on the Let's Encrypt
+  # resolver, the cyberfolks (Certum) cert fails Twilio TLS (docs/11 §1.8).
+  # Internal: backend/worker reach it at http://voice:3000. Requires an A
+  # record for `voice.${DOMAIN}` and PUBLIC_URL=https://voice.${DOMAIN} in
+  # the server .env — replaces the ngrok tunnel profile from local dev.
+  voice:
+    image: docker.io/timosch99/dzwonilek:voice
+    restart: always
+    environment:
+      BACKEND_INTERNAL_URL: http://backend:8000
+      PORT: "3000"
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM: ${TWILIO_FROM:-${TWILIO_FROM_NUMBER:-}}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    mem_limit: 512m
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.voice.loadbalancer.server.port=3000
+      - traefik.http.routers.voice-https.rule=Host(`voice.${DOMAIN:?Variable not set}`)
+      - traefik.http.routers.voice-https.entrypoints=https
+      - traefik.http.routers.voice-https.tls=true
+      - traefik.http.routers.voice-https.tls.certresolver=le
 
   # Celery + Redis (docs/02-architecture.md, docs/07-scheduling-escalation.md)
   redis:
@@ -100,6 +143,16 @@ services:
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
+
     depends_on:
       redis:
         condition: service_healthy
@@ -119,6 +172,17 @@ services:
       - --loglevel=INFO
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      SECRET_KEY: ${SECRET_KEY}
+      PROJECT_NAME: ${PROJECT_NAME}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      VOICE_SERVICE_TOKEN: ${VOICE_SERVICE_TOKEN}
+      VOICE_SERVICE_URL: ${VOICE_SERVICE_URL}
+      TWILIO_FROM: ${TWILIO_FROM}
+      TWILIO_TO: ${TWILIO_TO}
+
     depends_on:
       redis:
         condition: service_healthy

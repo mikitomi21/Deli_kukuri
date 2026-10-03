@@ -6,6 +6,8 @@ from sqlmodel import Session
 from app.core.config import settings
 from tests.utils.ward import create_random_ward
 
+API = settings.API_V1_STR
+
 
 def test_create_ward(
     client: TestClient, normal_user_token_headers: dict[str, str]
@@ -167,7 +169,7 @@ def test_update_foreign_ward_returns_404(
     assert response.status_code == 404
 
 
-def test_delete_ward_deactivates(
+def test_delete_ward_permanently_removes(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
     response = client.post(
@@ -181,14 +183,45 @@ def test_delete_ward_deactivates(
         headers=normal_user_token_headers,
     )
     assert response.status_code == 200
-    assert response.json()["message"] == "Ward deactivated successfully"
+    assert response.json()["message"] == "Ward deleted successfully"
 
+    # Hard delete: the ward is gone, not just deactivated
     response = client.get(
         f"{settings.API_V1_STR}/wards/{ward_id}",
         headers=normal_user_token_headers,
     )
-    assert response.status_code == 200
-    assert response.json()["active"] is False
+    assert response.status_code == 404
+
+    response = client.get(
+        f"{settings.API_V1_STR}/wards/", headers=normal_user_token_headers
+    )
+    assert ward_id not in [ward["id"] for ward in response.json()["data"]]
+
+
+def test_create_ward_blank_name_rejected(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    response = client.post(
+        f"{settings.API_V1_STR}/wards/",
+        headers=normal_user_token_headers,
+        json={"full_name": "   ", "phone_e164": "+48600100200"},
+    )
+    assert response.status_code == 422
+
+
+def test_create_ward_invalid_timezone_rejected(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    response = client.post(
+        f"{settings.API_V1_STR}/wards/",
+        headers=normal_user_token_headers,
+        json={
+            "full_name": "Halina Kowalska",
+            "phone_e164": "+48600100200",
+            "tz": "Mars/Olympus",
+        },
+    )
+    assert response.status_code == 422
 
 
 def test_delete_foreign_ward_returns_404(
@@ -219,14 +252,14 @@ def test_update_ward_null_field_rejected(
 ) -> None:
     # Jawne null-e w PATCH to błąd klienta: 422, a nie 500 z NOT NULL
     response = client.post(
-        f"{settings.API_V1_STR}/wards/",
+        f"{API}/wards/",
         headers=normal_user_token_headers,
         json={"full_name": "Halina Kowalska", "phone_e164": "+48600100200"},
     )
     ward_id = response.json()["id"]
     for payload in [{"full_name": None}, {"phone_e164": None}, {"tz": None}]:
         response = client.patch(
-            f"{settings.API_V1_STR}/wards/{ward_id}",
+            f"{API}/wards/{ward_id}",
             headers=normal_user_token_headers,
             json=payload,
         )
