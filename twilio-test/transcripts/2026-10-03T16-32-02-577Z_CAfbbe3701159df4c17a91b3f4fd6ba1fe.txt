@@ -1,0 +1,9 @@
+======================================
+TWILIO + OPENAI REALTIME
+======================================
+
+Call SID: CAfbbe3701159df4c17a91b3f4fd6ba1fe
+Stream SID: MZa046fba721fcedc392d38c2762565dfc
+
+[18:32:04] AI: Dzień dobry, tutaj asyst
+

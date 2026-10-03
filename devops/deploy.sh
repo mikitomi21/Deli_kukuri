@@ -59,6 +59,9 @@ set -e
 cd "$DEPLOY_DIR"
 docker pull "$IMAGE:$IMAGE_TAG"
 docker tag "$IMAGE:$IMAGE_TAG" "$IMAGE:latest"
+# Voice gateway obraz (stable "voice" tag, built by build-push.sh) — fails the
+# deploy loudly if missing, so voice is never silently left stale.
+docker pull "$IMAGE:voice"
 docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d --remove-orphans
 docker image prune -f
 EOF

@@ -1,13 +1,13 @@
 /**
- * In-memory mock "backend" covering the docs/05-api-spec.md endpoints that
- * the real backend does not ship yet (call-tasks, calls, test-call, stats),
- * plus the demo catalog used when VITE_USE_MOCKS=mocks. Wards, medications
- * and routines go through the generated client by default — see
- * src/hooks/useWards.ts / useRoutines.ts.
+ * In-memory demo "backend" for the docs/05-api-spec.md endpoints.
+ * VITE_USE_MOCKS=mocks explicitly enables demo data. Wards, medications,
+ * routines, calls and statistics use the generated API client by default.
  *
  * Data lives for the browser session (no persistence). All mutations are
  * immutable so TanStack Query always sees a fresh reference.
  */
+
+import { createUuid } from "@/lib/uuid"
 import type {
   Call,
   CallOutcome,
@@ -20,7 +20,7 @@ import type {
 } from "@/types/dashboard"
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
-const uid = () => crypto.randomUUID()
+const uid = createUuid
 
 function atTime(timeOfDay: string, dayOffset = 0): string {
   const d = new Date()

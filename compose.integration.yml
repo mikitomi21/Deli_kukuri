@@ -1,0 +1,76 @@
+# Isolated API/database/Redis queue; the voice gateway uses an in-process fake conversation.
+x-integration-environment: &integration-environment
+  DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/opiekunai_integration_tests
+  FASTAPI_ENV: development
+  CELERY_BROKER_URL: redis://redis:6379/2
+  CELERY_RESULT_BACKEND: redis://redis:6379/2
+  VOICE_SERVICE_URL: http://voice-test:3000
+  VOICE_SERVICE_TOKEN: integration-test-token
+
+services:
+  backend-test:
+    image: backend:latest
+    env_file: .env
+    environment: *integration-environment
+    volumes:
+      - ./backend/app:/app/backend/app
+      - ./backend/tests:/app/backend/tests
+      - ./backend/scripts/test-integration.sh:/app/backend/scripts/test-integration.sh
+    command: ["bash", "-c", "scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      db:
+        condition: service_healthy
+
+  voice-test:
+    image: deli_kukuri-voice:latest
+    volumes:
+      - ./twilio-test:/fixtures
+    environment:
+      NODE_PATH: /app/node_modules
+      BACKEND_INTERNAL_URL: http://backend-test:8000
+      VOICE_SERVICE_TOKEN: integration-test-token
+      TWILIO_ACCOUNT_SID: AC-test
+      TWILIO_AUTH_TOKEN: test
+      TWILIO_FROM: "+48600100200"
+      OPENAI_API_KEY: test
+      PUBLIC_URL: https://voice.example
+    command: ["node", "/fixtures/test-server.js"]
+
+  worker-test:
+    image: backend:latest
+    env_file: .env
+    environment: *integration-environment
+    volumes:
+      - ./backend/app:/app/backend/app
+    command: ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=INFO", "--concurrency=1"]
+    depends_on:
+      backend-test:
+        condition: service_healthy
+      voice-test:
+        condition: service_started
+
+  beat-test:
+    image: backend:latest
+    env_file: .env
+    environment:
+      <<: *integration-environment
+      CELERY_DISPATCH_INTERVAL_SECONDS: "2"
+    volumes:
+      - ./backend/app:/app/backend/app
+    command: ["celery", "-A", "app.worker.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/test-celerybeat"]
+    depends_on:
+      backend-test:
+        condition: service_healthy
+
+  playwright:
+    environment:
+      PLAYWRIGHT_BASE_URL: http://frontend:5173
+      CALL_TEST_API_URL: http://backend-test:8000
+    volumes:
+      - ./frontend/tests:/app/frontend/tests
+      - ./frontend/call-integration.config.ts:/app/frontend/call-integration.config.ts

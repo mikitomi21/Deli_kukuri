@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -11,7 +12,8 @@ import { handleError } from "@/utils"
 
 interface AddRoutineDialogProps {
   wardId: string
-  children: React.ReactNode
+  /** Optional trigger — omitted in controlled mode (e.g. ward details). */
+  children?: React.ReactNode
   /** Controlled mode: dialog opens while `open` is true (e.g. ?addRoutine deep link). */
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -25,6 +27,7 @@ export function AddRoutineDialog({
   onOpenChange,
 }: AddRoutineDialogProps) {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const { t } = useTranslation("wards")
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -33,6 +36,9 @@ export function AddRoutineDialog({
     onSuccess: () => {
       showSuccessToast(t("addRoutine.successToast"))
       onOpenChange?.(false)
+      // Every entry point (dashboard deep link included) lands on the ward
+      // details so the new routine is immediately visible.
+      navigate({ to: "/wards/$wardId", params: { wardId } })
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {

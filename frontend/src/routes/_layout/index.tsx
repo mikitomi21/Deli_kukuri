@@ -57,28 +57,49 @@ function TodaySummary({
   took,
   total,
   scheduled,
+  needsAttention,
 }: {
   took: number
   total: number
   scheduled: boolean
+  needsAttention: boolean
 }) {
   const { t } = useTranslation("admin")
-  if (scheduled && took === 0) {
-    // Real calls have not reported yet — do not show "needs attention"
+  if (total === 0) return null
+  if (needsAttention) {
+    return (
+      <Badge variant="destructive">
+        {t("dashboard.summaryNeedsAttention")} · {took}/{total}
+      </Badge>
+    )
+  }
+  if (took === total) {
+    return (
+      <Badge variant="default">
+        {t("dashboard.summaryAllGood")} · {took}/{total}
+      </Badge>
+    )
+  }
+  if (scheduled) {
+    // Real calls have not reported yet — neutral info, not an alarm
     return (
       <Badge variant="outline">
         {t("dashboard.scheduledBadge", { total })}
       </Badge>
     )
   }
-  const allGood = took === total && total > 0
+  // Pending without failures: stay silent instead of crying wolf
+  return null
+}
+
+// A routine needs attention only when a call actually went wrong (not
+// taken / unclear / no answer). Planned-but-not-yet-called does not count.
+function routineNeedsAttention(r: RoutineWithOutcome): boolean {
   return (
-    <Badge variant={allGood ? "default" : "destructive"}>
-      {allGood
-        ? t("dashboard.summaryAllGood")
-        : t("dashboard.summaryNeedsAttention")}{" "}
-      · {took}/{total}
-    </Badge>
+    r.status === "approved" &&
+    r.today_status !== undefined &&
+    r.today_status !== "took" &&
+    r.today_status !== "pending"
   )
 }
 
@@ -155,13 +176,7 @@ function Dashboard() {
   // / no answer). Planned-but-not-yet-called does not count — otherwise every
   // ward with approved routines would be flagged before the first call.
   const wardsNeedingAttention = wardsWithToday.filter(({ routines }) =>
-    (routines ?? []).some(
-      (r) =>
-        r.status === "approved" &&
-        r.today_status !== undefined &&
-        r.today_status !== "took" &&
-        r.today_status !== "pending",
-    ),
+    (routines ?? []).some(routineNeedsAttention),
   ).length
 
   if (isPending) {
@@ -302,6 +317,7 @@ function Dashboard() {
                         took={today.took}
                         total={today.total}
                         scheduled={!ward.today}
+                        needsAttention={routineList.some(routineNeedsAttention)}
                       />
                     )}
                   </div>

@@ -107,5 +107,36 @@
     "noUpcoming": "Brak zaplanowanych połączeń",
     "approvedCount": "Zatwierdzone: {{approved}}",
     "draftsCount": "Szkice: {{drafts}}"
+  },
+  "medicationActions": {
+    "edit": "Edytuj lek",
+    "editTitle": "Edytuj lek",
+    "editDescription": "Zmiany dotyczą wspólnego katalogu dla wszystkich opiekunów.",
+    "name": "Nazwa",
+    "dosage": "Dawka",
+    "form": "Postać",
+    "instructions": "Instrukcje",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "delete": "Usuń lek",
+    "deleteTitle": "Usuń lek",
+    "deleteDescription": "Usunąć {{name}} ({{dosage}}) ze wspólnego katalogu? Tej operacji nie można cofnąć.",
+    "updated": "Lek został zaktualizowany",
+    "deleted": "Lek został usunięty",
+    "openMenu": "Otwórz menu działań leku",
+    "actions": "Działania",
+    "search": "Szukaj leków po nazwie, dawce lub postaci…",
+    "namePlaceholder": "np. Aspiryna",
+    "dosagePlaceholder": "np. 500 mg",
+    "formPlaceholder": "np. tabletki powlekane",
+    "instructionsPlaceholder": "np. po posiłku",
+    "validation": {
+      "nameRequired": "Nazwa jest wymagana",
+      "nameTooLong": "Nazwa może mieć maksymalnie 255 znaków",
+      "dosageRequired": "Dawka jest wymagana",
+      "dosageTooLong": "Dawka może mieć maksymalnie 100 znaków",
+      "formTooLong": "Postać może mieć maksymalnie 100 znaków",
+      "instructionsTooLong": "Instrukcje mogą mieć maksymalnie 255 znaków"
+    }
   }
 }

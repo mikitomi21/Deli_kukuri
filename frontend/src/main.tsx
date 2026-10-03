@@ -5,7 +5,6 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
-import { AxiosError } from "axios"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 import { client } from "./client/client.gen"
@@ -13,6 +12,7 @@ import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import "./i18n"
+import { isAuthenticationError, retryApiQuery } from "./lib/apiErrors"
 import { routeTree } from "./routeTree.gen"
 
 // API base URL: explicit VITE_API_URL wins; in dev (no .env) default to the
@@ -26,15 +26,13 @@ client.setConfig({
 })
 
 const handleApiError = (error: Error) => {
-  if (
-    error instanceof AxiosError &&
-    [401, 403].includes(error.response?.status ?? 0)
-  ) {
+  if (isAuthenticationError(error)) {
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }
 }
 const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: retryApiQuery } },
   queryCache: new QueryCache({
     onError: handleApiError,
   }),

@@ -1,16 +1,42 @@
 import re
 import uuid
 from datetime import UTC, datetime, time
-from typing import Annotated
+from typing import Annotated, Any
 from zoneinfo import ZoneInfo
 
 from pydantic import AliasChoices, EmailStr, StringConstraints, field_validator
-from sqlalchemy import DateTime, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    Index,
+    UniqueConstraint,
+    func,
+)
 from sqlmodel import Field, Relationship, SQLModel
 
 
 def get_datetime_utc() -> datetime:
     return datetime.now(UTC)
+
+
+def get_call_max_attempts() -> int:
+    from app.core.config import settings
+
+    return settings.CALL_MAX_ATTEMPTS
+
+
+class TimestampedModel(SQLModel):
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={"server_default": func.now()},
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={"server_default": func.now(), "onupdate": get_datetime_utc},
+    )
 
 
 # Shared properties
@@ -52,13 +78,9 @@ class UpdatePassword(SQLModel):
 
 
 # Database model, database table inferred from class name
-class User(UserBase, table=True):
+class User(UserBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
     wards: list[Ward] = Relationship(back_populates="caregiver", cascade_delete=True)
 
@@ -92,12 +114,8 @@ class ItemUpdate(SQLModel):
 
 
 # Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Item(ItemBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
@@ -116,8 +134,8 @@ class ItemsPublic(SQLModel):
     count: int
 
 
-# Katalog globalny, współdzielony przez opiekunów; read-only w MVP
-# (zasilany tylko seedem — docs/03-data-model.md).
+# Katalog globalny, współdzielony przez opiekunów; odczyt dla wszystkich,
+# zmiany tylko dla admina (seed + CRUD w admin panelu — docs/03-data-model.md).
 class MedicationBase(SQLModel):
     name: str = Field(index=True, min_length=1, max_length=255)
     dosage: str = Field(min_length=1, max_length=100)
@@ -143,13 +161,16 @@ class MedicationCreate(MedicationBase):
     pass
 
 
+class MedicationUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    dosage: str | None = Field(default=None, min_length=1, max_length=100)
+    form: str | None = Field(default=None, max_length=100)
+    instructions: str | None = Field(default=None, max_length=255)
+
+
 # Database model, database table inferred from class name
-class Medication(MedicationBase, table=True):
+class Medication(MedicationBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
 
     __table_args__ = (UniqueConstraint("name", "dosage"),)
 
@@ -229,12 +250,8 @@ class WardUpdate(SQLModel):
 
 
 # Database model, database table inferred from class name
-class Ward(WardBase, table=True):
+class Ward(WardBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
     active: bool = True
     caregiver_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
@@ -326,20 +343,22 @@ class RoutineUpdate(SQLModel):
 
 
 # Database model, database table inferred from class name
-class Routine(RoutineBase, table=True):
+class Routine(RoutineBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     status: str = Field(default="draft", max_length=32)
     ward_id: uuid.UUID = Field(
         foreign_key="ward.id", nullable=False, ondelete="CASCADE", index=True
     )
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),
-    )
     items: list[RoutineItem] = Relationship(cascade_delete=True)
 
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('draft', 'approved', 'paused')", name="ck_routine_status"
+        ),
+    )
 
-class RoutineItem(SQLModel, table=True):
+
+class RoutineItem(TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     routine_id: uuid.UUID = Field(
         foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
@@ -351,7 +370,7 @@ class RoutineItem(SQLModel, table=True):
 
 # `dependent_routine` wymaga `prerequisite_routine` — walidacja przy approve,
 # runtime enforcement podczas rozmowy = post-MVP (docs/03-data-model.md).
-class RoutineDependency(SQLModel, table=True):
+class RoutineDependency(TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     dependent_routine_id: uuid.UUID = Field(
         foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
@@ -398,24 +417,198 @@ class RoutinesPublic(SQLModel):
     count: int
 
 
-# Call task harmonogramu (docs/03 CallTask, docs/05 GET /wards/{id}/call-tasks).
-# Do czasu implementacji dispatchera (Twilio) zadania są liczone w locie
-# z zatwierdzonych rutyn — `id` jest deterministyczne (rutyna + termin),
-# więc klient może ich spokojnie używać jako kluczy.
-class CallTaskRead(SQLModel):
-    id: str
-    ward_id: uuid.UUID
+class CallTaskStatus:
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class CallTask(TimestampedModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    routine_id: uuid.UUID = Field(
+        foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
+    )
+
+    scheduled_at: datetime = Field(sa_type=DateTime(timezone=True))
+    attempt_no: int = Field(default=1, ge=1)
+    max_attempts: int = Field(default_factory=get_call_max_attempts, ge=1)
+    status: str = Field(default=CallTaskStatus.PENDING, max_length=32)
+
+    __table_args__ = (
+        Index("ix_calltask_status_scheduled_at", "status", "scheduled_at"),
+        UniqueConstraint(
+            "routine_id", "scheduled_at", "attempt_no", name="uq_calltask_occurrence"
+        ),
+        CheckConstraint(
+            "attempt_no >= 1 AND max_attempts >= attempt_no",
+            name="ck_calltask_attempts",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'in_progress', 'completed', 'failed', 'cancelled')",
+            name="ck_calltask_status",
+        ),
+    )
+
+
+class CallTaskPublic(SQLModel):
+    id: uuid.UUID
     routine_id: uuid.UUID
-    routine_name: str
     scheduled_at: datetime
-    status: str
     attempt_no: int
-    max_attempts: int = 3
+    max_attempts: int
+    status: str
+    created_at: datetime | None = None
 
 
-class CallTasksRead(SQLModel):
-    data: list[CallTaskRead]
+class CallTasksPublic(SQLModel):
+    data: list[CallTaskPublic]
     count: int
+
+
+class CallResultPublic(SQLModel):
+    outcome: str
+    confidence: float
+    transcript_full: str
+    notes: str | None = None
+
+
+class CallTurnPublic(SQLModel):
+    turn_no: int
+    question: str
+    speech_result: str
+    confidence: float
+    parsed: str
+
+
+class CallPublic(SQLModel):
+    id: uuid.UUID
+    ward_id: uuid.UUID
+    call_task_id: uuid.UUID
+    routine_id: uuid.UUID
+    routine: dict[str, str]
+    status: str
+    started_at: datetime
+    duration_sec: int
+    attempt_no: int
+    result: CallResultPublic | None = None
+    turns: list[CallTurnPublic] = []
+
+
+class CallsPublic(SQLModel):
+    data: list[CallPublic]
+    count: int
+
+
+class DailyStats(SQLModel):
+    took: int
+    total: int
+
+
+class WardStatsPublic(SQLModel):
+    today: DailyStats
+    week_pct: int
+
+
+class CallStatus:
+    QUEUED = "queued"
+    RINGING = "ringing"
+    IN_PROGRESS = "in-progress"
+    COMPLETED = "completed"
+    BUSY = "busy"
+    FAILED = "failed"
+    NO_ANSWER = "no-answer"
+    CANCELED = "canceled"
+
+
+class Call(TimestampedModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    call_task_id: uuid.UUID = Field(
+        foreign_key="calltask.id", nullable=False, ondelete="CASCADE", unique=True
+    )
+    twilio_call_sid: str | None = Field(default=None, max_length=64, unique=True)
+    status: str = Field(default=CallStatus.IN_PROGRESS, max_length=32)
+    duration_sec: int = Field(default=0, ge=0)
+    recording_url: str | None = Field(default=None, max_length=2048)
+
+    __table_args__ = (
+        CheckConstraint("duration_sec >= 0", name="ck_call_duration"),
+        CheckConstraint(
+            "status IN ('queued', 'ringing', 'in-progress', 'completed', "
+            "'busy', 'failed', 'no-answer', 'canceled')",
+            name="ck_call_status",
+        ),
+    )
+
+
+class CallTurn(TimestampedModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    call_id: uuid.UUID = Field(
+        foreign_key="call.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    turn_no: int = Field(ge=1)
+    question: str
+    speech_result: str = ""
+    confidence: float = Field(default=0.0, ge=0, le=1)
+    parsed: str = Field(default="unclear", max_length=16)
+
+    __table_args__ = (
+        UniqueConstraint("call_id", "turn_no", name="uq_callturn_number"),
+        CheckConstraint("turn_no >= 1", name="ck_callturn_number"),
+        CheckConstraint("confidence BETWEEN 0 AND 1", name="ck_callturn_confidence"),
+        CheckConstraint(
+            "parsed IN ('yes', 'no', 'unclear')", name="ck_callturn_parsed"
+        ),
+    )
+
+
+class CallOutcome:
+    TOOK = "took"
+    NOT_TAKEN = "not_taken"
+    UNCLEAR = "unclear"
+    NO_ANSWER = "no_answer"
+
+
+class CallResult(TimestampedModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    call_id: uuid.UUID = Field(
+        foreign_key="call.id", nullable=False, ondelete="CASCADE", unique=True
+    )
+    outcome: str = Field(max_length=32)
+    confidence: float = Field(default=0.0, ge=0, le=1)
+    transcript_full: str = ""
+    notes: str | None = None
+
+    __table_args__ = (
+        CheckConstraint(
+            "outcome IN ('took', 'not_taken', 'unclear', 'no_answer')",
+            name="ck_callresult_outcome",
+        ),
+        CheckConstraint("confidence BETWEEN 0 AND 1", name="ck_callresult_confidence"),
+    )
+
+
+class EscalationEvent(TimestampedModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    call_result_id: uuid.UUID = Field(
+        foreign_key="callresult.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    caregiver_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    channel: str = Field(default="email", max_length=16)
+    payload: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
+    status: str = Field(default="pending", max_length=16)
+
+    __table_args__ = (
+        CheckConstraint(
+            "channel IN ('email', 'sms')", name="ck_escalationevent_channel"
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'sent', 'failed')", name="ck_escalationevent_status"
+        ),
+    )
 
 
 # Generic message

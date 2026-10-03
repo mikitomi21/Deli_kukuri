@@ -1,5 +1,4 @@
 import { type RoutinePublic, RoutinesService } from "@/client"
-import { getWardsMode } from "@/hooks/useWards"
 import {
   approveRoutine as mockApproveRoutine,
   createRoutine as mockCreateRoutine,
@@ -10,6 +9,7 @@ import {
   type RoutinePayload,
 } from "@/mocks/store"
 import type { Routine, RoutineWithOutcome } from "@/types/dashboard"
+import { getWardsMode } from "./apiMode"
 
 /**
  * Routine hooks — docs/05-api-spec.md. The backend ships the full routine
@@ -18,7 +18,7 @@ import type { Routine, RoutineWithOutcome } from "@/types/dashboard"
  *   - unset / "0" / "false" → real API via the generated client (default)
  *   - "mocks" / "1"         → mock store (demo data + today outcomes)
  *   - "empty"               → mocks (the flag only empties the wards list)
- * Call-tasks, calls and stats stay mock-only — see src/hooks/useCalls.ts.
+ * Calls and statistics use the same API mode — see src/hooks/useCalls.ts.
  */
 
 export type { RoutinePayload }
@@ -70,7 +70,7 @@ export async function fetchRoutines(
       path: { ward_id: wardId },
       query: { limit: 500 },
     })
-    // today_status stays undefined in API mode (stats are backend TODO)
+    // Ward enrichment combines these routines with persisted call outcomes.
     return data.data.map(toRoutine)
   }
   // Mocks keep today's outcome badges (RoutineWithOutcome extends Routine).

@@ -1,0 +1,12 @@
+{
+  "call_sid": "CA881c34426bb9e4d0101767ac2a53bdad",
+  "zrodlo": "GPT (fallback po rozłączeniu)",
+  "zapisano_o": "2026-10-03T17:33:58.922Z",
+  "imie": "",
+  "leki": {
+    "ibuprofen": 1,
+    "paracetamol": 0,
+    "aspiryna": 0
+  },
+  "podsumowanie": "Rozmówca potwierdził przyjęcie ibuprofenu. Nie przyjął paracetamolu ani aspiryny. Dialog wskazuje na trudności w komunikacji, co mogło wpłynąć na uzyskanie pełnej informacji."
+}

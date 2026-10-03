@@ -121,6 +121,15 @@
     "edit": "Edit",
     "delete": "Delete",
     "testCallResult": "Test call finished: {{outcome}}",
+    "callQueued": "The call has been queued. Its result will appear in the history.",
+    "callFailed": "Could not start the call. Please try again.",
+    "callErrors": {
+      "noApprovedRoutine": "Approve a routine for this ward first, then select Call now.",
+      "noMedications": "Add medications to the routine and approve it before starting a call.",
+      "wardInactive": "This ward is inactive. Activate their profile before starting a call.",
+      "serviceUnavailable": "The calling service is temporarily unavailable. Please try again later.",
+      "queueUnavailable": "Could not queue the call. Please try again later."
+    },
     "noOutcome": "no result",
     "loadingRoutines": "Loading routines",
     "loadingCalls": "Loading calls",
@@ -136,11 +145,25 @@
     "routinesEmpty": "This ward has no routines yet. Add the first routine so DzwoniLek can start calling.",
     "callsEmpty": "No calls yet — history will appear after the first phone call.",
     "callsTitle": "Call history",
-    "callsDescription": "Click a call to see the transcript",
+    "callsDescription": "Click a call to see the summary and transcript",
+    "viewCall": "View conversation",
+    "medicationOutcome": "Medication outcome",
+    "callStatus": {
+      "queued": "Call queued",
+      "ringing": "Ringing",
+      "in_progress": "Conversation in progress",
+      "completed": "Conversation completed",
+      "busy": "Number busy",
+      "failed": "Call failed",
+      "no_answer": "Call unanswered",
+      "canceled": "Call canceled"
+    },
     "attemptLower": "attempt {{number}}",
     "durationSec": "{{number}} s"
   },
   "callDetail": {
+    "summaryTitle": "Conversation summary",
+    "summaryUnavailable": "The summary is not available yet.",
     "pageTitle": "DzwoniLek — Call",
     "backToWard": "Back to ward",
     "loading": "Loading call",

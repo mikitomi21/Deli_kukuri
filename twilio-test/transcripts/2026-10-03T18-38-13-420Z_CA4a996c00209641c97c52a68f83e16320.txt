@@ -1,0 +1,81 @@
+======================================
+TWILIO + OPENAI REALTIME — ROZMOWA O LEKACH
+======================================
+
+Call SID: CA4a996c00209641c97c52a68f83e16320
+Stream SID: MZ89a056b5dd3fa9d9812a69a6257fad3a
+Leki do odpytania: ibuprofen, paracetamol, aspiryna
+
+[20:38:17] AI: Dzień dobry, dzwoni asystent AI przypominający o lekach. Czy mogę zapytać o dzisiejsze leki?
+
+Czy przyjął lub przyjęła Pan lub Pani dzisiaj ibuprofen?
+
+[20:38:22] USER: Przepraszam, ja chciałem się zapytać...
+
+[20:38:25] AI: Jasne, jeśli chodzi o dawki albo szczegóły stosowania, proszę sprawdzić w ulotce albo skonsultować z lekarzem.
+
+A wracając do mojego pytania: czy przyjął lub przyjęła Pan lub Pani dzisiaj ibuprofen?
+
+[20:38:36] USER: Kurczę, zapomniałem.
+
+[20:38:37] AI: Rozumiem. Czy to znaczy, że dzisiaj Pan nie przyjął ibuprofenu, czy tylko nie pamięta Pan, czy go Pan wziął?
+
+[20:38:41] USER: Ogólnie mam rację, bo do końca nie wiem, czy jest ibuprofen.
+
+[20:38:44] AI: Rozumiem, że nie ma Pan pewności. Czy może Pan powiedzieć krótko: tak, przyjąłem ibuprofen, albo nie, nie przyjąłem? Jeśli nie da się tego ustalić, zaznaczę go jako nieprzyjęty.
+
+[20:38:55] USER: A czy byłaby pani w stanie wytłumaczyć, czym jest ibuprofen?
+
+[20:39:01] AI: Jasne, wyjaśnię krótko, a potem wrócimy do samego pytania o przyjęcie leku.
+
+[20:39:01] AI: Ibuprofen to lek przeciwbólowy i przeciwzapalny, często stosowany na ból, gorączkę albo stan zapalny. Występuje w różnych dawkach i postaciach, więc szczegóły najlepiej sprawdzić w ulotce albo ustalić z lekarzem.
+
+Wracając do pytania: czy przyjął Pan dzisiaj ibuprofen? Jeśli nie da się tego ustalić, zaznaczę go jako nieprzyjęty.
+
+[20:39:15] USER: Nie, proszę pani, nie, to chyba nie, chyba nie brałem ci na kibicowemu. Nie, nie, nie brałem.
+
+[20:39:17] AI: Dobrze, zapisuję ibuprofen jako nieprzyjęty.
+
+Czy przyjął Pan dzisiaj paracetamol?
+
+[20:39:28] USER: Paracetamol, a to tak jak przedwo na tabletka, taka duża.
+
+[20:39:32] AI: Paracetamol to lek przeciwbólowy i przeciwgorączkowy, może być w różnych tabletkach, dużych albo mniejszych, więc wygląd nie zawsze pomaga go rozpoznać.
+
+Czy przyjął Pan dzisiaj paracetamol? Jeśli nie ma Pan pewności, proszę powiedzieć wprost, a zaznaczę go jako nieprzyjęty.
+
+[20:39:43] USER: Ale ja nie wiem, bo czy ja nie pamiętam, co lekarz mówił, czy ja mam brać paracetamol, czy nie?
+
+[20:39:46] AI: Rozumiem, ale ja tylko sprawdzam, czy dzisiaj paracetamol został przyjęty. Proszę odpowiedzieć krótko: tak, przyjąłem, albo nie, nie przyjąłem. Jeśli nie da się tego ustalić, zaznaczę paracetamol jako nieprzyjęty.
+
+[20:40:03] USER: chyba przyjąłem, tak, tak, tak, coś tak pamiętam, że przyjąłem.
+
+[20:40:04] AI: Dobrze, zapisuję paracetamol jako przyjęty.
+
+Czy przyjął Pan dzisiaj aspirynę?
+
+[20:40:18] USER: Aż klny wypani, kurczę, co? Tyle się dzisiaj wydarzyło w ciągu dnia. Jakaś podpowiedź może?
+
+[20:40:23] AI: Dobrze, podam krótką podpowiedź i wrócimy do jasnej odpowiedzi.
+
+[20:40:23] AI: Aspiryna to lek, który bywa stosowany między innymi na ból i jako lek przeciwzapalny; bywa też używana w małych dawkach na inne wskazania. Wygląd tabletki może być różny, więc trudno poznać ją tylko po kształcie.
+
+Proszę teraz krótko: czy przyjął Pan dzisiaj aspirynę, tak czy nie? Jeśli nie da się tego ustalić, zaznaczę ją jako nieprzyjętą.
+
+[20:40:43] USER: To może być syrop, bo wydaje mi się, że jakiś syrop brałem, ale nie wiem, czy to aspiryna była.
+
+[20:40:46] AI: Rozumiem, ale to nadal nie jest jasna odpowiedź. Proszę powiedzieć wprost: tak, przyjąłem aspirynę, albo nie, nie przyjąłem. Jeśli po tej odpowiedzi nadal nie da się tego ustalić, zaznaczę aspirynę jako nieprzyjętą.
+
+[20:40:59] USER: Nie pamiętam, naprawdę nie wiem, czy to była aspiryna, nie mam pojęcia, to jest za ciężkie pytanie.
+
+[20:41:02] AI: Dobrze, zaraz to podsumuję i uprzejmie zakończymy rozmowę.
+
+
+=== PODSUMOWANIE ROZMOWY ===
+źródło: AI (end_call)
+imię: (nie podano)
+leki:
+  - ibuprofen: NIEPRZYJĘTY (0)
+  - paracetamol: PRZYJĘTY (1)
+  - aspiryna: NIEPRZYJĘTY (0)
+podsumowanie: Rozmowę odebrał pacjent. Potwierdził przyjęcie paracetamolu, natomiast ibuprofenu nie przyjął. W przypadku aspiryny nie udało się uzyskać jednoznacznej odpowiedzi, więc została oznaczona jako nieprzyjęta. Rozmowa przebiegła spokojnie, z krótkimi wyjaśnieniami czym są leki.

@@ -2,10 +2,12 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import col, delete, func, select, update
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    CallTask,
+    CallTaskStatus,
     Medication,
     MedicationPublic,
     Message,
@@ -21,6 +23,7 @@ from app.models import (
     RoutineUpdate,
     Ward,
 )
+from app.worker.scheduling import materialize_call_tasks
 
 router = APIRouter(tags=["routines"])
 
@@ -257,6 +260,13 @@ def update_routine(
             session, routine.ward_id, routine.id, routine_in.depends_on
         )
     routine.status = DRAFT
+    session.exec(
+        update(CallTask)
+        .where(
+            CallTask.routine_id == routine.id, CallTask.status == CallTaskStatus.PENDING
+        )
+        .values(status=CallTaskStatus.CANCELLED)
+    )
     for field in ("name", "time_of_day", "days_mask"):
         if field in update_dict:
             setattr(routine, field, update_dict[field])
@@ -319,6 +329,7 @@ def approve_routine(
     session.add(routine)
     session.commit()
     session.refresh(routine)
+    materialize_call_tasks(routine_id=routine.id)
     return _routine_to_public(session, routine)
 
 
@@ -333,6 +344,13 @@ def pause_routine(session: SessionDep, current_user: CurrentUser, id: uuid.UUID)
             status_code=409, detail="Only approved routines can be paused"
         )
     routine.status = PAUSED
+    session.exec(
+        update(CallTask)
+        .where(
+            CallTask.routine_id == routine.id, CallTask.status == CallTaskStatus.PENDING
+        )
+        .values(status=CallTaskStatus.CANCELLED)
+    )
     session.add(routine)
     session.commit()
     session.refresh(routine)

@@ -1,0 +1,27 @@
+======================================
+TWILIO + OPENAI REALTIME
+======================================
+
+Call SID: CAc32e1a7e28e488b2e7af6afbc05e01cf
+Stream SID: MZ5e275cd4317b46cfe9d75b56780cb2e9
+
+[18:20:24] AI: Dzień dobry, tutaj asystent AI. W czym mogę pomóc?
+
+[18:20:33] USER: Halo, halo, chciałem się zapytać, czy...
+
+[18:20:35] AI: Jasne, możesz śmiało dokończyć. O co dokładnie chcesz zapytać?
+
+[18:20:42] USER: Jaka pogoda jest w Gdańsku w tym momencie?
+
+[18:20:48] AI: Daj mi chwilę, sprawdzę aktualne informacje o pogodzie dla Gdańska.
+
+[18:20:48] AI: Nie mam bezpośredniego dostępu do bieżących danych pogodowych, więc nie mogę sprawdzić, jaka pogoda jest teraz w Gdańsku. Najszybciej będzie zajrzeć do aplikacji pogodowej albo na stronę z prognozą. Chcesz, żebym pomógł Ci znaleźć, czego warto szukać, na przykład temperatury, opadów i wiatru?
+
+[18:20:50] USER: Halo?
+
+[18:20:52] AI: Jestem, słyszę Cię. Chcesz dopytać o coś konkretnego, czy wrócić do poprzedniego tematu?
+
+[18:21:03] USER: Ale co podłączyłeś to? Fajnie, tylko nie przerywa jeszcze.
+
+[18:21:04] AI: Jasne, zostaję na linii i nie przerywam. Co chcesz teraz załatwić?
+

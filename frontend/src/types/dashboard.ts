@@ -1,7 +1,6 @@
 /**
  * Domain types shaped after the docs/05-api-spec.md contract.
- * Fields not yet available on the backend (routines, calls, stats) are
- * delivered by the mock layer (src/mocks/store.ts) and marked accordingly.
+ * API and demo modes share these shapes for routines, calls and statistics.
  */
 
 export type RoutineStatus = "draft" | "approved" | "paused"
@@ -18,16 +17,14 @@ export interface Ward {
 }
 
 /**
- * Ward enriched with today's data. `today`/`week_pct`/`routines` come from
- * the mock layer only (backend stats are TODO(api)); the routines tab fetches
- * real routines via useRoutines and does not rely on this field.
+ * Ward enriched with routines, persisted call outcomes and adherence statistics.
  */
 export interface WardWithToday extends Ward {
-  /** Today's summary: took / total routines (mock only). */
+  /** Today's summary: took / total routines. */
   today?: { took: number; total: number }
-  /** Adherence over the last 7 days, percent (mock only). */
+  /** Adherence over the last 7 days, percent. */
   week_pct?: number
-  /** Ward routines with today's outcomes (mock only). */
+  /** Ward routines with today's outcomes. */
   routines?: RoutineWithOutcome[]
 }
 
@@ -62,7 +59,7 @@ export interface CallTask {
   routine_id: string
   routine_name: string
   scheduled_at: string
-  status: "pending" | "in_progress" | "completed" | "canceled"
+  status: "pending" | "in_progress" | "completed" | "canceled" | "failed"
   attempt_no: number
 }
 
@@ -81,7 +78,15 @@ export interface Call {
   /** Routine the call belongs to (null for ad-hoc calls). */
   routine_id: string | null
   routine: { name: string; time_of_day: string }
-  status: "in_progress" | "completed"
+  status:
+    | "queued"
+    | "ringing"
+    | "in_progress"
+    | "completed"
+    | "busy"
+    | "failed"
+    | "no_answer"
+    | "canceled"
   started_at: string
   duration_sec: number
   attempt_no: number
@@ -89,6 +94,7 @@ export interface Call {
     outcome: CallOutcome
     confidence: number
     transcript_full: string
+    notes?: string | null
   } | null
   turns: CallTurn[]
 }
