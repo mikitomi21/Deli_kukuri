@@ -55,6 +55,9 @@ export function RoutineActionsMenu({ routine }: RoutineActionsMenuProps) {
     queryClient.invalidateQueries({ queryKey: ["wards"] })
     queryClient.invalidateQueries({ queryKey: ["ward", routine.ward_id] })
     queryClient.invalidateQueries({ queryKey: ["routines", routine.ward_id] })
+    // The schedule is derived from approved routines — it changes on every
+    // add/edit/approve/pause/delete, so refresh it together with the list
+    queryClient.invalidateQueries({ queryKey: ["call-tasks", routine.ward_id] })
   }
 
   const approve = useMutation({
@@ -151,19 +154,17 @@ export function RoutineActionsMenu({ routine }: RoutineActionsMenuProps) {
               )}
             </DropdownMenuItem>
           )}
-          {routine.status === "draft" && (
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={(event) => {
-                event.preventDefault()
-                setMenuOpen(false)
-                setDeleteOpen(true)
-              }}
-            >
-              <Trash2 aria-hidden />
-              {t("routineActions.delete")}
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={(event) => {
+              event.preventDefault()
+              setMenuOpen(false)
+              setDeleteOpen(true)
+            }}
+          >
+            <Trash2 aria-hidden />
+            {t("routineActions.delete")}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

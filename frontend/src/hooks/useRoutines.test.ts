@@ -17,13 +17,13 @@ const apiRoutine: RoutinePublic = {
     {
       id: "i-1",
       medication_id: "med-1",
-      amount_label: "1 tabletka",
+      amount_label: "1",
       medication: { id: "med-1", name: "Warfarin", dosage: "5 mg" },
     },
     {
       id: "i-2",
       medication_id: "med-2",
-      amount_label: "pół tabletki",
+      amount_label: "0,5",
       medication: null,
     },
   ],
@@ -37,7 +37,7 @@ describe("toRoutine", () => {
       medication_id: "med-1",
       medication_name: "Warfarin",
       dosage: "5 mg",
-      amount_label: "1 tabletka",
+      amount_label: "1",
     })
   })
 
@@ -76,7 +76,7 @@ describe("toRoutineBody", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: ["r-0"],
@@ -85,7 +85,7 @@ describe("toRoutineBody", () => {
       name: "Wieczorne leki",
       time_of_day: "19:30",
       days: "daily",
-      items: [{ medication_id: "med-1", amount_label: "1 tabletka" }],
+      items: [{ medication_id: "med-1", amount_label: "1" }],
       depends_on: ["r-0"],
     })
   })
@@ -99,7 +99,7 @@ describe("toRoutineBody", () => {
           medication_id: "med-2",
           medication_name: "Metformina",
           dosage: "850 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
     })

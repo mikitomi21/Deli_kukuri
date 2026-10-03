@@ -1,3 +1,5 @@
+import { WardsService } from "@/client"
+import { getWardsMode } from "@/hooks/useWards"
 import {
   getCall as mockGetCall,
   listCalls as mockListCalls,
@@ -7,13 +9,27 @@ import {
 import type { Call, CallTask, WardStats } from "@/types/dashboard"
 
 /**
- * Call hooks — TODO(api): the backend does not ship calls/call-tasks yet
- * (docs/05-api-spec.md). Mock store only; swap the bodies when the endpoints
- * land.
+ * Call hooks. Planned call-tasks (the schedule) are served by the backend
+ * since GET /wards/{ward_id}/call-tasks landed — materialized on the fly
+ * from approved routines. Call history, details, test-call and stats are
+ * still TODO(api): the backend does not expose them yet (mock store only).
  */
-
 export async function fetchCallTasks(wardId: string): Promise<CallTask[]> {
-  // TODO(api): GET /wards/{ward_id}/call-tasks?status=pending
+  if (getWardsMode() === "api") {
+    const { data } = await WardsService.readWardCallTasks({
+      path: { ward_id: wardId },
+      query: { status: "pending" },
+    })
+    return data.data.map((task) => ({
+      id: task.id,
+      ward_id: task.ward_id,
+      routine_id: task.routine_id,
+      routine_name: task.routine_name,
+      scheduled_at: task.scheduled_at,
+      status: "pending" as const,
+      attempt_no: task.attempt_no,
+    }))
+  }
   return mockListCallTasks(wardId)
 }
 

@@ -11,7 +11,7 @@
   "addMedication": {
     "trigger": "O katalogu",
     "title": "Katalog leków",
-    "description": "Katalog jest globalny, współdzielony i tylko do odczytu w MVP — rutyny odwołują się do leków wyłącznie przez ten katalog. Dane zasilane są skryptem seedującym (34 popularne leki).",
+    "description": "Katalog jest globalny i współdzielony — rutyny odwołują się do leków wyłącznie przez ten katalog. Zawiera zestaw popularnych leków dodany przy konfiguracji.",
     "close": "Zamknij"
   },
   "addUser": {
@@ -95,13 +95,17 @@
     "addWard": "Dodaj podopiecznego",
     "todayTitle": "Dzisiaj",
     "todaySubtitle": "Rutyny i wyniki połączeń Twoich podopiecznych",
+    "scheduledBadge": "{{total}} zaplanowanych",
     "statWards": "Podopieczni",
     "statTakenToday": "Przyjęte dzisiaj",
     "statRemainingToday": "Pozostało dziś",
     "statNeedsAttention": "Wymagają uwagi",
     "demoDataBadge": "Dane demonstracyjne",
-    "routinesPending": "Rutyny i statystyki pojawią się po wdrożeniu endpointów backendu.",
-    "noRoutines": "Brak rutyn —",
-    "addFirstRoutine": "dodaj pierwszą rutynę"
+    "noRoutinesYet": "Ten podopieczny nie ma jeszcze rutyn.",
+    "addFirstRoutine": "Dodaj pierwszą rutynę",
+    "nextCall": "Najbliższe połączenie: {{name}} · {{time}}",
+    "noUpcoming": "Brak zaplanowanych połączeń",
+    "approvedCount": "Zatwierdzone: {{approved}}",
+    "draftsCount": "Szkice: {{drafts}}"
   }
 }

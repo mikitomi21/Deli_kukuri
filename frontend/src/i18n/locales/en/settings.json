@@ -2,7 +2,7 @@
   "page": {
     "title": "User Settings",
     "subtitle": "Manage your account settings and preferences",
-    "metaTitle": "Settings - FastAPI Template",
+    "metaTitle": "Settings — DzwoniLek",
     "tabs": {
       "myProfile": "My profile",
       "password": "Password",

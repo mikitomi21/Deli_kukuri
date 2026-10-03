@@ -35,6 +35,58 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * CallTaskRead
+ */
+export type CallTaskRead = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Ward Id
+     */
+    ward_id: string;
+    /**
+     * Routine Id
+     */
+    routine_id: string;
+    /**
+     * Routine Name
+     */
+    routine_name: string;
+    /**
+     * Scheduled At
+     */
+    scheduled_at: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Attempt No
+     */
+    attempt_no: number;
+    /**
+     * Max Attempts
+     */
+    max_attempts?: number;
+};
+
+/**
+ * CallTasksRead
+ */
+export type CallTasksRead = {
+    /**
+     * Data
+     */
+    data: Array<CallTaskRead>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * HTTPValidationError
  */
 export type HTTPValidationError = {
@@ -1424,6 +1476,41 @@ export type wardsUpdateWardResponses = {
 };
 
 export type wardsUpdateWardResponse = wardsUpdateWardResponses[keyof wardsUpdateWardResponses];
+
+export type wardsReadWardCallTasksData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: {
+        /**
+         * Status
+         */
+        status?: string;
+    };
+    url: '/api/v1/wards/{ward_id}/call-tasks';
+};
+
+export type wardsReadWardCallTasksErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsReadWardCallTasksError = wardsReadWardCallTasksErrors[keyof wardsReadWardCallTasksErrors];
+
+export type wardsReadWardCallTasksResponses = {
+    /**
+     * Successful Response
+     */
+    200: CallTasksRead;
+};
+
+export type wardsReadWardCallTasksResponse = wardsReadWardCallTasksResponses[keyof wardsReadWardCallTasksResponses];
 
 export type routinesReadRoutinesForWardData = {
     body?: never;

@@ -17,18 +17,18 @@ import { removeWard } from "@/hooks/useWards"
 import type { WardWithToday } from "@/types/dashboard"
 import { handleError } from "@/utils"
 
-interface WardDeactivateDialogProps {
+interface WardDeleteDialogProps {
   ward: WardWithToday
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-/** Soft delete per docs/04 B2: gone from the dashboard, history preserved. */
-export function WardDeactivateDialog({
+/** Permanent delete: the ward, its routines and call history are removed. */
+export function WardDeleteDialog({
   ward,
   open,
   onOpenChange,
-}: WardDeactivateDialogProps) {
+}: WardDeleteDialogProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { t } = useTranslation("wards")
@@ -37,7 +37,7 @@ export function WardDeactivateDialog({
   const mutation = useMutation({
     mutationFn: () => removeWard(ward.id),
     onSuccess: () => {
-      showSuccessToast(t("wardDeactivate.successToast"))
+      showSuccessToast(t("wardDelete.successToast"))
       onOpenChange(false)
       navigate({ to: "/" })
     },
@@ -52,15 +52,15 @@ export function WardDeactivateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("wardDeactivate.title")}</DialogTitle>
+          <DialogTitle>{t("wardDelete.title")}</DialogTitle>
           <DialogDescription>
-            {t("wardDeactivate.description", { name: ward.full_name })}
+            {t("wardDelete.description", { name: ward.full_name })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" disabled={mutation.isPending}>
-              {t("wardDeactivate.cancel")}
+              {t("wardDelete.cancel")}
             </Button>
           </DialogClose>
           <Button
@@ -68,7 +68,7 @@ export function WardDeactivateDialog({
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
-            {t("wardDeactivate.confirm")}
+            {t("wardDelete.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,7 +8,7 @@ import {
   Phone,
   PhoneOff,
   Plus,
-  UserX,
+  Trash2,
 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -31,7 +31,7 @@ import {
   RoutineStatusBadge,
   TodayOutcomeBadge,
 } from "@/components/Wards/RoutineStatusBadge"
-import { WardDeactivateDialog } from "@/components/Wards/WardDeactivateDialog"
+import { WardDeleteDialog } from "@/components/Wards/WardDeleteDialog"
 import { WardEditDialog } from "@/components/Wards/WardEditDialog"
 import { fetchCalls, fetchCallTasks, startTestCall } from "@/hooks/useCalls"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -42,6 +42,14 @@ import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/wards/$wardId")({
   component: WardDetail,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { addRoutine?: boolean } => {
+    // Deep link from the dashboard: ?addRoutine opens the creation dialog
+    return {
+      addRoutine: search.addRoutine === true || search.addRoutine === "1",
+    }
+  },
   head: () => ({
     meta: [
       {
@@ -62,8 +70,10 @@ function formatDateTime(iso: string): string {
 
 function WardDetail() {
   const { wardId } = Route.useParams()
+  const { addRoutine } = Route.useSearch()
+  const navigate = Route.useNavigate()
   const [editOpen, setEditOpen] = useState(false)
-  const [deactivateOpen, setDeactivateOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const queryClient = useQueryClient()
   const { t } = useTranslation("wards")
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -159,10 +169,10 @@ function WardDetail() {
               <Button
                 variant="outline-destructive"
                 size="sm"
-                onClick={() => setDeactivateOpen(true)}
+                onClick={() => setDeleteOpen(true)}
               >
-                <UserX aria-hidden />
-                {t("wardDetail.deactivate")}
+                <Trash2 aria-hidden />
+                {t("wardDetail.delete")}
               </Button>
             </>
           }
@@ -190,13 +200,23 @@ function WardDetail() {
         </div>
       </div>
 
-      <WardTabs wardId={wardId} wardActive={ward.active} />
+      <WardTabs
+        wardId={wardId}
+        addRoutineOpen={Boolean(addRoutine)}
+        onAddRoutineOpenChange={(open) =>
+          navigate({
+            to: "/wards/$wardId",
+            params: { wardId },
+            search: { addRoutine: open ? true : undefined },
+          })
+        }
+      />
 
       <WardEditDialog ward={ward} open={editOpen} onOpenChange={setEditOpen} />
-      <WardDeactivateDialog
+      <WardDeleteDialog
         ward={ward}
-        open={deactivateOpen}
-        onOpenChange={setDeactivateOpen}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
       />
     </div>
   )
@@ -204,10 +224,12 @@ function WardDetail() {
 
 function WardTabs({
   wardId,
-  wardActive,
+  addRoutineOpen,
+  onAddRoutineOpenChange,
 }: {
   wardId: string
-  wardActive: boolean
+  addRoutineOpen: boolean
+  onAddRoutineOpenChange: (open: boolean) => void
 }) {
   const { t } = useTranslation("wards")
   return (
@@ -219,7 +241,11 @@ function WardTabs({
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
-        <RoutinesSection wardId={wardId} wardActive={wardActive} />
+        <RoutinesSection
+          wardId={wardId}
+          addRoutineOpen={addRoutineOpen}
+          onAddRoutineOpenChange={onAddRoutineOpenChange}
+        />
       </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />
@@ -230,10 +256,12 @@ function WardTabs({
 
 function RoutinesSection({
   wardId,
-  wardActive,
+  addRoutineOpen,
+  onAddRoutineOpenChange,
 }: {
   wardId: string
-  wardActive: boolean
+  addRoutineOpen: boolean
+  onAddRoutineOpenChange: (open: boolean) => void
 }) {
   const { t } = useTranslation("wards")
   // Routines come from their own query (["routines", wardId]) — in API mode
@@ -319,18 +347,20 @@ function RoutinesSection({
                 {t("wardDetail.routinesDescription")}
               </CardDescription>
             </div>
-            {!wardActive ? (
-              <p className="text-xs text-muted-foreground">
-                {t("wardDetail.routinesInactiveHint")}
-              </p>
-            ) : (
-              <AddRoutineDialog wardId={wardId}>
-                <Button variant="outline" size="sm">
-                  <Plus aria-hidden />
-                  {t("wardDetail.addRoutine")}
-                </Button>
-              </AddRoutineDialog>
-            )}
+            <AddRoutineDialog
+              wardId={wardId}
+              open={addRoutineOpen}
+              onOpenChange={onAddRoutineOpenChange}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAddRoutineOpenChange(true)}
+              >
+                <Plus aria-hidden />
+                {t("wardDetail.addRoutine")}
+              </Button>
+            </AddRoutineDialog>
           </div>
         </CardHeader>
         <CardContent>

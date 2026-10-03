@@ -46,7 +46,7 @@ def create_random_routine(
             RoutineItem(
                 routine_id=routine.id,
                 medication_id=medication.id,
-                amount_label="1 tabletka",
+                amount_label="1",
             )
         )
     db.commit()

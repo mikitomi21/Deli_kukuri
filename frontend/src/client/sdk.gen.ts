@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardCallTasksData, wardsReadWardCallTasksErrors, wardsReadWardCallTasksResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -430,7 +430,8 @@ export class WardsService {
     /**
      * Delete Ward
      *
-     * Deactivate a ward (soft delete): inactive wards are skipped by the materializer.
+     * Permanently delete a ward. Routines, call tasks and calls cascade
+     * via FK ondelete=CASCADE (docs/03-data-model.md).
      */
     public static deleteWard<ThrowOnError extends boolean = true>(options: Options<wardsDeleteWardData, ThrowOnError>) {
         return (options.client ?? client).delete<wardsDeleteWardResponses, wardsDeleteWardErrors, ThrowOnError>({
@@ -470,6 +471,21 @@ export class WardsService {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
+        });
+    }
+    
+    /**
+     * Read Ward Call Tasks
+     *
+     * Planned calls for a ward, materialized on the fly from its approved
+     * routines (docs/05: GET /wards/{ward_id}/call-tasks?status=...).
+     */
+    public static readWardCallTasks<ThrowOnError extends boolean = true>(options: Options<wardsReadWardCallTasksData, ThrowOnError>) {
+        return (options.client ?? client).get<wardsReadWardCallTasksResponses, wardsReadWardCallTasksErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{ward_id}/call-tasks',
+            ...options
         });
     }
 }

@@ -39,7 +39,7 @@ def routine_payload(
         "name": name,
         "time_of_day": time_of_day,
         "items": [
-            {"medication_id": medication_id, "amount_label": "1 tabletka"}
+            {"medication_id": medication_id, "amount_label": "1"}
             for medication_id in medication_ids
         ],
     }
@@ -97,10 +97,25 @@ def test_create_routine_draft_with_items(
     assert len(content["items"]) == 2
     for item, medication_id in zip(content["items"], medication_ids, strict=True):
         assert item["medication_id"] == medication_id
-        assert item["amount_label"] == "1 tabletka"
+        assert item["amount_label"] == "1"
         assert item["medication"]["id"] == medication_id
         assert item["medication"]["dosage"] == "5 mg"
     assert content["depends_on"] == []
+
+
+def test_create_routine_negative_amount_rejected(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    ward_id = create_ward_via_api(client, normal_user_token_headers)
+    medication_ids = create_medication_via_factory(db, 1)
+    payload = routine_payload(medication_ids)
+    payload["items"][0]["amount_label"] = "-1"
+    response = client.post(
+        f"{API}/wards/{ward_id}/routines",
+        headers=normal_user_token_headers,
+        json=payload,
+    )
+    assert response.status_code == 422
 
 
 def test_create_routine_without_items_is_draft(
@@ -343,7 +358,7 @@ def test_patch_routine_replaces_items(
         headers=headers,
         json={
             "items": [
-                {"medication_id": medication_ids[0], "amount_label": "2 tabletki"}
+                {"medication_id": medication_ids[0], "amount_label": "2"}
             ]
         },
     )
@@ -351,7 +366,7 @@ def test_patch_routine_replaces_items(
     items = response.json()["items"]
     assert len(items) == 1
     assert items[0]["medication_id"] == medication_ids[0]
-    assert items[0]["amount_label"] == "2 tabletki"
+    assert items[0]["amount_label"] == "2"
 
 
 def test_patch_routine_invalid_medication_404_keeps_old_items(
@@ -366,7 +381,7 @@ def test_patch_routine_invalid_medication_404_keeps_old_items(
         headers=headers,
         json={
             "items": [
-                {"medication_id": str(uuid.uuid4()), "amount_label": "1 tabletka"}
+                {"medication_id": str(uuid.uuid4()), "amount_label": "1"}
             ]
         },
     )
@@ -495,17 +510,26 @@ def test_delete_routine_cleans_up_dependency_edges(
     assert evening_data["depends_on"] == []
 
 
-def test_delete_approved_routine_returns_409(
+def test_delete_approved_routine(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
+    # Product decision: any routine can be deleted; scheduled call tasks
+    # are derived from approved routines, so they vanish automatically
     headers = normal_user_token_headers
     ward_id = create_ward_via_api(client, headers)
     medication_ids = create_medication_via_factory(db, 1)
     routine = create_routine_via_api(client, headers, ward_id, medication_ids)
     client.post(f"{API}/routines/{routine['id']}/approve", headers=headers)
+    tasks = client.get(
+        f"{API}/wards/{ward_id}/call-tasks", headers=headers
+    ).json()
+    assert tasks["count"] == 1
     response = client.delete(f"{API}/routines/{routine['id']}", headers=headers)
-    assert response.status_code == 409
-    assert response.json()["detail"] == "Only draft routines can be deleted"
+    assert response.status_code == 200
+    tasks = client.get(
+        f"{API}/wards/{ward_id}/call-tasks", headers=headers
+    ).json()
+    assert tasks["count"] == 0
 
 
 def test_approve_routine_without_items_returns_409(
@@ -711,9 +735,11 @@ def test_approve_cyclic_dependency_returns_409(
         assert response.status_code == 409
 
 
-def test_create_routine_on_deactivated_ward_returns_409(
+def test_create_routine_on_deleted_ward_returns_404(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
+    # Wards are hard-deleted (no soft-delete archiving): after DELETE the
+    # ward is gone, so routine creation hits the ownership 404
     headers = normal_user_token_headers
     ward_id = create_ward_via_api(client, headers)
     response = client.delete(f"{API}/wards/{ward_id}", headers=headers)
@@ -724,5 +750,5 @@ def test_create_routine_on_deactivated_ward_returns_409(
         headers=headers,
         json=routine_payload(medication_ids),
     )
-    assert response.status_code == 409
-    assert response.json()["detail"] == "Ward is deactivated"
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Ward not found"
