@@ -17,7 +17,11 @@ export interface Ward {
   active: boolean
 }
 
-/** Ward enriched with today's data. TODO(api): backend has no stats/routines yet. */
+/**
+ * Ward enriched with today's data. `today`/`week_pct`/`routines` come from
+ * the mock layer only (backend stats are TODO(api)); the routines tab fetches
+ * real routines via useRoutines and does not rely on this field.
+ */
 export interface WardWithToday extends Ward {
   /** Today's summary: took / total routines (mock only). */
   today?: { took: number; total: number }

@@ -133,6 +133,7 @@
     "routinesDescription": "Zatwierdzone rutyny są planowane do połączeń",
     "addRoutine": "Dodaj rutynę",
     "routinesEmpty": "Ten podopieczny nie ma jeszcze rutyn. Dodaj pierwszą rutynę, aby DzwoniLek zaczął dzwonić.",
+    "routinesInactiveHint": "Podopieczny jest dezaktywowany — dodawanie nowych rutyn jest wyłączone.",
     "callsEmpty": "Brak połączeń — historia pojawi się po pierwszym telefonie.",
     "callsTitle": "Historia połączeń",
     "callsDescription": "Kliknij połączenie, aby zobaczyć transkrypcję",
