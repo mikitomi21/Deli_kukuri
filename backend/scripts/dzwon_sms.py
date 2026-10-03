@@ -13,7 +13,9 @@ jako TRZECI argument z treścią "Pan Jakub nie zażył: <leki>". Jeśli wszystk
 leki mają 1 — SMS nie jest wysyłany. SMS wysyłany jest z konta z kluczy
 SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/SMS_FROM (pełne konto — konto trial nie
 pozwala wysyłać własnej treści SMS, błąd 572006); gdy ich brak, użyte
-zostanie konto główne i numer CALL_FROM.
+zostanie konto główne i numer CALL_FROM. Jeśli wysyłka SMS się nie powiedzie
+(np. konto bez zatwierdzonego KYC w Trust Hub — błąd 20003), skrypt robi
+fallback: połączenie głosowe odczytujące ten sam komunikat (TTS).
 
 Użycie:
     python dzwon_sms.py <numer-dokad> <numer-od> <numer-odbiorcy-sms>
@@ -242,6 +244,22 @@ def send_sms(env, to_number, body):
         raise RuntimeError(f"Twilio SMS -> {e.code}: {e.read().decode()[:300]}") from None
 
 
+def notify_voice(env, to_number, text):
+    """Powiadomienie głosowe: połączenie odczytujące komunikat (TTS).
+    Fallback dla SMS-a, gdy konto nie może wysyłać własnych treści SMS."""
+    account = env["TWILIO_ACCOUNT_SID"]
+    twiml = (
+        '<?xml version="1.0" encoding="UTF-8"?><Response>'
+        f'<Say language="pl-PL" voice="Polly.Ewa">{xml_escape(text)}</Say>'
+        "</Response>"
+    )
+    return twilio_api(env, "POST", f"https://api.twilio.com/2010-04-01/Accounts/{account}/Calls.json", {
+        "To": to_number,
+        "From": env["CALL_FROM"],
+        "Twiml": twiml,
+    })
+
+
 def main():
     env = load_env()
     for key in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "CALL_FROM", "TWILIO_PHONE_NUMBER"):
@@ -342,9 +360,27 @@ def main():
         msg = send_sms(env, sms_to, body)
         print(f"\nSMS wysłany do {sms_to} (SID: {msg['sid']}, status: {msg['status']})")
         print(f"Treść: {body}")
+        return
     except RuntimeError as e:
         print(f"\nBłąd wysyłki SMS: {e}", file=sys.stderr)
+        print("Fallback: powiadomienie głosowe (połączenie odczytujące komunikat)...")
+
+    try:
+        call = notify_voice(env, sms_to, body)
+    except RuntimeError as e:
+        print(f"Błąd połączenia głosowego: {e}", file=sys.stderr)
         sys.exit(1)
+    print(f"Call SID (powiadomienie): {call['sid']}")
+    nstatus = call.get("status", "")
+    nstarted = time.time()
+    while nstatus in ("queued", "ringing", "in-progress") and time.time() - nstarted < 90:
+        time.sleep(5)
+        c = twilio_api(env, "GET", f"https://api.twilio.com/2010-04-01/Accounts/{env['TWILIO_ACCOUNT_SID']}/Calls/{call['sid']}.json")
+        if c["status"] != nstatus:
+            print(f"  status: {c['status']}")
+            nstatus = c["status"]
+    print(f"\nPowiadomienie głosowe zakończone: {nstatus}")
+    print(f"Treść: {body}")
 
 
 if __name__ == "__main__":
