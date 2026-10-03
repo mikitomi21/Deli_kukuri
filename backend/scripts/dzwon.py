@@ -111,8 +111,12 @@ def ensure_webhook_endpoints(env):
     """Łańcuszek endpointów webhook.site: endpoint 0 = TwiML startowy,
     endpoint i (1..N) = odbiera odpowiedź na pytanie i-te, po czym odsyła
     pytanie i+1 (albo kończy rozmowę dla ostatniego). TwiML odświeżany jest
-    przy każdym uruchomieniu, więc zmiany LEKI/ROZMOWA działają od razu."""
+    przy każdym uruchomieniu, więc zmiany LEKI/ROZMOWA działają od razu —
+    po zapisie treść jest weryfikowana odczytem (PUT bywa propagowany z
+    opóźnieniem), a wszystkie URL-e dla Twilio dostają unikalny cache-buster,
+    żeby żadna warstwa pośrednia nie serwowała starej wersji."""
     needed = len(ROZMOWA) + 1
+    nonce = f"{int(time.time() * 1000)}-{os.getpid()}"
     uuids = [u.strip() for u in env.get("TWILIO_ENDPOINTS", "").split(",") if u.strip()]
     while len(uuids) < needed:
         token = http_json("POST", "https://webhook.site/token", {
@@ -122,10 +126,11 @@ def ensure_webhook_endpoints(env):
         print(f"  nowy endpoint webhook.site: https://webhook.site/{token['uuid']}")
     uuids = uuids[:needed]
 
+    contents = []
     for i, uuid in enumerate(uuids):
         if i < len(ROZMOWA):
-            next_url = f"https://webhook.site/{uuids[i + 1]}"
-            content = (
+            next_url = f"https://webhook.site/{uuids[i + 1]}?cb={nonce}-{i}"
+            contents.append(
                 '<?xml version="1.0" encoding="UTF-8"?><Response>'
                 '<Gather input="speech" language="pl-PL" speechTimeout="auto" '
                 f'action="{next_url}" method="POST">'
@@ -134,16 +139,26 @@ def ensure_webhook_endpoints(env):
             )
         else:
             # ostatni endpoint: po odpowiedzi na ostatnie pytanie — koniec rozmowy
-            content = '<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>'
-        http_json("PUT", f"https://webhook.site/token/{uuid}", {
-            "default_status": 200,
-            "default_content_type": "text/xml",
-            "default_content": content,
-        })
+            contents.append('<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>')
+
+    for i, (uuid, content) in enumerate(zip(uuids, contents)):
+        for attempt in (1, 2, 3):
+            http_json("PUT", f"https://webhook.site/token/{uuid}", {
+                "default_status": 200,
+                "default_content_type": "text/xml",
+                "default_content": content,
+            })
+            saved = http_json("GET", f"https://webhook.site/token/{uuid}").get("default_content", "")
+            if saved == content:
+                break
+            print(f"  endpoint[{i}]: treść nie zapisana (próba {attempt}/3), ponawiam...")
+            time.sleep(2)
+        else:
+            raise RuntimeError(f"endpoint[{i}] ({uuid}): nie udało się zapisać TwiML")
 
     save_env_key("TWILIO_ENDPOINTS", ",".join(uuids))
     env["TWILIO_ENDPOINTS"] = ",".join(uuids)
-    return uuids
+    return uuids, nonce
 
 
 def gpt_wynik_leki(api_key, model, leki, transkrypcja_tekst):
@@ -168,7 +183,6 @@ def gpt_wynik_leki(api_key, model, leki, transkrypcja_tekst):
                 {"role": "user", "content": user},
             ],
             "response_format": {"type": "json_object"},
-            "temperature": 0,
         },
         headers={"Authorization": f"Bearer {api_key}"},
         timeout=90,
@@ -193,8 +207,8 @@ def main():
     to_number = args[0] if len(args) > 0 else env["TWILIO_PHONE_NUMBER"]
     from_number = args[1] if len(args) > 1 else env["CALL_FROM"]
 
-    uuids = ensure_webhook_endpoints(env)
-    voice_url = f"https://webhook.site/{uuids[0]}"
+    uuids, nonce = ensure_webhook_endpoints(env)
+    voice_url = f"https://webhook.site/{uuids[0]}?cb={nonce}"
 
     account = env["TWILIO_ACCOUNT_SID"]
     print(f"Dzwonię: {from_number} → {to_number}")
