@@ -1,0 +1,206 @@
+[
+  {
+    "name": "Aspirin",
+    "dosage": "500 mg",
+    "form": "tabletki powlekane",
+    "instructions": "po posiłku, popić dużą ilością wody"
+  },
+  {
+    "name": "Acard",
+    "dosage": "75 mg",
+    "form": "tabletki dojelitowe",
+    "instructions": "rano, po posiłku"
+  },
+  {
+    "name": "Apap",
+    "dosage": "500 mg",
+    "form": "tabletki",
+    "instructions": "w razie bólu, maks. 4 razy dziennie"
+  },
+  {
+    "name": "Paracetamol",
+    "dosage": "500 mg",
+    "form": "tabletki",
+    "instructions": "co 6 godzin, nie przekraczać 3 g na dobę"
+  },
+  {
+    "name": "Ibuprofen",
+    "dosage": "200 mg",
+    "form": "tabletki powlekane",
+    "instructions": "po posiłku"
+  },
+  {
+    "name": "Ketonal",
+    "dosage": "50 mg",
+    "form": "kapsułki",
+    "instructions": "w trakcie lub bezpośrednio po posiłku"
+  },
+  {
+    "name": "Polopiryna S",
+    "dosage": "500 mg",
+    "form": "tabletki",
+    "instructions": "w razie potrzeby, popić wodą"
+  },
+  {
+    "name": "Magne B6",
+    "dosage": "48 mg magnezu",
+    "form": "tabletki powlekane",
+    "instructions": "w trakcie posiłku, popić szklanką wody"
+  },
+  {
+    "name": "Witamina D3",
+    "dosage": "2000 IU",
+    "form": "kapsułki",
+    "instructions": "raz dziennie podczas posiłku zawierającego tłuszcz"
+  },
+  {
+    "name": "Euthyrox N",
+    "dosage": "50 µg",
+    "form": "tabletki",
+    "instructions": "rano, na czczo, 30 minut przed śniadaniem"
+  },
+  {
+    "name": "Letrox",
+    "dosage": "100 µg",
+    "form": "tabletki",
+    "instructions": "rano, na czczo"
+  },
+  {
+    "name": "Metformax",
+    "dosage": "500 mg",
+    "form": "tabletki powlekane",
+    "instructions": "w trakcie lub po posiłku"
+  },
+  {
+    "name": "Glucophage",
+    "dosage": "850 mg",
+    "form": "tabletki powlekane",
+    "instructions": "po posiłku, wieczorem"
+  },
+  {
+    "name": "Amlor",
+    "dosage": "5 mg",
+    "form": "kapsułki twarde",
+    "instructions": "rano, niezależnie od posiłku"
+  },
+  {
+    "name": "Norvasc",
+    "dosage": "10 mg",
+    "form": "tabletki",
+    "instructions": "raz dziennie, o stałej porze"
+  },
+  {
+    "name": "Concor",
+    "dosage": "5 mg",
+    "form": "tabletki powlekane",
+    "instructions": "rano, podczas śniadania, nie rozgryzać"
+  },
+  {
+    "name": "Tritace",
+    "dosage": "5 mg",
+    "form": "tabletki",
+    "instructions": "rano, przed lub po posiłku"
+  },
+  {
+    "name": "Berlipril",
+    "dosage": "10 mg",
+    "form": "tabletki",
+    "instructions": "raz dziennie, o stałej porze"
+  },
+  {
+    "name": "Nebilet",
+    "dosage": "5 mg",
+    "form": "tabletki",
+    "instructions": "rano, z posiłkiem lub niezależnie od niego"
+  },
+  {
+    "name": "Lasix",
+    "dosage": "40 mg",
+    "form": "tabletki",
+    "instructions": "rano, na czczo"
+  },
+  {
+    "name": "Warfin",
+    "dosage": "5 mg",
+    "form": "tabletki powlekane",
+    "instructions": "o stałej porze wieczorem, regularne kontrole INR"
+  },
+  {
+    "name": "Marevan",
+    "dosage": "5 mg",
+    "form": "tabletki powlekane",
+    "instructions": "wieczorem, o stałej porze"
+  },
+  {
+    "name": "Plavix",
+    "dosage": "75 mg",
+    "form": "tabletki powlekane",
+    "instructions": "raz dziennie, niezależnie od posiłku"
+  },
+  {
+    "name": "Torvast",
+    "dosage": "20 mg",
+    "form": "tabletki powlekane",
+    "instructions": "wieczorem, z posiłkiem lub bez"
+  },
+  {
+    "name": "Polprazol",
+    "dosage": "20 mg",
+    "form": "kapsułki dojelitowe",
+    "instructions": "rano, przed posiłkiem, połykać w całości"
+  },
+  {
+    "name": "Controloc",
+    "dosage": "40 mg",
+    "form": "tabletki dojelitowe",
+    "instructions": "rano, godzinę przed śniadaniem"
+  },
+  {
+    "name": "Ventolin",
+    "dosage": "100 µg/dawkę",
+    "form": "aerozol inhalacyjny",
+    "instructions": "doraźnie przy duszności, 1–2 dawki"
+  },
+  {
+    "name": "Symbicort",
+    "dosage": "160/4,5 µg",
+    "form": "aerozol inhalacyjny",
+    "instructions": "2 razy dziennie, po inhalacji przepłukać usta"
+  },
+  {
+    "name": "Lantus",
+    "dosage": "100 j./ml",
+    "form": "roztwór do wstrzykiwań",
+    "instructions": "raz dziennie, o stałej porze, podskórnie"
+  },
+  {
+    "name": "Duphalac",
+    "dosage": "15 ml",
+    "form": "syrop",
+    "instructions": "raz dziennie, popić szklanką wody"
+  },
+  {
+    "name": "Diosminex",
+    "dosage": "500 mg",
+    "form": "tabletki powlekane",
+    "instructions": "w trakcie posiłku"
+  },
+  {
+    "name": "Aricept",
+    "dosage": "10 mg",
+    "form": "tabletki powlekane",
+    "instructions": "wieczorem, przed snem"
+  },
+  {
+    "name": "Axura",
+    "dosage": "10 mg",
+    "form": "tabletki powlekane",
+    "instructions": "raz dziennie, o stałej porze"
+  },
+  {
+    "name": "Exelon",
+    "dosage": "4,6 mg/24 h",
+    "form": "plaster transdermalny",
+    "instructions": "naklejać raz dziennie na czystą, suchą skórę pleców lub ramienia"
+  }
+]
