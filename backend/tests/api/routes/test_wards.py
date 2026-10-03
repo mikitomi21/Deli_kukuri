@@ -212,3 +212,22 @@ def test_superuser_can_read_foreign_ward(
     )
     assert response.status_code == 200
     assert response.json()["id"] == str(ward.id)
+
+
+def test_update_ward_null_field_rejected(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    # Jawne null-e w PATCH to błąd klienta: 422, a nie 500 z NOT NULL
+    response = client.post(
+        f"{settings.API_V1_STR}/wards/",
+        headers=normal_user_token_headers,
+        json={"full_name": "Halina Kowalska", "phone_e164": "+48600100200"},
+    )
+    ward_id = response.json()["id"]
+    for payload in [{"full_name": None}, {"phone_e164": None}, {"tz": None}]:
+        response = client.patch(
+            f"{settings.API_V1_STR}/wards/{ward_id}",
+            headers=normal_user_token_headers,
+            json=payload,
+        )
+        assert response.status_code == 422, payload

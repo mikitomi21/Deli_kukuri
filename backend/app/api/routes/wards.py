@@ -88,6 +88,13 @@ def update_ward(
     ):
         raise HTTPException(status_code=404, detail="Ward not found")
     update_dict = ward_in.model_dump(exclude_unset=True)
+    # Jawne null-e opcjonalnych pól = błąd klienta; bez tego NOT NULL wywali się 500
+    null_fields = sorted(key for key, value in update_dict.items() if value is None)
+    if null_fields:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Fields cannot be null: {', '.join(null_fields)}",
+        )
     ward.sqlmodel_update(update_dict)
     session.add(ward)
     session.commit()

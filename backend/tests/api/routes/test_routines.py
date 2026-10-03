@@ -660,3 +660,69 @@ def test_dependency_unique_constraint(db: Session) -> None:
         )
     ).all()
     assert len(dependencies) == 1
+
+
+def test_patch_null_fields_rejected(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Jawne null-e w PATCH to błąd klienta: 422, a nie 500 z NOT NULL
+    headers = normal_user_token_headers
+    ward_id = create_ward_via_api(client, headers)
+    medication_ids = create_medication_via_factory(db, 1)
+    routine = create_routine_via_api(client, headers, ward_id, medication_ids)
+    for payload in [
+        {"name": None},
+        {"days": None},
+        {"items": None},
+        {"time_of_day": None},
+    ]:
+        response = client.patch(
+            f"{API}/routines/{routine['id']}", headers=headers, json=payload
+        )
+        assert response.status_code == 422, payload
+    # dane nietknięte
+    response = client.get(f"{API}/wards/{ward_id}/routines", headers=headers)
+    assert response.json()["data"][0]["name"] == "Poranne leki"
+
+
+def test_approve_cyclic_dependency_returns_409(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Cykl A<->B nie zawiesza approve: czyste 409, wyjście = edycja (PATCH cofa do draft)
+    headers = normal_user_token_headers
+    ward_id = create_ward_via_api(client, headers)
+    medication_ids = create_medication_via_factory(db, 1)
+    a = create_routine_via_api(client, headers, ward_id, medication_ids, name="A")
+    b = create_routine_via_api(
+        client,
+        headers,
+        ward_id,
+        medication_ids,
+        name="B",
+        time_of_day="19:00",
+        depends_on=[a["id"]],
+    )
+    response = client.patch(
+        f"{API}/routines/{a['id']}", headers=headers, json={"depends_on": [b["id"]]}
+    )
+    assert response.status_code == 200
+    for routine_id in (a["id"], b["id"]):
+        response = client.post(f"{API}/routines/{routine_id}/approve", headers=headers)
+        assert response.status_code == 409
+
+
+def test_create_routine_on_deactivated_ward_returns_409(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    headers = normal_user_token_headers
+    ward_id = create_ward_via_api(client, headers)
+    response = client.delete(f"{API}/wards/{ward_id}", headers=headers)
+    assert response.status_code == 200
+    medication_ids = create_medication_via_factory(db, 1)
+    response = client.post(
+        f"{API}/wards/{ward_id}/routines",
+        headers=headers,
+        json=routine_payload(medication_ids),
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Ward is deactivated"

@@ -40,9 +40,7 @@ def _get_owned_ward(session: Any, current_user: Any, ward_id: uuid.UUID) -> Any:
     return ward
 
 
-def _get_owned_routine(
-    session: Any, current_user: Any, routine_id: uuid.UUID
-) -> Any:
+def _get_owned_routine(session: Any, current_user: Any, routine_id: uuid.UUID) -> Any:
     routine = session.get(Routine, routine_id)
     if not routine:
         raise HTTPException(status_code=404, detail="Routine not found")
@@ -161,7 +159,10 @@ def create_routine(
     """
     Create a new routine (draft) with items and dependencies in one payload.
     """
-    _get_owned_ward(session, current_user, ward_id)
+    ward = _get_owned_ward(session, current_user, ward_id)
+    if not ward.active:
+        # Dezaktywowany podopieczny: materializer go pomija — nowych rutyn nie tworzymy
+        raise HTTPException(status_code=409, detail="Ward is deactivated")
     _validate_medications(session, routine_in.items)
     prerequisite_ids = _validate_dependencies(
         session, ward_id, None, routine_in.depends_on
@@ -241,6 +242,13 @@ def update_routine(
     update_dict = routine_in.model_dump(exclude_unset=True)
     if not update_dict:
         return _routine_to_public(session, routine)
+    # Jawne null-e opcjonalnych pól = błąd klienta; bez tego NOT NULL wywali się 500
+    null_fields = sorted(key for key, value in update_dict.items() if value is None)
+    if null_fields:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Fields cannot be null: {', '.join(null_fields)}",
+        )
     # Walidacja przed mutacją — błędny payload nie rusza istniejących items/deps
     if "items" in update_dict and routine_in.items is not None:
         _validate_medications(session, routine_in.items)
