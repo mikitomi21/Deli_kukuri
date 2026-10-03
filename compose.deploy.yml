@@ -50,7 +50,7 @@ services:
   backend:
     restart: always
     # Obraz buduje i pushuje CI (Docker Hub) — na VPS nic się nie buduje
-    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze, np. docker.io/timosch99/dzwonilek:latest}
+    image: docker.io/timosch99/dzwonilek:latest
     # Migracje + seed (superuser, katalog leków) przed startem aplikacji
     command:
       - bash
@@ -80,7 +80,7 @@ services:
     mem_limit: 96m
 
   worker:
-    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze}
+    image: docker.io/timosch99/dzwonilek:latest
     restart: always
     command:
       - celery
@@ -100,7 +100,7 @@ services:
 
   # Jeden proces beat — nie duplikować (docs/07, decyzja 2)
   beat:
-    image: ${DOCKER_IMAGE_BACKEND:?Ustaw DOCKER_IMAGE_BACKEND w .env na serwerze}
+    image: docker.io/timosch99/dzwonilek:latest
     restart: always
     command:
       - celery

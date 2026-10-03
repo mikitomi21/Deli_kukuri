@@ -46,7 +46,8 @@ jobs:
           script: |
             set -e
             cd /opt/dzwonilek
-            export DOCKER_IMAGE_BACKEND="docker.io/timosch99/dzwonilek:${IMAGE_TAG}"
-            docker compose --env-file .env -f compose.yml -f compose.deploy.yml pull backend
+            # ściągnij wybrany tag i otaguj go lokalnie jako latest (compose ma latest na sztywno)
+            docker pull docker.io/timosch99/dzwonilek:${IMAGE_TAG}
+            docker tag docker.io/timosch99/dzwonilek:${IMAGE_TAG} docker.io/timosch99/dzwonilek:latest
             docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d --remove-orphans
             docker image prune -f
