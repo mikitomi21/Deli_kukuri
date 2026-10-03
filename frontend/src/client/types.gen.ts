@@ -35,6 +35,179 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * CallPublic
+ */
+export type CallPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Ward Id
+     */
+    ward_id: string;
+    /**
+     * Call Task Id
+     */
+    call_task_id: string;
+    /**
+     * Routine Id
+     */
+    routine_id: string;
+    /**
+     * Routine
+     */
+    routine: {
+        [key: string]: string;
+    };
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Started At
+     */
+    started_at: string;
+    /**
+     * Duration Sec
+     */
+    duration_sec: number;
+    /**
+     * Attempt No
+     */
+    attempt_no: number;
+    result?: CallResultPublic | null;
+    /**
+     * Turns
+     */
+    turns?: Array<CallTurnPublic>;
+};
+
+/**
+ * CallResultPublic
+ */
+export type CallResultPublic = {
+    /**
+     * Outcome
+     */
+    outcome: string;
+    /**
+     * Confidence
+     */
+    confidence: number;
+    /**
+     * Transcript Full
+     */
+    transcript_full: string;
+    /**
+     * Notes
+     */
+    notes?: string | null;
+};
+
+/**
+ * CallTaskPublic
+ */
+export type CallTaskPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Routine Id
+     */
+    routine_id: string;
+    /**
+     * Scheduled At
+     */
+    scheduled_at: string;
+    /**
+     * Attempt No
+     */
+    attempt_no: number;
+    /**
+     * Max Attempts
+     */
+    max_attempts: number;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * CallTasksPublic
+ */
+export type CallTasksPublic = {
+    /**
+     * Data
+     */
+    data: Array<CallTaskPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * CallTurnPublic
+ */
+export type CallTurnPublic = {
+    /**
+     * Turn No
+     */
+    turn_no: number;
+    /**
+     * Question
+     */
+    question: string;
+    /**
+     * Speech Result
+     */
+    speech_result: string;
+    /**
+     * Confidence
+     */
+    confidence: number;
+    /**
+     * Parsed
+     */
+    parsed: string;
+};
+
+/**
+ * CallsPublic
+ */
+export type CallsPublic = {
+    /**
+     * Data
+     */
+    data: Array<CallPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * DailyStats
+ */
+export type DailyStats = {
+    /**
+     * Took
+     */
+    took: number;
+    /**
+     * Total
+     */
+    total: number;
+};
+
+/**
  * HTTPValidationError
  */
 export type HTTPValidationError = {
@@ -568,6 +741,42 @@ export type ValidationError = {
 };
 
 /**
+ * VoiceEvent
+ */
+export type VoiceEvent = {
+    /**
+     * Event
+     */
+    event: 'summary' | 'terminal';
+    /**
+     * Sid
+     */
+    sid: string;
+    /**
+     * Medications
+     */
+    medications?: {
+        [key: string]: 0 | 1;
+    };
+    /**
+     * Transcript
+     */
+    transcript?: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Status
+     */
+    status?: 'completed' | 'busy' | 'failed' | 'no-answer' | 'canceled' | null;
+    /**
+     * Duration Sec
+     */
+    duration_sec?: number;
+};
+
+/**
  * WardCreate
  */
 export type WardCreate = {
@@ -617,6 +826,17 @@ export type WardPublic = {
      * Created At
      */
     created_at?: string | null;
+};
+
+/**
+ * WardStatsPublic
+ */
+export type WardStatsPublic = {
+    today: DailyStats;
+    /**
+     * Week Pct
+     */
+    week_pct: number;
 };
 
 /**
@@ -1695,6 +1915,231 @@ export type routinesPauseRoutineResponses = {
 };
 
 export type routinesPauseRoutineResponse = routinesPauseRoutineResponses[keyof routinesPauseRoutineResponses];
+
+export type callsCreateTestCallData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: {
+        /**
+         * Routine Id
+         */
+        routine_id?: string | null;
+    };
+    url: '/api/v1/wards/{ward_id}/test-call';
+};
+
+export type callsCreateTestCallErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type callsCreateTestCallError = callsCreateTestCallErrors[keyof callsCreateTestCallErrors];
+
+export type callsCreateTestCallResponses = {
+    /**
+     * Successful Response
+     */
+    201: CallTaskPublic;
+};
+
+export type callsCreateTestCallResponse = callsCreateTestCallResponses[keyof callsCreateTestCallResponses];
+
+export type callsReadCallTasksData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: {
+        /**
+         * Status
+         */
+        status?: string | null;
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * From
+         */
+        from?: string | null;
+        /**
+         * To
+         */
+        to?: string | null;
+    };
+    url: '/api/v1/wards/{ward_id}/call-tasks';
+};
+
+export type callsReadCallTasksErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type callsReadCallTasksError = callsReadCallTasksErrors[keyof callsReadCallTasksErrors];
+
+export type callsReadCallTasksResponses = {
+    /**
+     * Successful Response
+     */
+    200: CallTasksPublic;
+};
+
+export type callsReadCallTasksResponse = callsReadCallTasksResponses[keyof callsReadCallTasksResponses];
+
+export type callsReadCallsData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/wards/{ward_id}/calls';
+};
+
+export type callsReadCallsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type callsReadCallsError = callsReadCallsErrors[keyof callsReadCallsErrors];
+
+export type callsReadCallsResponses = {
+    /**
+     * Successful Response
+     */
+    200: CallsPublic;
+};
+
+export type callsReadCallsResponse = callsReadCallsResponses[keyof callsReadCallsResponses];
+
+export type callsReadCallData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/calls/{id}';
+};
+
+export type callsReadCallErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type callsReadCallError = callsReadCallErrors[keyof callsReadCallErrors];
+
+export type callsReadCallResponses = {
+    /**
+     * Successful Response
+     */
+    200: CallPublic;
+};
+
+export type callsReadCallResponse = callsReadCallResponses[keyof callsReadCallResponses];
+
+export type callsReadStatsData = {
+    body?: never;
+    path: {
+        /**
+         * Ward Id
+         */
+        ward_id: string;
+    };
+    query?: never;
+    url: '/api/v1/wards/{ward_id}/stats';
+};
+
+export type callsReadStatsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type callsReadStatsError = callsReadStatsErrors[keyof callsReadStatsErrors];
+
+export type callsReadStatsResponses = {
+    /**
+     * Successful Response
+     */
+    200: WardStatsPublic;
+};
+
+export type callsReadStatsResponse = callsReadStatsResponses[keyof callsReadStatsResponses];
+
+export type voicePersistVoiceEventData = {
+    body: VoiceEvent;
+    headers?: {
+        /**
+         * Authorization
+         */
+        authorization?: string | null;
+    };
+    path: {
+        /**
+         * Task Id
+         */
+        task_id: string;
+    };
+    query?: never;
+    url: '/api/v1/internal/calls/{task_id}/events';
+};
+
+export type voicePersistVoiceEventErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type voicePersistVoiceEventError = voicePersistVoiceEventErrors[keyof voicePersistVoiceEventErrors];
+
+export type voicePersistVoiceEventResponses = {
+    /**
+     * Response Voice-Persist Voice Event
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: boolean;
+    };
+};
+
+export type voicePersistVoiceEventResponse = voicePersistVoiceEventResponses[keyof voicePersistVoiceEventResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

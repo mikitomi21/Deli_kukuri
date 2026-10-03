@@ -96,6 +96,7 @@ function UsersTable() {
 }
 
 function MedicationsTableContent() {
+  const { t } = useTranslation("admin")
   const { data: medications } = useSuspenseQuery(getMedicationsQueryOptions())
   const [search, setSearch] = useState("")
   const needle = search.trim().toLowerCase()
@@ -110,7 +111,7 @@ function MedicationsTableContent() {
   return (
     <div className="flex flex-col gap-4">
       <Input
-        placeholder="Search medications by name, dosage or form…"
+        placeholder={t("medicationActions.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"

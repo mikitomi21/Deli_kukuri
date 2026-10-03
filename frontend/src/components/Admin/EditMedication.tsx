@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import {
@@ -34,20 +35,29 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(1, { message: "Name is required" })
-    .max(255, { message: "Name must be at most 255 characters" }),
-  dosage: z
-    .string()
-    .min(1, { message: "Dosage is required" })
-    .max(100, { message: "Dosage must be at most 100 characters" }),
-  form: z.string().max(100).optional(),
-  instructions: z.string().max(255).optional(),
-})
+export const createMedicationSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z
+      .string()
+      .min(1, { message: t("medicationActions.validation.nameRequired") })
+      .max(255, { message: t("medicationActions.validation.nameTooLong") }),
+    dosage: z
+      .string()
+      .min(1, { message: t("medicationActions.validation.dosageRequired") })
+      .max(100, { message: t("medicationActions.validation.dosageTooLong") }),
+    form: z
+      .string()
+      .max(100, { message: t("medicationActions.validation.formTooLong") })
+      .optional(),
+    instructions: z
+      .string()
+      .max(255, {
+        message: t("medicationActions.validation.instructionsTooLong"),
+      })
+      .optional(),
+  })
 
-type FormData = z.infer<typeof formSchema>
+type FormData = z.infer<ReturnType<typeof createMedicationSchema>>
 
 interface EditMedicationProps {
   medication: MedicationPublic
@@ -55,12 +65,13 @@ interface EditMedicationProps {
 }
 
 const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
+  const { t } = useTranslation("admin")
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createMedicationSchema(t)),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -78,7 +89,7 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
         body: data,
       }),
     onSuccess: () => {
-      showSuccessToast("Medication updated successfully")
+      showSuccessToast(t("medicationActions.updated"))
       form.reset()
       setIsOpen(false)
       onSuccess()
@@ -117,13 +128,13 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Pencil aria-hidden />
-        Edit medication
+        {t("medicationActions.edit")}
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Medication</DialogTitle>
+          <DialogTitle>{t("medicationActions.editTitle")}</DialogTitle>
           <DialogDescription>
-            Changes apply to the global catalog for all caregivers.
+            {t("medicationActions.editDescription")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -135,11 +146,12 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Name <span className="text-destructive">*</span>
+                      {t("medicationActions.name")}{" "}
+                      <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. Aspirin"
+                        placeholder={t("medicationActions.namePlaceholder")}
                         type="text"
                         {...field}
                         required
@@ -156,11 +168,12 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Dosage <span className="text-destructive">*</span>
+                      {t("medicationActions.dosage")}{" "}
+                      <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. 500 mg"
+                        placeholder={t("medicationActions.dosagePlaceholder")}
                         type="text"
                         {...field}
                         required
@@ -176,10 +189,10 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
                 name="form"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Form</FormLabel>
+                    <FormLabel>{t("medicationActions.form")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. coated tablets"
+                        placeholder={t("medicationActions.formPlaceholder")}
                         type="text"
                         {...field}
                       />
@@ -194,10 +207,12 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
                 name="instructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Instructions</FormLabel>
+                    <FormLabel>{t("medicationActions.instructions")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. after a meal"
+                        placeholder={t(
+                          "medicationActions.instructionsPlaceholder",
+                        )}
                         type="text"
                         {...field}
                       />
@@ -211,11 +226,11 @@ const EditMedication = ({ medication, onSuccess }: EditMedicationProps) => {
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" disabled={mutation.isPending}>
-                  Cancel
+                  {t("medicationActions.cancel")}
                 </Button>
               </DialogClose>
               <LoadingButton type="submit" loading={mutation.isPending}>
-                Save
+                {t("medicationActions.save")}
               </LoadingButton>
             </DialogFooter>
           </form>

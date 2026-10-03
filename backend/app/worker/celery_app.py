@@ -20,16 +20,14 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
-# Beat wg docs/07: dispatcher co 60 s, materializer co 30 min. Na start taski
-# tylko logują „tick"; realne implementacje trafią do app/worker/dispatcher.py
-# i materializer.py (docs/02-architecture.md).
+# Production defaults follow docs/07; isolated integration tests can use shorter intervals.
 celery_app.conf.beat_schedule = {
     "dispatcher-every-60s": {
         "task": "app.worker.tasks.dispatcher_tick",
-        "schedule": 60.0,
+        "schedule": float(os.getenv("CELERY_DISPATCH_INTERVAL_SECONDS", "60")),
     },
     "materializer-every-30min": {
         "task": "app.worker.tasks.materializer_tick",
-        "schedule": 1800.0,
+        "schedule": float(os.getenv("CELERY_MATERIALIZE_INTERVAL_SECONDS", "1800")),
     },
 }

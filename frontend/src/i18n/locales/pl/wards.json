@@ -120,6 +120,15 @@
     "edit": "Edytuj",
     "deactivate": "Dezaktywuj",
     "testCallResult": "Połączenie testowe zakończone: {{outcome}}",
+    "callQueued": "Połączenie zostało przekazane do wykonania. Wynik pojawi się w historii.",
+    "callFailed": "Nie udało się rozpocząć połączenia. Spróbuj ponownie.",
+    "callErrors": {
+      "noApprovedRoutine": "Najpierw zatwierdź rutynę podopiecznego, a następnie wybierz Zadzwoń teraz.",
+      "noMedications": "Dodaj leki do rutyny i zatwierdź ją przed rozpoczęciem połączenia.",
+      "wardInactive": "Podopieczny jest nieaktywny. Aktywuj jego profil przed rozpoczęciem połączenia.",
+      "serviceUnavailable": "Usługa połączeń jest chwilowo niedostępna. Spróbuj ponownie później.",
+      "queueUnavailable": "Nie udało się przekazać połączenia do wykonania. Spróbuj ponownie później."
+    },
     "noOutcome": "brak wyniku",
     "loadingRoutines": "Ładowanie rutyn",
     "loadingCalls": "Ładowanie połączeń",
@@ -136,11 +145,25 @@
     "routinesInactiveHint": "Podopieczny jest dezaktywowany — dodawanie nowych rutyn jest wyłączone.",
     "callsEmpty": "Brak połączeń — historia pojawi się po pierwszym telefonie.",
     "callsTitle": "Historia połączeń",
-    "callsDescription": "Kliknij połączenie, aby zobaczyć transkrypcję",
+    "callsDescription": "Kliknij połączenie, aby zobaczyć podsumowanie i transkrypcję",
+    "viewCall": "Zobacz rozmowę",
+    "medicationOutcome": "Wynik dotyczący leków",
+    "callStatus": {
+      "queued": "Połączenie w kolejce",
+      "ringing": "Dzwonimy",
+      "in_progress": "Rozmowa trwa",
+      "completed": "Rozmowa zakończona",
+      "busy": "Numer zajęty",
+      "failed": "Błąd połączenia",
+      "no_answer": "Połączenie nieodebrane",
+      "canceled": "Połączenie anulowane"
+    },
     "attemptLower": "próba {{number}}",
     "durationSec": "{{number}} s"
   },
   "callDetail": {
+    "summaryTitle": "Podsumowanie rozmowy",
+    "summaryUnavailable": "Podsumowanie nie jest jeszcze dostępne.",
     "pageTitle": "DzwoniLek — Połączenie",
     "backToWard": "Wróć do podopiecznego",
     "loading": "Ładowanie połączenia",

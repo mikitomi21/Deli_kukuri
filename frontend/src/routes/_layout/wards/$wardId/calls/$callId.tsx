@@ -37,6 +37,7 @@ function CallDetail() {
   } = useQuery({
     queryKey: ["call", callId],
     queryFn: () => fetchCall(callId),
+    refetchInterval: 5000,
   })
 
   if (isPending) {
@@ -100,6 +101,19 @@ function CallDetail() {
           </span>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            {t("callDetail.summaryTitle")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="whitespace-pre-wrap text-sm">
+            {call.result?.notes || t("callDetail.summaryUnavailable")}
+          </p>
+        </CardContent>
+      </Card>
 
       {call.turns.length > 0 && (
         <Card>

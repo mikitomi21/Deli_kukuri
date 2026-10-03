@@ -103,5 +103,36 @@
     "routinesPending": "Routines and statistics will appear once the backend endpoints are implemented.",
     "noRoutines": "No routines — ",
     "addFirstRoutine": "add your first routine"
+  },
+  "medicationActions": {
+    "edit": "Edit medication",
+    "editTitle": "Edit medication",
+    "editDescription": "Changes apply to the global catalog for all caregivers.",
+    "name": "Name",
+    "dosage": "Dosage",
+    "form": "Form",
+    "instructions": "Instructions",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete medication",
+    "deleteTitle": "Delete medication",
+    "deleteDescription": "Delete {{name}} ({{dosage}}) from the global catalog? This cannot be undone.",
+    "updated": "Medication updated successfully",
+    "deleted": "Medication deleted successfully",
+    "openMenu": "Open medication actions menu",
+    "actions": "Actions",
+    "search": "Search medications by name, dosage or form…",
+    "namePlaceholder": "e.g. Aspirin",
+    "dosagePlaceholder": "e.g. 500 mg",
+    "formPlaceholder": "e.g. coated tablets",
+    "instructionsPlaceholder": "e.g. after a meal",
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name must be at most 255 characters",
+      "dosageRequired": "Dosage is required",
+      "dosageTooLong": "Dosage must be at most 100 characters",
+      "formTooLong": "Form must be at most 100 characters",
+      "instructionsTooLong": "Instructions must be at most 255 characters"
+    }
   }
 }

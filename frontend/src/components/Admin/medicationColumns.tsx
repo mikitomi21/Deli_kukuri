@@ -39,7 +39,9 @@ export const medicationColumns: ColumnDef<MedicationPublic>[] = [
   },
   {
     id: "actions",
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">{t("medicationActions.actions")}</span>
+    ),
     cell: ({ row }) => (
       <div className="flex justify-end">
         <MedicationActionsMenu medication={row.original} />

@@ -1,11 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
-import {
-  type MedicationPublic,
-  MedicationsService,
-} from "@/client"
+import { type MedicationPublic, MedicationsService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -27,6 +25,7 @@ interface DeleteMedicationProps {
 }
 
 const DeleteMedication = ({ medication, onSuccess }: DeleteMedicationProps) => {
+  const { t } = useTranslation("admin")
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
@@ -35,7 +34,7 @@ const DeleteMedication = ({ medication, onSuccess }: DeleteMedicationProps) => {
     mutationFn: () =>
       MedicationsService.deleteMedication({ path: { id: medication.id } }),
     onSuccess: () => {
-      showSuccessToast("Medication deleted successfully")
+      showSuccessToast(t("medicationActions.deleted"))
       setIsOpen(false)
       onSuccess()
     },
@@ -53,21 +52,23 @@ const DeleteMedication = ({ medication, onSuccess }: DeleteMedicationProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Trash2 aria-hidden />
-        Delete medication
+        {t("medicationActions.delete")}
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete Medication</DialogTitle>
+          <DialogTitle>{t("medicationActions.deleteTitle")}</DialogTitle>
           <DialogDescription>
-            Delete <strong>{medication.name}</strong> ({medication.dosage}) from
-            the global catalog? This cannot be undone.
+            {t("medicationActions.deleteDescription", {
+              name: medication.name,
+              dosage: medication.dosage,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button variant="outline" disabled={mutation.isPending}>
-              Cancel
+              {t("medicationActions.cancel")}
             </Button>
           </DialogClose>
           <LoadingButton
@@ -76,7 +77,7 @@ const DeleteMedication = ({ medication, onSuccess }: DeleteMedicationProps) => {
             loading={mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            Delete
+            {t("medicationActions.delete")}
           </LoadingButton>
         </DialogFooter>
       </DialogContent>
