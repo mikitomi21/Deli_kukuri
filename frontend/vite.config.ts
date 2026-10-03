@@ -6,6 +6,13 @@ import { defineConfig } from "vite"
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    watch: {
+      // Set VITE_WATCH_POLLING=1 in docker: inotify doesn't cross the
+      // Windows -> WSL mount, so chokidar has to poll for changes.
+      usePolling: process.env.VITE_WATCH_POLLING === "1",
+    },
+  },
   build: {
     outDir: "../backend/app/frontend",
     emptyOutDir: true,

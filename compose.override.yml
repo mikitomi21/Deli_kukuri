@@ -43,30 +43,32 @@ services:
       - dev
       - --host
       - "0.0.0.0"
-    develop:
-      watch:
-        - path: ./backend
-          action: sync
-          target: /app/backend
-          ignore:
-            - .venv
-        - path: ./backend/pyproject.toml
-          action: rebuild
-        - path: ./frontend
-          action: rebuild
-          ignore:
-            - ./frontend/node_modules
-            - ./frontend/dist
-            - ./frontend/blob-report
-            - ./frontend/test-results
-    # TODO: remove once coverage is done locally
     volumes:
+      - ./backend/app:/app/backend/app
+      # TODO: remove once coverage is done locally
       - ./backend/htmlcov:/app/backend/htmlcov
     environment:
       FASTAPI_ENV: "development"
       SMTP_HOST: "mailpit"
       SMTP_PORT: "1025"
       SMTP_TLS: "false"
+      # Docker runs natively in WSL and the repo lives on /mnt/c, so inotify
+      # events from Windows edits never arrive; watchfiles must poll instead.
+      WATCHFILES_FORCE_POLLING: "true"
+
+  frontend:
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/index.html:/app/frontend/index.html
+      # vite build outDir (../backend/app/frontend) lands on the host, so the
+      # backend can serve the production panel at :8000 after `bun run build`
+      - ./backend/app:/app/backend/app
+    environment:
+      # Same inotify gap as the backend; chokidar must poll (see vite.config.ts).
+      VITE_WATCH_POLLING: "1"
 
   mailpit:
     image: axllent/mailpit

@@ -84,5 +84,11 @@ services:
       - traefik.http.routers.backend-http.rule=Host(`${DOMAIN:-localhost}`)
       - traefik.http.routers.backend-http.entrypoints=http
 
+  frontend:
+    image: frontend:latest
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+
 volumes:
   app-db-data:
