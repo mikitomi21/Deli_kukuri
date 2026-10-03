@@ -24,6 +24,22 @@ const toneClasses = {
   muted: "bg-muted text-muted-foreground",
 } as const
 
+// Card-level accent: tinted border + value in the tone color so the tile
+// reads at a glance (green = done, red = attention, gray = neutral).
+const cardAccentClasses = {
+  primary: "border-primary/30",
+  success: "border-success/40",
+  destructive: "border-destructive/40",
+  muted: "",
+} as const
+
+const valueClasses = {
+  primary: "text-primary",
+  success: "text-success",
+  destructive: "text-destructive",
+  muted: "",
+} as const
+
 /** Stat card in the ShadcnSpace style: tinted icon chip, big tabular value, small label. */
 export function StatCard({
   icon: Icon,
@@ -34,7 +50,7 @@ export function StatCard({
   comparison,
 }: StatCardProps) {
   return (
-    <Card>
+    <Card className={cardAccentClasses[tone]}>
       <CardHeader className="flex items-center gap-3">
         <div
           className={cn(
@@ -44,7 +60,14 @@ export function StatCard({
         >
           <Icon aria-hidden className="size-4.5" />
         </div>
-        <span className="text-2xl font-semibold tabular-nums">{value}</span>
+        <span
+          className={cn(
+            "text-2xl font-semibold tabular-nums",
+            valueClasses[tone],
+          )}
+        >
+          {value}
+        </span>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         <span className="text-sm font-medium">{label}</span>
