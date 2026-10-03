@@ -16,6 +16,7 @@
 9. [`08-hackathon-plan.md`](08-hackathon-plan.md) — rozpiska 21h, role, taski, ryzyka (**dla PM**)
 10. [`09-roadmap.md`](09-roadmap.md) — pomysły po MVP (do pitchu)
 11. [`10-decisions.md`](10-decisions.md) — podjęte decyzje (ADR) i otwarte pytania
+12. [`11-vps-deployment-cyberfolks.md`](11-vps-deployment-cyberfolks.md) — wdrożenie na VPS (dzwonilek.pl) + CI/CD z GitHub Actions
 
 ## Szybki skrót projektu
 
