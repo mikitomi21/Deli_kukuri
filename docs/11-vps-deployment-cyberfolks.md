@@ -61,7 +61,16 @@ ssh root@185.193.114.6 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys" < dzwo
 
 - **prywatny** klucz (`dzwonilek_deploy`) trafia do GitHub Secrets jako `VPS_SSH_KEY`,
 - **publiczny** zostaje na VPS w `~/.ssh/authorized_keys`.
-- Test: `ssh -i dzwonilek_deploy root@185.193.114.6` — ma wejść bez hasła.
+- **Klucz na /mnt/c wygląda jak 0777** i Linuxowy ssh go odrzuci ("UNPROTECTED
+  PRIVATE KEY FILE") — skopiuj go jednorazowo do WSL-owego home (skrypt
+  `deploy.sh` sam go potem stamtąd weźmie):
+
+  ```bash
+  # w WSL, z root projektu:
+  mkdir -p ~/.ssh && cp dzwonilek_deploy ~/.ssh/dzwonilek_deploy && chmod 600 ~/.ssh/dzwonilek_deploy
+  ```
+
+- Test: `ssh -i ~/.ssh/dzwonilek_deploy root@185.193.114.6` — ma wejść bez hasła.
 
 ### 1.4. Firewall — tylko to, co potrzebne
 
@@ -137,6 +146,70 @@ echo "<DOCKERHUB_TOKEN>" | docker login -u timosch99 --password-stdin
 Po propagacji (`dig +short dzwonilek.pl`) Traefik sam wystawi certyfikat Let's Encrypt
 (TLS challenge) przy pierwszym wejściu na https://dzwonilek.pl.
 
+### 1.8. Certyfikat SSL z cyberfolks — dlaczego NIE go używamy (i jak włączyć, gdyby trzeba)
+
+Wygasa **20.04.2027**. Pliki leżą na serwerze w `/opt/dzwonilek/certs/`
+(`src/` = oryginały z panelu, `fullchain.crt`, `dzwonilek.pl.key`, `tls.yml.disabled`).
+Traefik ma podmontany `/opt/dzwonilek/certs` i `--providers.file.directory`.
+
+**Dlaczego wyłączone:** certyfikat chainuje do roota **Certum TLS RSA Root CA**
+(stworzonego ~2026), którego NIE ma w standardowych bazach zaufania — zweryfikowane:
+`curl` z Debian bookworm i z Ubuntu zwraca "self-signed certificate in chain"
+(exit 60). Przeglądarki z aktualnymi store'ami akceptują, ale **klienci
+serwerowi (curl, Python, przyszłe webhooki Twilio) padają na TLS**.
+
+**Jeśli mimo to chcesz go włączyć:**
+
+```bash
+ssh root@185.193.114.6
+cd /opt/dzwonilek/certs && mv tls.yml.disabled tls.yml   # Traefik przeładowuje live
+```
+
+i usuń `certresolver=le` z routera apex w compose.deploy.yml (www zostaw na LE —
+cert pokrywa tylko apex). Wymiana certyfikatu po wygaśnięciu = powtórzenie kroków
+powyżej z nowymi plikami z panelu.
+
+**Pułapka przy sklejaniu fullchain:** pliki z panelu NIE kończą się newline —
+`cat cert ca > fullchain` skleja `END CERTIFICATE` z `BEGIN CERTIFICATE` i Go
+(Traefik) rozsypuje parowanie. Zawsze z separatorem:
+
+```bash
+{ cat dzwonilek.pl.crt; echo; cat dzwonilek.pl.ca.crt; echo; } > fullchain.crt
+```
+
+Aktywny stan: **apex i www na Let's Encrypt** (auto-renewal, zaufane wszędzie —
+zweryfikowane strict curl 200 z kontenera i z WSL).
+
+### 1.8. Certyfikat SSL z cyberfolks (opcjonalnie, zamiast LE na apexie)
+
+> Let's Encrypt (krok powyżej) jest darmowy i odnawia się **sam**. Wykupiony
+> certyfikat pokrywa **tylko `dzwonilek.pl`** (1 domena — `www` zostaje na LE)
+> i wygasa **20.04.2027** — wtedy trzeba powtórzyć ten krok. compose.deploy.yml
+> ma już pod to podmontowany `/opt/dzwonilek/certs` i `--providers.file.directory`.
+
+1. Pobierz z panelu cyberfolks trzy pliki: **Certyfikat**, **Klucz prywatny**,
+   **Certyfikat pośredniczący CA**.
+2. Na serwerze:
+
+   ```bash
+   mkdir -p /opt/dzwonilek/certs
+   # wrzuć pliki (scp z lokalnego komputera albo nano) jako:
+   #   /opt/dzwonilek/certs/dzwonilek.pl.crt      (certyfikat)
+   #   /opt/dzwonilek/certs/dzwonilek.pl.ca.crt   (CA pośredniczący)
+   #   /opt/dzwonilek/certs/dzwonilek.pl.key      (klucz prywatny)
+   cat /opt/dzwonilek/certs/dzwonilek.pl.crt \
+       /opt/dzwonilek/certs/dzwonilek.pl.ca.crt \
+       > /opt/dzwonilek/certs/fullchain.crt
+   chmod 600 /opt/dzwonilek/certs/dzwonilek.pl.key
+   ```
+
+3. Skopiuj gotową konfigurację TLS z repo (`devops/tls.yml`) jako
+   `/opt/dzwonilek/certs/tls.yml` (już wskazuje na `fullchain.crt` + klucz).
+4. Restart proxy: `docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d proxy`
+5. Weryfikacja: `curl -vI https://dzwonilek.pl 2>&1 | grep -i issuer` — issuer
+   cyberfolks (nie Let's Encrypt). Traefik dobiera certyfikat po SNI: apex
+   dostaje Twój cert, `www` dalej LE — niczego nie trzeba zmieniać w routerach.
+
 ---
 
 ## 2. Pierwszy deploy
@@ -194,6 +267,29 @@ git push origin feature/x        # PR → odpalają się testy (backend + fronte
 **Rollback** do poprzedniej wersji (obrazy tagowane są SHA-m): GitHub → Actions →
 **Deploy to VPS** → Run workflow → `image_tag`: `<POPRZEDNI-SHA>` (skopiuj z runu
 Test & Build). Deploy sam przełączy stack na ten obraz — bez SSH-owania.
+
+### Skrypty devops — jedno źródło prawdy (CI i lokalnie to samo)
+
+CI nie ma żadnej "magicznej" logiki deployu — wywołuje skrypty z `devops/`,
+które możesz odpalać identycznie lokalnie (np. przez WSL, bo docker jest w WSL):
+
+```bash
+# build + push obrazu (lokalnie token DOCKERHUB_TOKEN czyta z .env w root):
+wsl bash devops/build-push.sh
+
+# deploy (lokalnie klucz dzwonilek_deploy czytany z root projektu):
+wsl bash devops/deploy.sh
+
+# rollback / konkretny tag:
+IMAGE_TAG=<sha> wsl bash devops/deploy.sh
+```
+
+Zmienne te same co w CI (`IMAGE_TAG`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`,
+`VPS_HOST`, `VPS_USER`, `SSH_KEY`/`SSH_KEY_FILE`) — w CI podaje je GitHub
+(sekrety), lokalnie skrypt czyta je z `.env.prod`/`.env` albo bierze defaulty
+(`VPS_HOST=185.193.114.6`, `VPS_USER=root`, klucz `dzwonilek_deploy`).
+W `ci.yml` job `build-push` to jedno wywołanie `bash devops/build-push.sh`,
+w `deploy-vps.yml` — `bash devops/deploy.sh`.
 
 **Wyłączenie / status:**
 

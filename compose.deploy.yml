@@ -11,6 +11,8 @@ services:
     volumes:
       # Mount the volume to store the certificates
       - traefik-certificates:/certificates
+      # Własne certyfikaty (opcjonalnie): /opt/dzwonilek/certs + tls.yml — patrz docs/11 §1.8
+      - ./certs:/certs-custom:ro
     command:
       # Enable Docker in Traefik, so that it reads labels from Docker services
       - --providers.docker
@@ -27,6 +29,8 @@ services:
       - --certificatesresolvers.le.acme.storage=/certificates/acme.json
       # Use the TLS Challenge for Let's Encrypt
       - --certificatesresolvers.le.acme.tlschallenge=true
+      # Własne certyfikaty (opcjonalnie): dynamiczne pliki TLS z /opt/dzwonilek/certs
+      - --providers.file.directory=/certs-custom
       # Enable the access log, with HTTP requests
       - --accesslog
       # Enable the Traefik log, for configurations and errors
@@ -52,16 +56,21 @@ services:
     # Obraz buduje i pushuje CI (Docker Hub) — na VPS nic się nie buduje
     image: docker.io/timosch99/dzwonilek:latest
     # Migracje + seed (superuser, katalog leków) przed startem aplikacji
+    # (przez "bash", bo pliki .sh w repo nie muszą mieć bitu +x)
     command:
       - bash
       - -c
-      - scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
+      - bash scripts/prestart.sh && exec fastapi run --host 0.0.0.0 --workers 2
     environment:
       FRONTEND_HOST: https://${DOMAIN:?Variable not set}
     mem_limit: 512m
     labels:
-      # Route HTTPS traffic for this domain
-      - traefik.http.routers.backend-https.rule=Host(`${DOMAIN:?Variable not set}`)
+      # Route HTTPS traffic (apex + www) — Let's Encrypt, auto-renewal.
+      # UWAGA: wykupiony cert cyberfolks (Certum TLS RSA Root CA, wsp. 20.04.2027)
+      # jest w /opt/dzwonilek/certs + tls.yml, ale jego root nie jest publicznie
+      # zaufany (curl/Twilio failują TLS) — patrz docs/11 §1.8. Żeby go użyć:
+      # usuń poniższy certresolver i rozdziel routery apex/www (docs §1.8).
+      - traefik.http.routers.backend-https.rule=Host(`${DOMAIN:?Variable not set}`) || Host(`www.${DOMAIN:?Variable not set}`)
       - traefik.http.routers.backend-https.entrypoints=https
       - traefik.http.routers.backend-https.tls=true
       # Use the Let's Encrypt resolver
