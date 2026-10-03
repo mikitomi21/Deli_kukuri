@@ -17,12 +17,12 @@ export function Logo({
     <span className={cn("flex items-center gap-2 font-extrabold", className)}>
       {variant !== "full" && (
         <span aria-hidden className="text-xl">
-          🌽
+          💊
         </span>
       )}
       {variant !== "icon" && (
         <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-lime-500 bg-clip-text text-transparent group-data-[collapsible=icon]:hidden">
-          Kukurin Mafia
+          DzwoniLek
         </span>
       )}
     </span>

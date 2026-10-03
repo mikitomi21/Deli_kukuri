@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="border-t py-4 px-6">
       <p className="text-muted-foreground text-center text-sm">
-        Kukurin Mafia © {currentYear}
+        DzwoniLek © {currentYear}
       </p>
     </footer>
   )

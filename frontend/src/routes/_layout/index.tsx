@@ -1,44 +1,38 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { UserPlus } from "lucide-react"
 
-import useAuth from "@/hooks/useAuth"
+import { Button } from "@/components/ui/button"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
   head: () => ({
     meta: [
       {
-        title: "Kukurin Mafia",
+        title: "DzwoniLek",
       },
     ],
   }),
 })
 
 function Dashboard() {
-  const { user: currentUser } = useAuth()
-
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
       <span aria-hidden className="text-7xl">
-        🌽
+        💊
       </span>
       <h1 className="bg-gradient-to-r from-amber-400 via-yellow-500 to-lime-500 bg-clip-text text-6xl font-black tracking-tight text-transparent">
-        Kukurin Mafia
+        DzwoniLek
       </h1>
       <p className="max-w-md text-lg text-muted-foreground">
-        Startowy template React + FastAPI. Edytuj
-        <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-sm">
-          frontend/src/routes/_layout/index.tsx
-        </code>
-        i patrz na zmiany na żywo.
+        System sam dzwoni do Twoich podopiecznych o porach leków i zapisuje, co
+        odpowiedzieli. Zacznij od dodania pierwszego podopiecznego.
       </p>
-      {currentUser && (
-        <p className="text-sm text-muted-foreground">
-          Zalogowany jako{" "}
-          <span className="font-medium text-foreground">
-            {currentUser.full_name || currentUser.email}
-          </span>
-        </p>
-      )}
+      <Button asChild size="lg" data-testid="add-ward-cta">
+        <Link to="/wards/new">
+          <UserPlus className="mr-2" />
+          Dodaj podopiecznego
+        </Link>
+      </Button>
     </div>
   )
 }
