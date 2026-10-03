@@ -9,6 +9,7 @@ import {
   getWardStats,
   listCalls,
   listCallTasks,
+  listRoutines,
   listWards,
   pauseRoutine,
   testCall,
@@ -58,7 +59,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
@@ -78,7 +79,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
@@ -104,7 +105,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
@@ -129,7 +130,7 @@ describe("mock store", () => {
     )
   })
 
-  it("deleteRoutine rejects non-draft routines (docs/05)", async () => {
+  it("deleteRoutine removes approved routines and their scheduled tasks", async () => {
     const routine = await createRoutine(wardId, {
       name: "Poranne leki",
       time_of_day: "09:00",
@@ -138,15 +139,17 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
     })
     await approveRoutine(routine.id)
-    await expect(deleteRoutine(routine.id)).rejects.toThrow(
-      "tylko rutyny w szkicu",
-    )
+    await expect(listCallTasks(wardId)).resolves.toHaveLength(1)
+    await expect(deleteRoutine(routine.id)).resolves.toBeUndefined()
+    await expect(listRoutines(wardId)).resolves.toHaveLength(0)
+    // the schedule derives from approved routines — it must be gone too
+    await expect(listCallTasks(wardId)).resolves.toHaveLength(0)
   })
 
   it("pause toggles the routine status (POST /routines/{id}/pause)", async () => {
@@ -158,7 +161,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
@@ -181,7 +184,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],
@@ -205,7 +208,7 @@ describe("mock store", () => {
           medication_id: "med-1",
           medication_name: "Warfarin",
           dosage: "5 mg",
-          amount_label: "1 tabletka",
+          amount_label: "1",
         },
       ],
       depends_on: [],

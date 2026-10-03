@@ -21,7 +21,9 @@ def test_read_medications_seeded_catalog(
     )
     assert response.status_code == 200
     content = response.json()
-    assert 20 <= content["count"] <= 50
+    # >= 20 seeded meds (docs/05); the shared dev DB also accumulates meds
+    # created by other tests, so no upper bound here
+    assert content["count"] >= 20
     assert len(content["data"]) == content["count"]
     for medication in content["data"]:
         assert "id" in medication

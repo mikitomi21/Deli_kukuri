@@ -21,13 +21,13 @@
   },
   "medicationPicker": {
     "selectedAria": "Wybrane leki",
-    "amountPlaceholder": "Ilość, np. 1 tabletka",
+    "amountPlaceholder": "Ilość, np. 1 albo 0,5",
     "amountFor": "Ilość dla {{name}}",
     "removeFor": "Usuń {{name}} z rutyny",
     "searchPlaceholder": "Szukaj leku w katalogu, np. warf…",
     "searchAria": "Szukaj leku w katalogu",
     "loadingAria": "Ładowanie katalogu leków",
-    "emptyCatalog": "Brak leku w bazie — katalog jest tylko do odczytu w MVP."
+    "emptyCatalog": "Nie znaleziono leku o tej nazwie. Spróbuj innego wyszukiwania."
   },
   "routineActions": {
     "actionsFor": "Akcje dla rutyny {{name}}",
@@ -37,7 +37,7 @@
     "pause": "Wstrzymaj",
     "delete": "Usuń",
     "deleteTitle": "Usunąć rutynę?",
-    "deleteDescription": "Rutyna „{{name}}” zostanie trwale usunięta. Usuwać można tylko rutyny w szkicu.",
+    "deleteDescription": "Rutyna „{{name}}” zostanie trwale usunięta, a jej zaplanowane połączenia anulowane. Tej operacji nie można cofnąć.",
     "cancel": "Anuluj",
     "deleteConfirm": "Usuń rutynę",
     "approvedToast": "Rutyna zatwierdzona — połączenie zostało zaplanowane",
@@ -75,7 +75,8 @@
       "nameMaxLength": "Maksymalnie 100 znaków",
       "timeFormat": "Podaj godzinę w formacie HH:MM",
       "noMedications": "Dodaj przynajmniej jeden lek do rutyny",
-      "amountRequired": "Podaj ilość dla każdego leku"
+      "amountRequired": "Podaj ilość dla każdego leku",
+      "amountNumeric": "Ilość musi być liczbą, np. 1 albo 0,5"
     }
   },
   "routineStatus": {
@@ -90,12 +91,12 @@
     "no_answer": "Brak odpowiedzi",
     "pending": "Zaplanowane"
   },
-  "wardDeactivate": {
-    "title": "Dezaktywować podopiecznego?",
-    "description": "{{name}} zniknie z dashboardu, a system nie będzie do niego dzwonił. Historia połączeń zostaje zachowana.",
+  "wardDelete": {
+    "title": "Usunąć podopiecznego?",
+    "description": "{{name}} zostanie trwale usunięty razem ze swoimi rutynami i historią połączeń. Tej operacji nie można cofnąć.",
     "cancel": "Anuluj",
-    "confirm": "Dezaktywuj",
-    "successToast": "Podopieczny zdezaktywowany"
+    "confirm": "Usuń",
+    "successToast": "Podopieczny został usunięty"
   },
   "wardEdit": {
     "title": "Edytuj podopiecznego",
@@ -118,7 +119,7 @@
     "weekBadge": "Ostatnie 7 dni: {{pct}}%",
     "callNow": "Zadzwoń teraz",
     "edit": "Edytuj",
-    "deactivate": "Dezaktywuj",
+    "delete": "Usuń",
     "testCallResult": "Połączenie testowe zakończone: {{outcome}}",
     "callQueued": "Połączenie zostało przekazane do wykonania. Wynik pojawi się w historii.",
     "callFailed": "Nie udało się rozpocząć połączenia. Spróbuj ponownie.",
@@ -142,7 +143,6 @@
     "routinesDescription": "Zatwierdzone rutyny są planowane do połączeń",
     "addRoutine": "Dodaj rutynę",
     "routinesEmpty": "Ten podopieczny nie ma jeszcze rutyn. Dodaj pierwszą rutynę, aby DzwoniLek zaczął dzwonić.",
-    "routinesInactiveHint": "Podopieczny jest dezaktywowany — dodawanie nowych rutyn jest wyłączone.",
     "callsEmpty": "Brak połączeń — historia pojawi się po pierwszym telefonie.",
     "callsTitle": "Historia połączeń",
     "callsDescription": "Kliknij połączenie, aby zobaczyć podsumowanie i transkrypcję",

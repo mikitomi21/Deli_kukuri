@@ -2,7 +2,7 @@ import { type WardPublic, WardsService } from "@/client"
 import {
   type CreateWardPayload,
   createWard as mockCreateWard,
-  deactivateWard as mockDeactivateWard,
+  deleteWard as mockDeleteWard,
   getWard as mockGetWard,
   listWards as mockListWards,
   updateWard as mockUpdateWard,
@@ -112,7 +112,7 @@ export async function editWard(
   return mockUpdateWard(id, payload)
 }
 
-/** Soft delete per docs/04 B2 — the ward disappears, its history stays. */
+/** Hard delete per product decision: the ward and its history are removed. */
 export async function removeWard(id: string): Promise<void> {
   const mode = getWardsMode()
 
@@ -120,5 +120,5 @@ export async function removeWard(id: string): Promise<void> {
     await WardsService.deleteWard({ path: { id } })
     return
   }
-  return mockDeactivateWard(id)
+  return mockDeleteWard(id)
 }

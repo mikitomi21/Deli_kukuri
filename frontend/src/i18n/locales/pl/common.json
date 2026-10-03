@@ -40,5 +40,48 @@
   },
   "logo": {
     "brand": "DzwoniLek"
+  },
+  "errors": {
+    "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+    "genericField": "To pole",
+    "wardNotFound": "Nie znaleziono podopiecznego",
+    "routineNotFound": "Nie znaleziono rutyny",
+    "medicationNotFound": "Nie znaleziono leku w katalogu",
+    "itemNotFound": "Nie znaleziono elementu",
+    "userNotFound": "Nie znaleziono użytkownika",
+    "routineSelfDependency": "Rutyna nie może zależeć sama od siebie",
+    "routineNoMedications": "Nie można zatwierdzić rutyny bez leków",
+    "routineDependencyNotApproved": "Nie można zatwierdzić: wymagana rutyna „{{name}}” nie jest zatwierdzona",
+    "routineDependencyNotApprovedGeneric": "Nie można zatwierdzić: wymagana rutyna nie jest zatwierdzona",
+    "routinePauseApprovedOnly": "Wstrzymać można tylko rutyny zatwierdzone",
+    "invalidCredentials": "Nieprawidłowy e-mail lub hasło",
+    "inactiveUser": "To konto jest nieaktywne",
+    "invalidToken": "Nieprawidłowy lub wygasły link. Wygeneruj nowy.",
+    "incorrectPassword": "Nieprawidłowe hasło",
+    "samePassword": "Nowe hasło musi różnić się od aktualnego",
+    "emailExists": "Użytkownik z tym adresem e-mail już istnieje",
+    "notEnoughPermissions": "Brak uprawnień do tej operacji",
+    "superuserDeleteSelf": "Konta administratora nie można usunąć samodzielnie",
+    "nullFields": "Pola opcjonalne nie mogą być puste",
+    "fieldRequired": "Pole „{{field}}” jest wymagane",
+    "fieldTooShort": "Pole „{{field}}” musi mieć co najmniej {{limit}} znaków",
+    "fieldTooLong": "Pole „{{field}}” może mieć najwyżej {{limit}} znaków",
+    "fieldInvalid": "Pole „{{field}}” ma nieprawidłowy format",
+    "amountNumeric": "Ilość leku musi być liczbą, np. 1 albo 0,5",
+    "callNotFound": "Nie znaleziono połączenia",
+    "testCallNoRoutine": "Podopieczny nie ma zatwierdzonej rutyny — zatwierdź rutynę, aby dzwonić"
+  },
+  "fields": {
+    "fullName": "Imię i nazwisko",
+    "phone": "Numer telefonu",
+    "timezone": "Strefa czasowa",
+    "email": "E-mail",
+    "password": "Hasło",
+    "newPassword": "Nowe hasło",
+    "currentPassword": "Aktualne hasło",
+    "name": "Nazwa",
+    "time": "Godzina",
+    "days": "Dni",
+    "amount": "Ilość"
   }
 }

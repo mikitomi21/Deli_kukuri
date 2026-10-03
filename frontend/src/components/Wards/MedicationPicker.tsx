@@ -17,6 +17,8 @@ interface MedicationPickerProps {
   /** Selected routine items (medication + amount label). */
   value: RoutineItem[]
   onChange: (items: RoutineItem[]) => void
+  /** Optional predicate flagging an amount input as invalid (e.g. negative). */
+  amountInvalid?: (amountLabel: string) => boolean
 }
 
 /**
@@ -24,7 +26,11 @@ interface MedicationPickerProps {
  * The list stays short on purpose: search first, pick, then enter the
  * amount inline. Medications are never created here — only picked.
  */
-export function MedicationPicker({ value, onChange }: MedicationPickerProps) {
+export function MedicationPicker({
+  value,
+  onChange,
+  amountInvalid,
+}: MedicationPickerProps) {
   const { t } = useTranslation("wards")
   const [query, setQuery] = useState("")
   const { isPending, data: medications } = useQuery(
@@ -32,7 +38,8 @@ export function MedicationPicker({ value, onChange }: MedicationPickerProps) {
   )
 
   const results = useMemo(
-    () => filterMedications(medications ?? [], query).slice(0, 6),
+    // No cap: the scrollable list shows the whole (filtered) catalog
+    () => filterMedications(medications ?? [], query),
     [medications, query],
   )
 
@@ -62,7 +69,7 @@ export function MedicationPicker({ value, onChange }: MedicationPickerProps) {
     <div className="grid gap-4">
       {value.length > 0 && (
         <ul
-          className="grid gap-2"
+          className="max-h-60 space-y-2 overflow-y-auto pr-1"
           aria-label={t("medicationPicker.selectedAria")}
         >
           {value.map((item) => (
@@ -81,16 +88,21 @@ export function MedicationPicker({ value, onChange }: MedicationPickerProps) {
               <Input
                 placeholder={t("medicationPicker.amountPlaceholder")}
                 className="h-8 w-36 text-xs"
+                inputMode="decimal"
                 value={item.amount_label}
-                onChange={(event) =>
+                onChange={(event) => {
+                  // Quantity is numeric-only (parity with the backend):
+                  // digits plus , or . as the decimal separator
+                  const sanitized = event.target.value.replace(/[^\d.,]/g, "")
                   onChange(
                     value.map((v) =>
                       v.medication_id === item.medication_id
-                        ? { ...v, amount_label: event.target.value }
+                        ? { ...v, amount_label: sanitized }
                         : v,
                     ),
                   )
-                }
+                }}
+                aria-invalid={amountInvalid?.(item.amount_label) || undefined}
                 aria-label={t("medicationPicker.amountFor", {
                   name: item.medication_name,
                 })}
@@ -138,7 +150,7 @@ export function MedicationPicker({ value, onChange }: MedicationPickerProps) {
             <Skeleton className="h-9 w-full" />
           </div>
         ) : results.length > 0 ? (
-          <ul className="grid gap-1">
+          <ul className="max-h-72 space-y-1 overflow-y-auto">
             {results.map((medication) => (
               <li key={medication.id}>
                 <button

@@ -32,7 +32,15 @@ explicitly enables demo data and `empty` previews the empty dashboard.
 The existing local configuration already contains a generated private token.
 Never commit credentials. Trial accounts require verified destination numbers.
 
-Run `docker compose build voice`, then
+### Public URL for Twilio
+
+Twilio connects to the media stream over `wss://${PUBLIC_URL}/calls/{key}/media-stream`,
+so `PUBLIC_URL` must be a publicly reachable HTTPS host backed by a publicly
+trusted certificate. It is a tunnel in local development and the voice subdomain
+in production — the application itself is identical in both cases.
+
+**Local development (ngrok, fallback per decision D9):** run
+`docker compose build voice`, then
 `docker compose up -d backend voice worker beat frontend`.
 After changes to `frontend/.env`, run `docker compose restart frontend`.
 Forward the public tunnel to port 3000 and use its HTTPS address for `PUBLIC_URL`.
@@ -47,6 +55,22 @@ The ngrok service forwards directly to `http://voice:3000` on the Docker network
 Check `${PUBLIC_URL}/health` before calling; it must return `{"ready":true}`.
 After changing credentials or the public URL, recreate `voice` with
 `docker compose up -d --force-recreate voice`.
+
+**Production (VPS, no tunnel):** `compose.deploy.yml` runs the `voice` service
+from the `dzwonilek:voice` image (built and pushed by `devops/build-push.sh`)
+and exposes it through Traefik at `https://voice.${DOMAIN}` with Let's Encrypt —
+Traefik upgrades WebSockets natively. The router must stay on the `le`
+certresolver: the cyberfolks (Certum) certificate fails server-side TLS
+verification, including Twilio (docs/11 §1.8). One-time server setup:
+
+1. Add an A record `voice.${DOMAIN}` pointing to the VPS IP.
+2. In the server `.env` set `PUBLIC_URL=https://voice.${DOMAIN}`, the Twilio
+   credentials, `OPENAI_API_KEY` and the shared `VOICE_SERVICE_TOKEN`.
+3. Deploy (`bash devops/deploy.sh`); verify `https://voice.${DOMAIN}/health`
+   returns `{"ready":true}` from the outside.
+
+Do not expose port 3000 publicly; backend and worker talk to the gateway over
+the internal Docker network at `http://voice:3000`.
 
 ## Flows
 
@@ -77,7 +101,8 @@ Frontend tests cover real API selection, payload mapping and queued-call feedbac
 
 Use an isolated PostgreSQL database named `opiekunai_integration_tests` for
 `backend/scripts/test-integration.sh`. The test fixtures clean that test database.
-A live phone call additionally requires credentials, a public tunnel and an
+A live phone call additionally requires credentials, a public URL (ngrok tunnel
+locally, `voice.${DOMAIN}` in production) and an
 explicitly selected test recipient; automated tests do not contact Twilio.
 
 The browser integration suite uses `compose.integration.yml`: a separate API,

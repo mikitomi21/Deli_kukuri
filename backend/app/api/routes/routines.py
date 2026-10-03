@@ -285,13 +285,10 @@ def delete_routine(
     session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
     """
-    Delete a routine. Only draft routines can be deleted.
+    Delete a routine regardless of status. Scheduled call tasks are derived
+    from approved routines, so they disappear with the routine automatically.
     """
     routine = _get_owned_routine(session, current_user, id)
-    if routine.status != DRAFT:
-        raise HTTPException(
-            status_code=409, detail="Only draft routines can be deleted"
-        )
     session.exec(delete(Routine).where(col(Routine.id) == routine.id))
     session.commit()
     return Message(message="Routine deleted successfully")

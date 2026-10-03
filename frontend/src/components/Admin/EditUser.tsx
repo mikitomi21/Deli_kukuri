@@ -112,7 +112,7 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
         <Pencil aria-hidden />
         {t("editUser.menuItem")}
       </DropdownMenuItem>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
