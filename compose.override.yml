@@ -52,6 +52,7 @@ services:
       SMTP_HOST: "mailpit"
       SMTP_PORT: "1025"
       SMTP_TLS: "false"
+      CELERY_BROKER_URL: redis://redis:6379/0
       # Docker runs natively in WSL and the repo lives on /mnt/c, so inotify
       # events from Windows edits never arrive; watchfiles must poll instead.
       WATCHFILES_FORCE_POLLING: "true"
@@ -69,6 +70,53 @@ services:
     environment:
       # Same inotify gap as the backend; chokidar must poll (see vite.config.ts).
       VITE_WATCH_POLLING: "1"
+
+  # Celery + Redis wg docs/02-architecture.md i docs/07-scheduling-escalation.md
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  worker:
+    image: backend:latest
+    command:
+      - celery
+      - -A
+      - app.worker.celery_app
+      - worker
+      - --loglevel=INFO
+    volumes:
+      - ./backend/app:/app/backend/app
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  # Jeden proces beat — nie duplikować (docs/07, decyzja 2)
+  beat:
+    image: backend:latest
+    command:
+      - celery
+      - -A
+      - app.worker.celery_app
+      - beat
+      - --loglevel=INFO
+    volumes:
+      - ./backend/app:/app/backend/app
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
 
   mailpit:
     image: axllent/mailpit
