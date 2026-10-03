@@ -1,6 +1,8 @@
 import { Link as RouterLink } from "@tanstack/react-router"
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
-
+import { useTranslation } from "react-i18next"
+import type { UserPublic } from "@/client"
+import { LanguageSelect } from "@/components/Common/LanguageSelect"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -20,16 +22,18 @@ import useAuth from "@/hooks/useAuth"
 import { getInitials } from "@/utils"
 
 interface UserInfoProps {
-  fullName?: string
-  email?: string
+  fullName?: string | null
+  email?: string | null
 }
 
 function UserInfo({ fullName, email }: UserInfoProps) {
+  const { t } = useTranslation("common")
+
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">
-        <AvatarFallback className="bg-zinc-600 text-white">
-          {getInitials(fullName || "User")}
+        <AvatarFallback className="bg-primary/15 text-primary">
+          {getInitials(fullName || t("userMenu.fallbackInitials"))}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col items-start min-w-0">
@@ -40,7 +44,8 @@ function UserInfo({ fullName, email }: UserInfoProps) {
   )
 }
 
-export function User({ user }: { user: any }) {
+export function User({ user }: { user: UserPublic | null }) {
+  const { t } = useTranslation("common")
   const { logout } = useAuth()
   const { isMobile, setOpenMobile } = useSidebar()
 
@@ -66,7 +71,10 @@ export function User({ user }: { user: any }) {
               data-testid="user-menu"
             >
               <UserInfo fullName={user?.full_name} email={user?.email} />
-              <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
+              <ChevronsUpDown
+                className="ml-auto size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -81,14 +89,18 @@ export function User({ user }: { user: any }) {
             <DropdownMenuSeparator />
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
-                <Settings />
-                User Settings
+                <Settings aria-hidden="true" />
+                {t("userMenu.settings")}
               </DropdownMenuItem>
             </RouterLink>
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOut />
-              Log Out
+              <LogOut aria-hidden="true" />
+              {t("userMenu.logOut")}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1.5">
+              <LanguageSelect />
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

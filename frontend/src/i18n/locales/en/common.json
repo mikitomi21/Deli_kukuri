@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "menu": "Menu"
+  },
+  "appearance": {
+    "label": "Appearance",
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "userMenu": {
+    "settings": "User Settings",
+    "logOut": "Log Out",
+    "fallbackInitials": "User"
+  },
+  "dataTable": {
+    "noResults": "No results found.",
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "entries": "entries",
+    "rowsPerPage": "Rows per page",
+    "page": "Page",
+    "firstPage": "Go to first page",
+    "previousPage": "Go to previous page",
+    "nextPage": "Go to next page",
+    "lastPage": "Go to last page"
+  },
+  "logo": {
+    "brand": "DzwoniLek"
+  }
+}

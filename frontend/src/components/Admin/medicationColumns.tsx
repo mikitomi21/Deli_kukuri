@@ -1,48 +1,38 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import type { MedicationPublic } from "@/client"
-import { cn } from "@/lib/utils"
+import i18n from "@/i18n"
+
+// Column definitions live outside components: use a fixed-t translator
+// bound to the admin namespace for headers.
+const t = i18n.getFixedT(null, "admin")
 
 export const medicationColumns: ColumnDef<MedicationPublic>[] = [
   {
     accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.name}</span>
-    ),
+    header: t("medicationColumns.name"),
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "dosage",
-    header: "Dosage",
+    header: t("medicationColumns.dosage"),
     cell: ({ row }) => (
       <span className="text-muted-foreground">{row.original.dosage}</span>
     ),
   },
   {
     accessorKey: "form",
-    header: "Form",
+    header: t("medicationColumns.form"),
     cell: ({ row }) => (
-      <span
-        className={cn(
-          "text-muted-foreground",
-          !row.original.form && "italic opacity-50",
-        )}
-      >
-        {row.original.form || "—"}
-      </span>
+      <span className="text-muted-foreground">{row.original.form ?? "—"}</span>
     ),
   },
   {
     accessorKey: "instructions",
-    header: "Instructions",
+    header: t("medicationColumns.instructions"),
     cell: ({ row }) => (
-      <span
-        className={cn(
-          "text-muted-foreground",
-          !row.original.instructions && "italic opacity-50",
-        )}
-      >
-        {row.original.instructions || "—"}
+      <span className="text-muted-foreground">
+        {row.original.instructions ?? "—"}
       </span>
     ),
   },

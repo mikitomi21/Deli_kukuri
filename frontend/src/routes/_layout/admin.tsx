@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Suspense } from "react"
+import { useTranslation } from "react-i18next"
 
 import {
   type MedicationPublic,
@@ -13,8 +14,10 @@ import AddUser from "@/components/Admin/AddUser"
 import { columns, type UserTableData } from "@/components/Admin/columns"
 import { medicationColumns } from "@/components/Admin/medicationColumns"
 import { DataTable } from "@/components/Common/DataTable"
-import PendingUsers from "@/components/Pending/PendingUsers"
+import { PageHeader } from "@/components/Common/PageHeader"
+import PendingTable from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
+import i18n from "@/i18n"
 
 function getUsersQueryOptions() {
   return {
@@ -49,7 +52,7 @@ export const Route = createFileRoute("/_layout/admin")({
   head: () => ({
     meta: [
       {
-        title: "Admin - Kukurin Mafia",
+        title: i18n.getFixedT(null, "admin")("route.metaTitle"),
       },
     ],
   }),
@@ -69,7 +72,7 @@ function UsersTableContent() {
 
 function UsersTable() {
   return (
-    <Suspense fallback={<PendingUsers />}>
+    <Suspense fallback={<PendingTable />}>
       <UsersTableContent />
     </Suspense>
   )
@@ -87,35 +90,42 @@ function MedicationsTableContent() {
 }
 
 function MedicationsTable() {
+  const t = i18n.getFixedT(null, "admin")
   return (
-    <Suspense fallback={<PendingUsers />}>
+    <Suspense
+      fallback={
+        <PendingTable
+          headers={[
+            t("medicationColumns.name"),
+            t("medicationColumns.dosage"),
+            t("medicationColumns.form"),
+            t("medicationColumns.instructions"),
+          ]}
+        />
+      }
+    >
       <MedicationsTableContent />
     </Suspense>
   )
 }
 
 function Admin() {
+  const { t } = useTranslation("admin")
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">
-            Manage user accounts and permissions
-          </p>
-        </div>
-        <AddUser />
-      </div>
+      <PageHeader
+        title={t("adminPage.usersTitle")}
+        description={t("adminPage.usersDescription")}
+        actions={<AddUser />}
+      />
       <UsersTable />
-      <div className="mt-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Medications</h1>
-          <p className="text-muted-foreground">
-            Global drug catalog available to all caregivers in routines
-          </p>
-        </div>
-        <AddMedication />
-      </div>
+      <PageHeader
+        title={t("adminPage.medicationsTitle")}
+        description={t("adminPage.medicationsDescription")}
+        actions={<AddMedication />}
+        className="mt-6"
+      />
       <MedicationsTable />
     </div>
   )

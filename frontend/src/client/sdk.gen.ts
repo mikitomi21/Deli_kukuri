@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsCreateMedicationData, medicationsCreateMedicationErrors, medicationsCreateMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -368,26 +368,103 @@ export class MedicationsService {
     /**
      * Read Medications
      *
-     * Retrieve the global medication catalog.
+     * Search the shared medication catalog; `q` filters by name (ILIKE).
      */
     public static readMedications<ThrowOnError extends boolean = true>(options?: Options<medicationsReadMedicationsData, ThrowOnError>) {
         return (options?.client ?? client).get<medicationsReadMedicationsResponses, medicationsReadMedicationsErrors, ThrowOnError>({
             responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/medications/',
             ...options
         });
     }
     
     /**
-     * Create Medication
+     * Read Medication
      *
-     * Create a new medication in the catalog (superuser only).
+     * Get medication by ID.
      */
-    public static createMedication<ThrowOnError extends boolean = true>(options: Options<medicationsCreateMedicationData, ThrowOnError>) {
-        return (options.client ?? client).post<medicationsCreateMedicationResponses, medicationsCreateMedicationErrors, ThrowOnError>({
+    public static readMedication<ThrowOnError extends boolean = true>(options: Options<medicationsReadMedicationData, ThrowOnError>) {
+        return (options.client ?? client).get<medicationsReadMedicationResponses, medicationsReadMedicationErrors, ThrowOnError>({
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
-            url: '/api/v1/medications/',
+            url: '/api/v1/medications/{id}',
+            ...options
+        });
+    }
+}
+
+export class WardsService {
+    /**
+     * Read Wards
+     *
+     * Retrieve wards of the current caregiver.
+     */
+    public static readWards<ThrowOnError extends boolean = true>(options?: Options<wardsReadWardsData, ThrowOnError>) {
+        return (options?.client ?? client).get<wardsReadWardsResponses, wardsReadWardsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Ward
+     *
+     * Create new ward (podopieczny) owned by the current caregiver.
+     */
+    public static createWard<ThrowOnError extends boolean = true>(options: Options<wardsCreateWardData, ThrowOnError>) {
+        return (options.client ?? client).post<wardsCreateWardResponses, wardsCreateWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Delete Ward
+     *
+     * Deactivate a ward (soft delete): inactive wards are skipped by the materializer.
+     */
+    public static deleteWard<ThrowOnError extends boolean = true>(options: Options<wardsDeleteWardData, ThrowOnError>) {
+        return (options.client ?? client).delete<wardsDeleteWardResponses, wardsDeleteWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Ward
+     *
+     * Get ward by ID.
+     */
+    public static readWard<ThrowOnError extends boolean = true>(options: Options<wardsReadWardData, ThrowOnError>) {
+        return (options.client ?? client).get<wardsReadWardResponses, wardsReadWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Ward
+     *
+     * Update a ward.
+     */
+    public static updateWard<ThrowOnError extends boolean = true>(options: Options<wardsUpdateWardData, ThrowOnError>) {
+        return (options.client ?? client).patch<wardsUpdateWardResponses, wardsUpdateWardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/wards/{id}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

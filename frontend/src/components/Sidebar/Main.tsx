@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react"
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -18,9 +19,11 @@ export type Item = {
 
 interface MainProps {
   items: Item[]
+  /** Optional uppercase group label shown above the items. */
+  label?: string
 }
 
-export function Main({ items }: MainProps) {
+export function Main({ items, label }: MainProps) {
   const { isMobile, setOpenMobile } = useSidebar()
   const router = useRouterState()
   const currentPath = router.location.pathname
@@ -33,6 +36,11 @@ export function Main({ items }: MainProps) {
 
   return (
     <SidebarGroup>
+      {label && (
+        <SidebarGroupLabel className="text-sidebar-foreground/50 tracking-wider uppercase">
+          {label}
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {

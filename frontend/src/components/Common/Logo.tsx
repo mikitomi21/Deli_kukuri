@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router"
+import { Sprout } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 
@@ -13,16 +15,15 @@ export function Logo({
   className,
   asLink = true,
 }: LogoProps) {
+  const { t } = useTranslation("common")
   const content = (
     <span className={cn("flex items-center gap-2 font-extrabold", className)}>
       {variant !== "full" && (
-        <span aria-hidden className="text-xl">
-          🌽
-        </span>
+        <Sprout aria-hidden="true" className="size-5 shrink-0" />
       )}
       {variant !== "icon" && (
-        <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-lime-500 bg-clip-text text-transparent group-data-[collapsible=icon]:hidden">
-          Kukurin Mafia
+        <span className="text-primary group-data-[collapsible=icon]:hidden">
+          {t("logo.brand")}
         </span>
       )}
     </span>

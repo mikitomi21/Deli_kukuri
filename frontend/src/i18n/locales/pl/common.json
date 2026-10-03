@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "dashboard": "Pulpit",
+    "admin": "Administrator",
+    "menu": "Menu"
+  },
+  "appearance": {
+    "label": "Wygląd",
+    "toggleTheme": "Przełącz motyw",
+    "light": "Jasny",
+    "dark": "Ciemny",
+    "system": "Systemowy"
+  },
+  "language": {
+    "label": "Język"
+  },
+  "actions": {
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "delete": "Usuń",
+    "edit": "Edytuj"
+  },
+  "userMenu": {
+    "settings": "Ustawienia użytkownika",
+    "logOut": "Wyloguj się",
+    "fallbackInitials": "Użytkownik"
+  },
+  "dataTable": {
+    "noResults": "Brak wyników.",
+    "showing": "Wyświetlanie",
+    "to": "do",
+    "of": "z",
+    "entries": "wpisów",
+    "rowsPerPage": "Wierszy na stronie",
+    "page": "Strona",
+    "firstPage": "Przejdź do pierwszej strony",
+    "previousPage": "Przejdź do poprzedniej strony",
+    "nextPage": "Przejdź do następnej strony",
+    "lastPage": "Przejdź do ostatniej strony"
+  },
+  "logo": {
+    "brand": "DzwoniLek"
+  }
+}

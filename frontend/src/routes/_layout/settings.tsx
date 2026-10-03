@@ -1,29 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router"
-
+import { useTranslation } from "react-i18next"
+import { PageHeader } from "@/components/Common/PageHeader"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
 import DeleteAccount from "@/components/UserSettings/DeleteAccount"
 import UserInformation from "@/components/UserSettings/UserInformation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
-
-const tabsConfig = [
-  { value: "my-profile", title: "My profile", component: UserInformation },
-  { value: "password", title: "Password", component: ChangePassword },
-  { value: "danger-zone", title: "Danger zone", component: DeleteAccount },
-]
+import i18n from "@/i18n"
 
 export const Route = createFileRoute("/_layout/settings")({
   component: UserSettings,
   head: () => ({
     meta: [
       {
-        title: "Settings - FastAPI Template",
+        title: i18n.t("settings:page.metaTitle"),
       },
     ],
   }),
 })
 
 function UserSettings() {
+  const { t } = useTranslation("settings")
   const { user: currentUser } = useAuth()
   const finalTabs = currentUser?.is_superuser
     ? tabsConfig.slice(0, 3)
@@ -35,18 +32,13 @@ function UserSettings() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">User Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
-      </div>
+      <PageHeader title={t("page.title")} description={t("page.subtitle")} />
 
       <Tabs defaultValue="my-profile">
         <TabsList>
           {finalTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.title}
+              {t(`page.tabs.${tab.key}`)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -59,3 +51,21 @@ function UserSettings() {
     </div>
   )
 }
+
+const tabsConfig = [
+  {
+    value: "my-profile",
+    key: "myProfile",
+    component: UserInformation,
+  },
+  {
+    value: "password",
+    key: "password",
+    component: ChangePassword,
+  },
+  {
+    value: "danger-zone",
+    key: "dangerZone",
+    component: DeleteAccount,
+  },
+] as const

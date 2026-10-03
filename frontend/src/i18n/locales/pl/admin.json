@@ -1,0 +1,107 @@
+{
+  "route": {
+    "metaTitle": "Administrator — DzwoniLek"
+  },
+  "adminPage": {
+    "usersTitle": "Użytkownicy",
+    "usersDescription": "Zarządzaj kontami użytkowników i uprawnieniami",
+    "medicationsTitle": "Leki",
+    "medicationsDescription": "Globalny katalog leków dostępny dla wszystkich opiekunów w rutynach"
+  },
+  "addMedication": {
+    "trigger": "O katalogu",
+    "title": "Katalog leków",
+    "description": "Katalog jest globalny, współdzielony i tylko do odczytu w MVP — rutyny odwołują się do leków wyłącznie przez ten katalog. Dane zasilane są skryptem seedującym (34 popularne leki).",
+    "close": "Zamknij"
+  },
+  "addUser": {
+    "trigger": "Dodaj użytkownika",
+    "title": "Dodaj użytkownika",
+    "description": "Wypełnij formularz, aby dodać nowego użytkownika do systemu.",
+    "email": "E-mail",
+    "fullName": "Imię i nazwisko",
+    "fullNamePlaceholder": "Imię i nazwisko",
+    "password": "Ustaw hasło",
+    "passwordPlaceholder": "Hasło",
+    "confirmPassword": "Powtórz hasło",
+    "isSuperuser": "Superuser?",
+    "isActive": "Aktywny?",
+    "toastCreated": "Użytkownik został utworzony",
+    "validation": {
+      "invalidEmail": "Nieprawidłowy adres e-mail",
+      "passwordRequired": "Hasło jest wymagane",
+      "passwordMin": "Hasło musi mieć co najmniej 8 znaków",
+      "confirmPasswordRequired": "Powtórz hasło",
+      "passwordMismatch": "Hasła nie są identyczne"
+    }
+  },
+  "editUser": {
+    "menuItem": "Edytuj użytkownika",
+    "title": "Edytuj użytkownika",
+    "description": "Zaktualizuj dane użytkownika poniżej.",
+    "email": "E-mail",
+    "fullName": "Imię i nazwisko",
+    "fullNamePlaceholder": "Imię i nazwisko",
+    "password": "Ustaw hasło",
+    "passwordPlaceholder": "Hasło",
+    "confirmPassword": "Powtórz hasło",
+    "isSuperuser": "Superuser?",
+    "isActive": "Aktywny?",
+    "toastUpdated": "Dane użytkownika zostały zaktualizowane",
+    "validation": {
+      "invalidEmail": "Nieprawidłowy adres e-mail",
+      "passwordMin": "Hasło musi mieć co najmniej 8 znaków",
+      "passwordMismatch": "Hasła nie są identyczne"
+    }
+  },
+  "deleteUser": {
+    "menuItem": "Usuń użytkownika",
+    "title": "Usuń użytkownika",
+    "description": "Wszystkie elementy powiązane z tym użytkownikiem zostaną również <0>trwale usunięte.</0> Czy na pewno? Tej operacji nie można cofnąć.",
+    "cancel": "Anuluj",
+    "confirm": "Usuń",
+    "toastDeleted": "Użytkownik został usunięty"
+  },
+  "userActionsMenu": {
+    "openMenu": "Otwórz menu akcji użytkownika"
+  },
+  "columns": {
+    "fullName": "Imię i nazwisko",
+    "fullNameFallback": "Brak danych",
+    "you": "Ty",
+    "email": "E-mail",
+    "role": "Rola",
+    "roleSuperuser": "Superuser",
+    "roleUser": "Użytkownik",
+    "status": "Status",
+    "statusActive": "Aktywny",
+    "statusInactive": "Nieaktywny",
+    "actions": "Akcje"
+  },
+  "medicationColumns": {
+    "name": "Nazwa",
+    "dosage": "Dawka",
+    "form": "Postać",
+    "instructions": "Instrukcja"
+  },
+  "dashboard": {
+    "metaTitle": "DzwoniLek — Dzisiaj",
+    "summaryAllGood": "Wszystko OK",
+    "summaryNeedsAttention": "Wymaga uwagi",
+    "loadingWards": "Ładowanie podopiecznych",
+    "loadFailedTitle": "Nie udało się pobrać danych",
+    "emptyTitle": "Nie masz jeszcze podopiecznych",
+    "emptyDescription": "Dodaj pierwszego podopiecznego, aby DzwoniLek mógł dzwonić i przypominać o lekach.",
+    "addWard": "Dodaj podopiecznego",
+    "todayTitle": "Dzisiaj",
+    "todaySubtitle": "Rutyny i wyniki połączeń Twoich podopiecznych",
+    "statWards": "Podopieczni",
+    "statTakenToday": "Przyjęte dzisiaj",
+    "statRemainingToday": "Pozostało dziś",
+    "statNeedsAttention": "Wymagają uwagi",
+    "demoDataBadge": "Dane demonstracyjne",
+    "routinesPending": "Rutyny i statystyki pojawią się po wdrożeniu endpointów backendu.",
+    "noRoutines": "Brak rutyn —",
+    "addFirstRoutine": "dodaj pierwszą rutynę"
+  }
+}

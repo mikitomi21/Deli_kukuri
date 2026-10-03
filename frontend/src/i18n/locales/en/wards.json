@@ -1,0 +1,163 @@
+{
+  "addRoutine": {
+    "successToast": "Routine saved as a draft — approve it to schedule calls"
+  },
+  "addWard": {
+    "title": "Add ward",
+    "description": "Enter the full name and phone number — DzwoniLek will call this number at routine times.",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "e.g. Halina Kowalska",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "e.g. 600 100 200",
+    "phoneHint": "The number will be stored in +48… (E.164) format",
+    "submit": "Add",
+    "successToast": "Ward has been added",
+    "validation": {
+      "fullNameRequired": "Full name is required",
+      "fullNameMaxLength": "Maximum of 100 characters",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Invalid number — e.g. 600 100 200 or +48600100200"
+    }
+  },
+  "medicationPicker": {
+    "selectedAria": "Selected medications",
+    "amountPlaceholder": "Amount, e.g. 1 tablet",
+    "amountFor": "Amount for {{name}}",
+    "removeFor": "Remove {{name}} from routine",
+    "searchPlaceholder": "Search the medication catalog, e.g. warf…",
+    "searchAria": "Search the medication catalog",
+    "loadingAria": "Loading medication catalog",
+    "emptyCatalog": "Medication not found in the database — the catalog is read-only in the MVP."
+  },
+  "routineActions": {
+    "actionsFor": "Actions for routine {{name}}",
+    "edit": "Edit",
+    "approve": "Approve",
+    "resume": "Resume",
+    "pause": "Pause",
+    "delete": "Delete",
+    "deleteTitle": "Delete routine?",
+    "deleteDescription": "Routine “{{name}}” will be permanently deleted. Only draft routines can be deleted.",
+    "cancel": "Cancel",
+    "deleteConfirm": "Delete routine",
+    "approvedToast": "Routine approved — call has been scheduled",
+    "resumedToast": "Routine resumed",
+    "pausedToast": "Routine paused",
+    "removedToast": "Routine deleted",
+    "savedToast": "Routine saved as a draft — it needs to be approved again"
+  },
+  "routineDialog": {
+    "editTitle": "Edit routine",
+    "addTitle": "Add routine",
+    "editDescription": "Changes are saved as a draft — the routine must be approved again.",
+    "addDescription": "Step by step: time and name, medications, review and save.",
+    "steps": {
+      "basics": "Basics",
+      "medications": "Medications",
+      "summary": "Review"
+    },
+    "progressLabel": "Routine creation progress",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Morning medications",
+    "timeLabel": "Time",
+    "timeHint": "DzwoniLek will call the ward at this time.",
+    "pickMeds": "Pick medications from the catalog and enter the amount",
+    "reviewName": "Name",
+    "reviewTime": "Time",
+    "reviewMeds": "Medications",
+    "dependsLabel": "Requires earlier routines (optional)",
+    "back": "Back",
+    "next": "Next",
+    "saveChanges": "Save changes",
+    "addSubmit": "Add routine",
+    "errors": {
+      "nameRequired": "Routine name is required",
+      "nameMaxLength": "Maximum of 100 characters",
+      "timeFormat": "Enter the time in HH:MM format",
+      "noMedications": "Add at least one medication to the routine",
+      "amountRequired": "Enter the amount for each medication"
+    }
+  },
+  "routineStatus": {
+    "draft": "Draft",
+    "approved": "Approved",
+    "paused": "Paused"
+  },
+  "outcome": {
+    "took": "Taken",
+    "not_taken": "Not taken",
+    "unclear": "Unclear answer",
+    "no_answer": "No answer",
+    "pending": "Scheduled"
+  },
+  "wardDeactivate": {
+    "title": "Deactivate ward?",
+    "description": "{{name}} will disappear from the dashboard and the system will no longer call them. Call history is preserved.",
+    "cancel": "Cancel",
+    "confirm": "Deactivate",
+    "successToast": "Ward has been deactivated"
+  },
+  "wardEdit": {
+    "title": "Edit ward",
+    "description": "Changing the number applies to new calls — history remains unchanged.",
+    "fullNameLabel": "Full name",
+    "phoneLabel": "Phone",
+    "phoneHint": "The number will be stored in +48… (E.164) format",
+    "tzLabel": "Time zone",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "successToast": "Ward details have been updated"
+  },
+  "wardDetail": {
+    "pageTitle": "DzwoniLek — Ward",
+    "backToList": "Back to list",
+    "loading": "Loading ward",
+    "loadErrorTitle": "Failed to load ward details",
+    "notFound": "Ward not found",
+    "todayBadge": "Today {{took}}/{{total}}",
+    "weekBadge": "Last 7 days: {{pct}}%",
+    "callNow": "Call now",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "testCallResult": "Test call finished: {{outcome}}",
+    "noOutcome": "no result",
+    "loadingRoutines": "Loading routines",
+    "loadingCalls": "Loading calls",
+    "tabRoutines": "Routines",
+    "tabCalls": "Calls",
+    "upcomingTitle": "Upcoming calls",
+    "upcomingDescription": "Scheduled based on approved routines",
+    "attemptNo": "Attempt {{number}}",
+    "scheduledBadge": "Scheduled",
+    "routinesTitle": "Routines",
+    "routinesDescription": "Approved routines are scheduled for calls",
+    "addRoutine": "Add routine",
+    "routinesEmpty": "This ward has no routines yet. Add the first routine so DzwoniLek can start calling.",
+    "callsEmpty": "No calls yet — history will appear after the first phone call.",
+    "callsTitle": "Call history",
+    "callsDescription": "Click a call to see the transcript",
+    "attemptLower": "attempt {{number}}",
+    "durationSec": "{{number}} s"
+  },
+  "callDetail": {
+    "pageTitle": "DzwoniLek — Call",
+    "backToWard": "Back to ward",
+    "loading": "Loading call",
+    "errorTitle": "Failed to load call",
+    "notFound": "Call not found",
+    "noConversation": "no conversation",
+    "durationSec": "{{number}} s",
+    "attemptNo": "Attempt {{number}}",
+    "turnsTitle": "Conversation flow",
+    "turnsDescription": "Each turn: system question and recognized answer",
+    "systemLabel": "System:",
+    "wardLabel": "Ward:",
+    "turnNo": "Turn {{number}}",
+    "confidence": "recognition confidence: {{pct}}%",
+    "interpreted": "interpreted: {{value}}",
+    "parsedYes": "yes",
+    "parsedNo": "no",
+    "parsedUnclear": "unclear",
+    "transcriptTitle": "Full transcript"
+  }
+}

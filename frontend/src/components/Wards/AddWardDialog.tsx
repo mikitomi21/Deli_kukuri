@@ -1,11 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
-import { type ItemCreate, ItemsService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,6 +19,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,76 +28,98 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
+import { addWard } from "@/hooks/useWards"
+import { isValidE164, normalizePhoneToE164 } from "@/lib/phone"
 import { handleError } from "@/utils"
 
-const formSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
-  description: z.string().optional(),
-})
+const DEFAULT_TZ = "Europe/Warsaw"
 
-type FormData = z.infer<typeof formSchema>
+type FormData = {
+  full_name: string
+  phone: string
+}
 
-const AddItem = () => {
+interface AddWardDialogProps {
+  children: React.ReactNode
+}
+
+/** Add-ward form — payload matches POST /wards (docs/05). */
+export function AddWardDialog({ children }: AddWardDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
+  const { t } = useTranslation("wards")
   const { showSuccessToast, showErrorToast } = useCustomToast()
+
+  // Validation messages come from the wards namespace, so the schema is
+  // built per language inside the component.
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        full_name: z
+          .string()
+          .min(1, { message: t("addWard.validation.fullNameRequired") })
+          .max(100, { message: t("addWard.validation.fullNameMaxLength") }),
+        phone: z
+          .string()
+          .min(1, { message: t("addWard.validation.phoneRequired") })
+          .refine((value) => isValidE164(normalizePhoneToE164(value)), {
+            message: t("addWard.validation.phoneInvalid"),
+          }),
+      }),
+    [t],
+  )
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      title: "",
-      description: "",
+      full_name: "",
+      phone: "",
     },
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemCreate) => ItemsService.createItem({ body: data }),
+    mutationFn: (data: FormData) =>
+      addWard({
+        full_name: data.full_name,
+        phone_e164: normalizePhoneToE164(data.phone),
+        tz: DEFAULT_TZ,
+      }),
     onSuccess: () => {
-      showSuccessToast("Item created successfully")
+      showSuccessToast(t("addWard.successToast"))
       form.reset()
       setIsOpen(false)
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] })
+      queryClient.invalidateQueries({ queryKey: ["wards"] })
     },
   })
 
-  const onSubmit = (data: FormData) => {
-    mutation.mutate(data)
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="my-4">
-          <Plus className="mr-2" />
-          Add Item
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Item</DialogTitle>
-          <DialogDescription>
-            Fill in the details to add a new item.
-          </DialogDescription>
+          <DialogTitle>{t("addWard.title")}</DialogTitle>
+          <DialogDescription>{t("addWard.description")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
-                name="title"
+                name="full_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Title <span className="text-destructive">*</span>
+                      {t("addWard.fullNameLabel")}{" "}
+                      <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Title"
+                        placeholder={t("addWard.fullNamePlaceholder")}
                         type="text"
                         {...field}
                         required
@@ -110,13 +132,23 @@ const AddItem = () => {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>
+                      {t("addWard.phoneLabel")}{" "}
+                      <span className="text-destructive">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Description" type="text" {...field} />
+                      <Input
+                        placeholder={t("addWard.phonePlaceholder")}
+                        type="tel"
+                        autoComplete="tel"
+                        {...field}
+                        required
+                      />
                     </FormControl>
+                    <FormDescription>{t("addWard.phoneHint")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -126,11 +158,11 @@ const AddItem = () => {
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" disabled={mutation.isPending}>
-                  Cancel
+                  {t("wardEdit.cancel")}
                 </Button>
               </DialogClose>
               <LoadingButton type="submit" loading={mutation.isPending}>
-                Save
+                {t("addWard.submit")}
               </LoadingButton>
             </DialogFooter>
           </form>
@@ -139,5 +171,3 @@ const AddItem = () => {
     </Dialog>
   )
 }
-
-export default AddItem

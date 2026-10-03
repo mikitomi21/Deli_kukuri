@@ -1,0 +1,107 @@
+{
+  "route": {
+    "metaTitle": "Admin — DzwoniLek"
+  },
+  "adminPage": {
+    "usersTitle": "Users",
+    "usersDescription": "Manage user accounts and permissions",
+    "medicationsTitle": "Medications",
+    "medicationsDescription": "Global drug catalog available to all caregivers in routines"
+  },
+  "addMedication": {
+    "trigger": "About the catalog",
+    "title": "Medication catalog",
+    "description": "The catalog is global, shared, and read-only in the MVP — routines reference medications exclusively through this catalog. The data is seeded by a seed script (34 popular medications).",
+    "close": "Close"
+  },
+  "addUser": {
+    "trigger": "Add User",
+    "title": "Add User",
+    "description": "Fill in the form below to add a new user to the system.",
+    "email": "Email",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Full name",
+    "password": "Set Password",
+    "passwordPlaceholder": "Password",
+    "confirmPassword": "Confirm Password",
+    "isSuperuser": "Is superuser?",
+    "isActive": "Is active?",
+    "toastCreated": "User created successfully",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordMismatch": "The passwords don't match"
+    }
+  },
+  "editUser": {
+    "menuItem": "Edit User",
+    "title": "Edit User",
+    "description": "Update the user details below.",
+    "email": "Email",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Full name",
+    "password": "Set Password",
+    "passwordPlaceholder": "Password",
+    "confirmPassword": "Confirm Password",
+    "isSuperuser": "Is superuser?",
+    "isActive": "Is active?",
+    "toastUpdated": "User updated successfully",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMismatch": "The passwords don't match"
+    }
+  },
+  "deleteUser": {
+    "menuItem": "Delete User",
+    "title": "Delete User",
+    "description": "All items associated with this user will also be <0>permanently deleted.</0> Are you sure? This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete",
+    "toastDeleted": "The user was deleted successfully"
+  },
+  "userActionsMenu": {
+    "openMenu": "Open user actions menu"
+  },
+  "columns": {
+    "fullName": "Full Name",
+    "fullNameFallback": "N/A",
+    "you": "You",
+    "email": "Email",
+    "role": "Role",
+    "roleSuperuser": "Superuser",
+    "roleUser": "User",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "actions": "Actions"
+  },
+  "medicationColumns": {
+    "name": "Name",
+    "dosage": "Dosage",
+    "form": "Form",
+    "instructions": "Instructions"
+  },
+  "dashboard": {
+    "metaTitle": "DzwoniLek — Today",
+    "summaryAllGood": "All good",
+    "summaryNeedsAttention": "Needs attention",
+    "loadingWards": "Loading wards",
+    "loadFailedTitle": "Failed to load data",
+    "emptyTitle": "You have no wards yet",
+    "emptyDescription": "Add your first ward so DzwoniLek can call and remind them about their medications.",
+    "addWard": "Add ward",
+    "todayTitle": "Today",
+    "todaySubtitle": "Routines and call results for your wards",
+    "statWards": "Wards",
+    "statTakenToday": "Taken today",
+    "statRemainingToday": "Remaining today",
+    "statNeedsAttention": "Needs attention",
+    "demoDataBadge": "Demo data",
+    "routinesPending": "Routines and statistics will appear once the backend endpoints are implemented.",
+    "noRoutines": "No routines — ",
+    "addFirstRoutine": "add your first routine"
+  }
+}

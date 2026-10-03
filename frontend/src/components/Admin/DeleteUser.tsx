@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { Trans, useTranslation } from "react-i18next"
 
 import { UsersService } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const { handleSubmit } = useForm()
+  const { t } = useTranslation("admin")
 
   const deleteUser = async (id: string) => {
     await UsersService.deleteUser({ path: { user_id: id } })
@@ -37,7 +39,7 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
   const mutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      showSuccessToast("The user was deleted successfully")
+      showSuccessToast(t("deleteUser.toastDeleted"))
       setIsOpen(false)
       onSuccess()
     },
@@ -58,24 +60,26 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
         onSelect={(e) => e.preventDefault()}
         onClick={() => setIsOpen(true)}
       >
-        <Trash2 />
-        Delete User
+        <Trash2 aria-hidden />
+        {t("deleteUser.menuItem")}
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>{t("deleteUser.title")}</DialogTitle>
             <DialogDescription>
-              All items associated with this user will also be{" "}
-              <strong>permanently deleted.</strong> Are you sure? You will not
-              be able to undo this action.
+              <Trans
+                t={t}
+                i18nKey="deleteUser.description"
+                components={[<strong key="strong" />]}
+              />
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
+                {t("deleteUser.cancel")}
               </Button>
             </DialogClose>
             <LoadingButton
@@ -83,7 +87,7 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
               type="submit"
               loading={mutation.isPending}
             >
-              Delete
+              {t("deleteUser.confirm")}
             </LoadingButton>
           </DialogFooter>
         </form>
