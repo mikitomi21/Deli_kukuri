@@ -159,6 +159,12 @@
       "canceled": "Call canceled"
     },
     "tabMedications": "Medications",
+    "tabHistory": "History (7 days)",
+    "historyTitle": "Medication intake — last 7 days",
+    "historyDescription": "Call outcome for each routine on each day. Hover for details.",
+    "historyToday": "Today",
+    "historyNoCall": "No call",
+    "historyNoRoutines": "No approved routines — history will appear once you approve the first routine.",
     "medicationsTitle": "Ward's Medications",
     "medicationsDescription": "All medications prescribed across scheduled routines for this ward",
     "medicationsEmpty": "This ward does not have any medications assigned to routines yet. Add a routine with medications to see them here.",

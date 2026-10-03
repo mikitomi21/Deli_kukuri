@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AddRoutineDialog } from "@/components/Wards/AddRoutineDialog"
 import { RoutineActionsMenu } from "@/components/Wards/RoutineActionsMenu"
+import { RoutineHistoryCalendar } from "@/components/Wards/RoutineHistoryCalendar"
 import {
   RoutineStatusBadge,
   TodayOutcomeBadge,
@@ -217,6 +218,7 @@ function WardDetail() {
 
       <WardTabs
         wardId={wardId}
+        tz={ward.tz}
         addRoutineOpen={Boolean(addRoutine)}
         onAddRoutineOpenChange={(open) =>
           navigate({
@@ -239,10 +241,12 @@ function WardDetail() {
 
 function WardTabs({
   wardId,
+  tz,
   addRoutineOpen,
   onAddRoutineOpenChange,
 }: {
   wardId: string
+  tz: string
   addRoutineOpen: boolean
   onAddRoutineOpenChange: (open: boolean) => void
 }) {
@@ -256,6 +260,7 @@ function WardTabs({
         <TabsTrigger value="medications">
           {t("wardDetail.tabMedications")}
         </TabsTrigger>
+        <TabsTrigger value="history">{t("wardDetail.tabHistory")}</TabsTrigger>
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
@@ -267,6 +272,9 @@ function WardTabs({
       </TabsContent>
       <TabsContent value="medications" className="mt-4">
         <WardMedicationsSection wardId={wardId} />
+      </TabsContent>
+      <TabsContent value="history" className="mt-4">
+        <RoutineHistoryCalendar wardId={wardId} tz={tz} />
       </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />

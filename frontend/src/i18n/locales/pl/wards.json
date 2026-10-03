@@ -159,6 +159,12 @@
       "canceled": "Połączenie anulowane"
     },
     "tabMedications": "Leki",
+    "tabHistory": "Historia (7 dni)",
+    "historyTitle": "Przyjmowanie leków — ostatnie 7 dni",
+    "historyDescription": "Wynik rozmowy dla każdej rutyny w każdym dniu. Najedź kursorem, aby zobaczyć szczegóły.",
+    "historyToday": "Dziś",
+    "historyNoCall": "Brak połączenia",
+    "historyNoRoutines": "Brak zatwierdzonych rutyn — historia pojawi się, gdy zatwierdzisz pierwszą rutynę.",
     "medicationsTitle": "Leki podopiecznego",
     "medicationsDescription": "Wszystkie leki przyjmowane w ramach zaplanowanych rutyn podopiecznego",
     "medicationsEmpty": "Ten podopieczny nie ma jeszcze leków w swoich rutynach. Dodaj lek do rutyny, aby pojawił się w tym zestawieniu.",
