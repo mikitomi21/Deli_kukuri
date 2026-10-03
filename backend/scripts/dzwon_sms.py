@@ -244,20 +244,67 @@ def send_sms(env, to_number, body):
         raise RuntimeError(f"Twilio SMS -> {e.code}: {e.read().decode()[:300]}") from None
 
 
-def notify_voice(env, to_number, text):
-    """Powiadomienie głosowe: połączenie odczytujące komunikat (TTS).
-    Fallback dla SMS-a, gdy konto nie może wysyłać własnych treści SMS."""
-    account = env["TWILIO_ACCOUNT_SID"]
-    twiml = (
+def put_notification_twiml(env, text):
+    """Odświeża i weryfikuje endpoint webhook.site z komunikatem TTS
+    (osobny endpoint, klucz TWILIO_NOTIFY_ENDPOINT w .env) i zwraca jego URL
+    z cache-busterem. Fallback głosowy musi używać Url=, bo konto trial
+    odrzuca parametr Twiml= przy tworzeniu połączenia."""
+    nonce = f"{int(time.time() * 1000)}-{os.getpid()}"
+    uuid = env.get("TWILIO_NOTIFY_ENDPOINT", "").strip()
+    if not uuid:
+        token = http_json("POST", "https://webhook.site/token", {
+            "default_status": 200, "default_content_type": "text/xml", "default_content": "",
+        })
+        uuid = token["uuid"]
+        save_env_key("TWILIO_NOTIFY_ENDPOINT", uuid)
+        env["TWILIO_NOTIFY_ENDPOINT"] = uuid
+        print(f"  nowy endpoint webhook.site: https://webhook.site/{uuid}")
+    content = (
         '<?xml version="1.0" encoding="UTF-8"?><Response>'
-        f'<Say language="pl-PL" voice="Polly.Ewa">{xml_escape(text)}</Say>'
+        f'<Say language="pl-PL">{xml_escape(text)}</Say>'
         "</Response>"
     )
-    return twilio_api(env, "POST", f"https://api.twilio.com/2010-04-01/Accounts/{account}/Calls.json", {
+    for attempt in (1, 2, 3):
+        http_json("PUT", f"https://webhook.site/token/{uuid}", {
+            "default_status": 200, "default_content_type": "text/xml",
+            "default_content": content,
+        })
+        saved = http_json("GET", f"https://webhook.site/token/{uuid}").get("default_content", "")
+        if saved == content:
+            break
+        print(f"  endpoint powiadomienia: treść nie zapisana (próba {attempt}/3), ponawiam...")
+        time.sleep(2)
+    else:
+        raise RuntimeError(f"endpoint powiadomienia ({uuid}): nie udało się zapisać TwiML")
+    return f"https://webhook.site/{uuid}?cb={nonce}"
+
+
+def notify_voice(env, to_number, text):
+    """Powiadomienie głosowe: połączenie odczytujące komunikat (TTS) z
+    endpointu webhook.site. Numer odbiorcy musi być zweryfikowany na koncie,
+    z którego dzwoni fallback (na trialu: Verified Caller IDs)."""
+    url = put_notification_twiml(env, text)
+    return twilio_api(env, "POST", f"https://api.twilio.com/2010-04-01/Accounts/{env['TWILIO_ACCOUNT_SID']}/Calls.json", {
         "To": to_number,
         "From": env["CALL_FROM"],
-        "Twiml": twiml,
+        "Url": url,
     })
+
+
+SMS_HINTS = {
+    "21266": "'To' i 'From' są identyczne — podaj innego odbiorcę (3. argument) lub zmień SMS_FROM",
+    "21659": "'From' nie jest numerem kupionym w Twilio — kup numer na pełnym koncie i ustaw go w SMS_FROM",
+    "572006": "konto trial wysyła SMS tylko z predefiniowanych szablonów — użyj pełnego konta (SMS_* w .env)",
+    "20003": "konto wymaga zatwierdzonego KYC w Trust Hub (albo nie jest kontem pełnym)",
+    "21215": "numer odbiorcy nie jest zweryfikowany na koncie, z którego dzwoni fallback — dodaj go w Verified Caller IDs albo kup numer na pełnym koncie",
+}
+
+
+def podpowiedz_bledu(error_text):
+    for code, hint in SMS_HINTS.items():
+        if f'"code":{code}' in error_text:
+            print(f"Podpowiedź: {hint}", file=sys.stderr)
+            return
 
 
 def main():
@@ -363,12 +410,14 @@ def main():
         return
     except RuntimeError as e:
         print(f"\nBłąd wysyłki SMS: {e}", file=sys.stderr)
+        podpowiedz_bledu(str(e))
         print("Fallback: powiadomienie głosowe (połączenie odczytujące komunikat)...")
 
     try:
         call = notify_voice(env, sms_to, body)
     except RuntimeError as e:
         print(f"Błąd połączenia głosowego: {e}", file=sys.stderr)
+        podpowiedz_bledu(str(e))
         sys.exit(1)
     print(f"Call SID (powiadomienie): {call['sid']}")
     nstatus = call.get("status", "")
