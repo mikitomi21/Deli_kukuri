@@ -1,7 +1,18 @@
 {
   "nav": {
     "dashboard": "Pulpit",
-    "admin": "Administrator"
+    "admin": "Administrator",
+    "menu": "Menu"
+  },
+  "appearance": {
+    "label": "Wygląd",
+    "toggleTheme": "Przełącz motyw",
+    "light": "Jasny",
+    "dark": "Ciemny",
+    "system": "Systemowy"
+  },
+  "language": {
+    "label": "Język"
   },
   "actions": {
     "cancel": "Anuluj",

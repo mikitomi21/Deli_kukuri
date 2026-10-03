@@ -1,7 +1,18 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "admin": "Admin"
+    "admin": "Admin",
+    "menu": "Menu"
+  },
+  "appearance": {
+    "label": "Appearance",
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language"
   },
   "actions": {
     "cancel": "Cancel",

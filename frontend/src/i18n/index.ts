@@ -22,7 +22,7 @@ const LANG_STORAGE_KEY = "vite-ui-language"
 export function getInitialLanguage(): Language {
   const stored = localStorage.getItem(LANG_STORAGE_KEY)
   if (stored === "pl" || stored === "en") return stored
-  return navigator.language.toLowerCase().startsWith("pl") ? "pl" : "pl"
+  return navigator.language.toLowerCase().startsWith("pl") ? "pl" : "en"
 }
 
 export function setLanguage(lang: Language) {
@@ -52,6 +52,11 @@ i18n.use(initReactI18next).init({
   lng: getInitialLanguage(),
   fallbackLng: "pl",
   interpolation: { escapeValue: false },
+})
+
+// Keep <html lang> in sync so screen readers and spellcheck follow the UI language.
+i18n.on("languageChanged", (lng) => {
+  document.documentElement.lang = lng
 })
 
 export default i18n

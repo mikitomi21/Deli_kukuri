@@ -14,7 +14,8 @@ import AddUser from "@/components/Admin/AddUser"
 import { columns, type UserTableData } from "@/components/Admin/columns"
 import { medicationColumns } from "@/components/Admin/medicationColumns"
 import { DataTable } from "@/components/Common/DataTable"
-import PendingUsers from "@/components/Pending/PendingUsers"
+import { PageHeader } from "@/components/Common/PageHeader"
+import PendingTable from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
 import i18n from "@/i18n"
 
@@ -71,7 +72,7 @@ function UsersTableContent() {
 
 function UsersTable() {
   return (
-    <Suspense fallback={<PendingUsers />}>
+    <Suspense fallback={<PendingTable />}>
       <UsersTableContent />
     </Suspense>
   )
@@ -89,8 +90,20 @@ function MedicationsTableContent() {
 }
 
 function MedicationsTable() {
+  const t = i18n.getFixedT(null, "admin")
   return (
-    <Suspense fallback={<PendingUsers />}>
+    <Suspense
+      fallback={
+        <PendingTable
+          headers={[
+            t("medicationColumns.name"),
+            t("medicationColumns.dosage"),
+            t("medicationColumns.form"),
+            t("medicationColumns.instructions"),
+          ]}
+        />
+      }
+    >
       <MedicationsTableContent />
     </Suspense>
   )
@@ -101,29 +114,18 @@ function Admin() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("adminPage.usersTitle")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("adminPage.usersDescription")}
-          </p>
-        </div>
-        <AddUser />
-      </div>
+      <PageHeader
+        title={t("adminPage.usersTitle")}
+        description={t("adminPage.usersDescription")}
+        actions={<AddUser />}
+      />
       <UsersTable />
-      <div className="mt-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("adminPage.medicationsTitle")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("adminPage.medicationsDescription")}
-          </p>
-        </div>
-        <AddMedication />
-      </div>
+      <PageHeader
+        title={t("adminPage.medicationsTitle")}
+        description={t("adminPage.medicationsDescription")}
+        actions={<AddMedication />}
+        className="mt-6"
+      />
       <MedicationsTable />
     </div>
   )

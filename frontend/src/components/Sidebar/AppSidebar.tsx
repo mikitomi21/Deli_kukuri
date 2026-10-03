@@ -31,11 +31,11 @@ export function AppSidebar() {
         <Logo variant="responsive" />
       </SidebarHeader>
       <SidebarContent>
-        <Main items={items} />
+        <Main items={items} label={t("nav.menu")} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />
-        <User user={currentUser} />
+        <User user={currentUser ?? null} />
       </SidebarFooter>
     </Sidebar>
   )

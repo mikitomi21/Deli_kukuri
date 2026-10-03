@@ -22,7 +22,7 @@ export function Logo({
         <Sprout aria-hidden="true" className="size-5 shrink-0" />
       )}
       {variant !== "icon" && (
-        <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-lime-500 bg-clip-text text-transparent group-data-[collapsible=icon]:hidden">
+        <span className="text-primary group-data-[collapsible=icon]:hidden">
           {t("logo.brand")}
         </span>
       )}

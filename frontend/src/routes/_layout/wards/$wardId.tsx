@@ -12,6 +12,8 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ListRow } from "@/components/Common/ListRow"
+import { PageHeader } from "@/components/Common/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -127,64 +129,63 @@ function WardDetail() {
             {t("wardDetail.backToList")}
           </Link>
         </Button>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {ward.full_name}
-            </h1>
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <PageHeader
+          title={ward.full_name}
+          description={
+            <span className="flex items-center gap-1.5">
               <Phone aria-hidden className="size-3" />
               {ward.phone_e164} · {ward.tz}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {ward.today && (
-                <Badge
-                  variant={
-                    ward.today.took === ward.today.total && ward.today.total > 0
-                      ? "default"
-                      : "destructive"
-                  }
-                >
-                  {t("wardDetail.todayBadge", {
-                    took: ward.today.took,
-                    total: ward.today.total,
-                  })}
-                </Badge>
-              )}
-              {ward.week_pct !== undefined && (
-                <Badge variant="outline">
-                  {t("wardDetail.weekBadge", { pct: ward.week_pct })}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => testCall.mutate()}
-              disabled={testCall.isPending}
+            </span>
+          }
+          actions={
+            <>
+              <Button
+                size="sm"
+                onClick={() => testCall.mutate()}
+                disabled={testCall.isPending}
+              >
+                <PhoneOff aria-hidden className="rotate-135" />
+                {t("wardDetail.callNow")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil aria-hidden />
+                {t("wardDetail.edit")}
+              </Button>
+              <Button
+                variant="outline-destructive"
+                size="sm"
+                onClick={() => setDeactivateOpen(true)}
+              >
+                <UserX aria-hidden />
+                {t("wardDetail.deactivate")}
+              </Button>
+            </>
+          }
+        />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {ward.today && (
+            <Badge
+              variant={
+                ward.today.took === ward.today.total && ward.today.total > 0
+                  ? "default"
+                  : "destructive"
+              }
             >
-              <PhoneOff aria-hidden className="rotate-135" />
-              {t("wardDetail.callNow")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditOpen(true)}
-            >
-              <Pencil aria-hidden />
-              {t("wardDetail.edit")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setDeactivateOpen(true)}
-            >
-              <UserX aria-hidden />
-              {t("wardDetail.deactivate")}
-            </Button>
-          </div>
+              {t("wardDetail.todayBadge", {
+                took: ward.today.took,
+                total: ward.today.total,
+              })}
+            </Badge>
+          )}
+          {ward.week_pct !== undefined && (
+            <Badge variant="outline">
+              {t("wardDetail.weekBadge", { pct: ward.week_pct })}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -267,10 +268,7 @@ function RoutinesSection({ wardId }: { wardId: string }) {
           <CardContent>
             <ul className="space-y-2">
               {upcoming.map((task) => (
-                <li
-                  key={task.id}
-                  className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
-                >
+                <ListRow key={task.id}>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {task.routine_name}
@@ -289,7 +287,7 @@ function RoutinesSection({ wardId }: { wardId: string }) {
                     </span>
                     <Badge variant="outline">{t("outcome.pending")}</Badge>
                   </div>
-                </li>
+                </ListRow>
               ))}
             </ul>
           </CardContent>
@@ -317,16 +315,18 @@ function RoutinesSection({ wardId }: { wardId: string }) {
         </CardHeader>
         <CardContent>
           {routines.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("wardDetail.routinesEmpty")}
-            </p>
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <CalendarClock aria-hidden className="size-5" />
+              </div>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                {t("wardDetail.routinesEmpty")}
+              </p>
+            </div>
           ) : (
             <ul className="space-y-2">
               {routines.map((routine) => (
-                <li
-                  key={routine.id}
-                  className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
-                >
+                <ListRow key={routine.id}>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {routine.name}
@@ -350,7 +350,7 @@ function RoutinesSection({ wardId }: { wardId: string }) {
                     )}
                     <RoutineActionsMenu routine={routine} />
                   </div>
-                </li>
+                </ListRow>
               ))}
             </ul>
           )}
@@ -384,8 +384,11 @@ function CallsSection({ wardId }: { wardId: string }) {
   if (!calls || calls.length === 0) {
     return (
       <Card>
-        <CardContent className="py-10 text-center">
-          <p className="text-sm text-muted-foreground">
+        <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <PhoneOff aria-hidden className="size-5" />
+          </div>
+          <p className="max-w-sm text-sm text-muted-foreground">
             {t("wardDetail.callsEmpty")}
           </p>
         </CardContent>
@@ -408,7 +411,7 @@ function CallsSection({ wardId }: { wardId: string }) {
               <Link
                 to="/wards/$wardId/calls/$callId"
                 params={{ wardId, callId: call.id }}
-                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 hover:bg-accent"
+                className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2.5 hover:bg-accent"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">

@@ -1,7 +1,17 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Phone, Plus } from "lucide-react"
+import {
+  CircleAlert,
+  CircleCheck,
+  Phone,
+  Pill,
+  Plus,
+  Users,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { ListRow } from "@/components/Common/ListRow"
+import { PageHeader } from "@/components/Common/PageHeader"
+import { StatCard } from "@/components/Common/StatCard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -56,6 +66,19 @@ function Dashboard() {
     queryFn: fetchWards,
   })
   const mocksMode = getWardsMode() !== "api"
+
+  const totalToday = (wards ?? []).reduce(
+    (acc, ward) => ({
+      took: acc.took + (ward.today?.took ?? 0),
+      total: acc.total + (ward.today?.total ?? 0),
+    }),
+    { took: 0, total: 0 },
+  )
+  const wardsNeedingAttention = (wards ?? []).filter(
+    (ward) =>
+      ward.today &&
+      (ward.today.took < ward.today.total || ward.today.total === 0),
+  ).length
 
   if (isPending) {
     return (
@@ -115,28 +138,50 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("dashboard.todayTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {t("dashboard.todaySubtitle")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {mocksMode && (
-            <Badge variant="outline" className="text-muted-foreground">
-              {t("dashboard.demoDataBadge")}
-            </Badge>
-          )}
-          <AddWardDialog>
-            <Button variant="outline">
-              <Plus aria-hidden />
-              {t("dashboard.addWard")}
-            </Button>
-          </AddWardDialog>
-        </div>
+      <PageHeader
+        title={t("dashboard.todayTitle")}
+        description={t("dashboard.todaySubtitle")}
+        actions={
+          <>
+            {mocksMode && (
+              <Badge variant="outline" className="text-muted-foreground">
+                {t("dashboard.demoDataBadge")}
+              </Badge>
+            )}
+            <AddWardDialog>
+              <Button variant="outline">
+                <Plus aria-hidden />
+                {t("dashboard.addWard")}
+              </Button>
+            </AddWardDialog>
+          </>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon={Users}
+          label={t("dashboard.statWards")}
+          value={wards.length}
+        />
+        <StatCard
+          icon={CircleCheck}
+          tone="success"
+          label={t("dashboard.statTakenToday")}
+          value={totalToday.took}
+        />
+        <StatCard
+          icon={Pill}
+          tone="muted"
+          label={t("dashboard.statRemainingToday")}
+          value={Math.max(totalToday.total - totalToday.took, 0)}
+        />
+        <StatCard
+          icon={CircleAlert}
+          tone={wardsNeedingAttention > 0 ? "destructive" : "muted"}
+          label={t("dashboard.statNeedsAttention")}
+          value={wardsNeedingAttention}
+        />
       </div>
 
       <ul className="grid gap-4 md:grid-cols-2">
@@ -177,22 +222,20 @@ function Dashboard() {
                   <p className="text-sm text-muted-foreground">
                     {t("dashboard.noRoutines")}{" "}
                     <AddRoutineDialog wardId={ward.id}>
-                      <button
-                        type="button"
-                        className="underline underline-offset-2 hover:text-foreground"
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-sm underline underline-offset-2"
                       >
                         {t("dashboard.addFirstRoutine")}
-                      </button>
+                      </Button>
                     </AddRoutineDialog>
                     .
                   </p>
                 ) : (
                   <ul className="space-y-2">
                     {ward.routines.map((routine) => (
-                      <li
-                        key={routine.id}
-                        className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
-                      >
+                      <ListRow key={routine.id}>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">
                             {routine.name}
@@ -217,7 +260,7 @@ function Dashboard() {
                             <RoutineStatusBadge status={routine.status} />
                           )}
                         </div>
-                      </li>
+                      </ListRow>
                     ))}
                   </ul>
                 )}

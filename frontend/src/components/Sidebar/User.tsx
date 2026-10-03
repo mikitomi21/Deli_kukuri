@@ -1,7 +1,7 @@
 import { Link as RouterLink } from "@tanstack/react-router"
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
 import { useTranslation } from "react-i18next"
-
+import type { UserPublic } from "@/client"
 import { LanguageSelect } from "@/components/Common/LanguageSelect"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -22,8 +22,8 @@ import useAuth from "@/hooks/useAuth"
 import { getInitials } from "@/utils"
 
 interface UserInfoProps {
-  fullName?: string
-  email?: string
+  fullName?: string | null
+  email?: string | null
 }
 
 function UserInfo({ fullName, email }: UserInfoProps) {
@@ -32,7 +32,7 @@ function UserInfo({ fullName, email }: UserInfoProps) {
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">
-        <AvatarFallback className="bg-zinc-600 text-white">
+        <AvatarFallback className="bg-primary/15 text-primary">
           {getInitials(fullName || t("userMenu.fallbackInitials"))}
         </AvatarFallback>
       </Avatar>
@@ -44,7 +44,7 @@ function UserInfo({ fullName, email }: UserInfoProps) {
   )
 }
 
-export function User({ user }: { user: any }) {
+export function User({ user }: { user: UserPublic | null }) {
   const { t } = useTranslation("common")
   const { logout } = useAuth()
   const { isMobile, setOpenMobile } = useSidebar()

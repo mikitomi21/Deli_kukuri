@@ -15,7 +15,7 @@ const LANGUAGE_LABELS: Record<(typeof SUPPORTED_LANGUAGES)[number], string> = {
 }
 
 export function LanguageSelect() {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const current = i18n.language.startsWith("en") ? "en" : "pl"
 
   return (
@@ -24,7 +24,7 @@ export function LanguageSelect() {
       onValueChange={(value) => setLanguage(value as "pl" | "en")}
     >
       <SelectTrigger
-        aria-label="Language / Język"
+        aria-label={t("language.label")}
         className="h-8 w-[110px] text-sm"
       >
         <span className="flex items-center gap-1.5">
