@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, func, select
 
 from app.core.config import settings
 from tests.utils.routine import (
@@ -527,12 +527,14 @@ def test_delete_approved_routine_cascades_call_tasks(
     db.add(task)
     db.commit()
     db.refresh(task)
+    task_id = task.id
     response = client.delete(f"{API}/routines/{routine['id']}", headers=headers)
     assert response.status_code == 200
-    # the API session performed a bulk SQL delete; refresh this session's
-    # identity map before checking the cascade
+    # the API session performed the delete (and the FK cascade) in its own
+    # session; compare by the captured id because this session's instance
+    # is expired and its row is gone
     db.expire_all()
     remaining = db.exec(
-        select(func.count()).select_from(CallTask).where(CallTask.id == task.id)
+        select(func.count()).select_from(CallTask).where(CallTask.id == task_id)
     ).one()
     assert remaining == 0
