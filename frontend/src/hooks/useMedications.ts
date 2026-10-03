@@ -15,6 +15,9 @@ export type CatalogMedication = Pick<
 > & {
   form?: string | null
   instructions?: string | null
+  generic_name?: string | null
+  fda_raw?: string | null
+  ai_summary?: string | null
 }
 
 export async function fetchMedications(
@@ -27,6 +30,30 @@ export async function fetchMedications(
     return data.data
   }
   return mockMedications
+}
+
+export async function fetchMedicationById(
+  id: string,
+): Promise<CatalogMedication | null> {
+  if (getWardsMode() === "api") {
+    try {
+      const { data } = await MedicationsService.readMedication({
+        path: { id },
+      })
+      return data
+    } catch {
+      return null
+    }
+  }
+  const found = mockMedications.find((m) => m.id === id)
+  return found ?? null
+}
+
+export function medicationDetailQueryOptions(id: string) {
+  return {
+    queryKey: ["medications", "detail", id],
+    queryFn: () => fetchMedicationById(id),
+  }
 }
 
 export function medicationsQueryOptions(query: string) {

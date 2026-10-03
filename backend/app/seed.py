@@ -30,6 +30,11 @@ def seed_medications(session: Session) -> int:
             )
         ).first()
         if exists:
+            if not exists.generic_name and "generic_name" in medicine:
+                exists.generic_name = medicine.get("generic_name")
+                exists.fda_raw = medicine.get("fda_raw")
+                exists.ai_summary = medicine.get("ai_summary")
+                session.add(exists)
             continue
         session.add(Medication(**medicine))
         added += 1

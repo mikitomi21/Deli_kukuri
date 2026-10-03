@@ -3,204 +3,306 @@
     "name": "Aspirin",
     "dosage": "500 mg",
     "form": "tabletki powlekane",
-    "instructions": "po posiłku, popić dużą ilością wody"
+    "instructions": "po posiłku, popić dużą ilością wody",
+    "generic_name": "Aspirin",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwpłytkowy (kwas acetylosalicylowy) zapobiegający powstawaniu zakrzepów, zawałom serca i udarom.\", \"how_to_take\": \"Zawsze po posiłku, popić całą szklanką wody. Tabletki dojelitowe połykać w całości, bez rozgryzania.\", \"when_to_take\": \"Najlepiej rano lub w południe po posiłku.\", \"warnings\": \"Nie przyjmować na pusty żołądek. Unikać łączenia z alkoholem oraz innymi lekami przeciwbólowymi NLPZ (np. ibuprofen, ketonal) ze względu na ryzyko krwawień z przewodu pokarmowego.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Aspirin\", \"dosage_and_administration\": [\"po posiłku, popić dużą ilością wody\"]}"
   },
   {
     "name": "Acard",
     "dosage": "75 mg",
     "form": "tabletki dojelitowe",
-    "instructions": "rano, po posiłku"
+    "instructions": "rano, po posiłku",
+    "generic_name": "Aspirin",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwpłytkowy (kwas acetylosalicylowy) zapobiegający powstawaniu zakrzepów, zawałom serca i udarom.\", \"how_to_take\": \"Zawsze po posiłku, popić całą szklanką wody. Tabletki dojelitowe połykać w całości, bez rozgryzania.\", \"when_to_take\": \"Najlepiej rano lub w południe po posiłku.\", \"warnings\": \"Nie przyjmować na pusty żołądek. Unikać łączenia z alkoholem oraz innymi lekami przeciwbólowymi NLPZ (np. ibuprofen, ketonal) ze względu na ryzyko krwawień z przewodu pokarmowego.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Aspirin\", \"dosage_and_administration\": [\"rano, po posiłku\"]}"
   },
   {
     "name": "Apap",
     "dosage": "500 mg",
     "form": "tabletki",
-    "instructions": "w razie bólu, maks. 4 razy dziennie"
+    "instructions": "w razie bólu, maks. 4 razy dziennie",
+    "generic_name": "Acetaminophen",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwbólowy i przeciwgorączkowy (paracetamol), bezpieczny dla żołądka.\", \"how_to_take\": \"Doustnie, popijając wodą. Można przyjmować niezależnie od posiłku.\", \"when_to_take\": \"Doraźnie w razie bólu lub regularnie co 6 godzin zgodnie z zaleceniem lekarza.\", \"warnings\": \"Bezwzględny zakaz przekraczania dawki dobowej (maks. 3-4 g na dobę). Nie łączyć z alkoholem ze względu na ryzyko uszkodzenia wątroby.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Acetaminophen\", \"dosage_and_administration\": [\"w razie bólu, maks. 4 razy dziennie\"]}"
   },
   {
     "name": "Paracetamol",
     "dosage": "500 mg",
     "form": "tabletki",
-    "instructions": "co 6 godzin, nie przekraczać 3 g na dobę"
+    "instructions": "co 6 godzin, nie przekraczać 3 g na dobę",
+    "generic_name": "Acetaminophen",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwbólowy i przeciwgorączkowy (paracetamol), bezpieczny dla żołądka.\", \"how_to_take\": \"Doustnie, popijając wodą. Można przyjmować niezależnie od posiłku.\", \"when_to_take\": \"Doraźnie w razie bólu lub regularnie co 6 godzin zgodnie z zaleceniem lekarza.\", \"warnings\": \"Bezwzględny zakaz przekraczania dawki dobowej (maks. 3-4 g na dobę). Nie łączyć z alkoholem ze względu na ryzyko uszkodzenia wątroby.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Acetaminophen\", \"dosage_and_administration\": [\"co 6 godzin, nie przekraczać 3 g na dobę\"]}"
   },
   {
     "name": "Ibuprofen",
     "dosage": "200 mg",
     "form": "tabletki powlekane",
-    "instructions": "po posiłku"
+    "instructions": "po posiłku",
+    "generic_name": "Ibuprofen",
+    "ai_summary": "{\"what_it_is\": \"Niesteroidowy lek przeciwzapalny i przeciwbólowy (NLPZ) łagodzący stany zapalne stawów i ból.\", \"how_to_take\": \"Zawsze po posiłku lub z mlekiem, popić dużą ilością wody.\", \"when_to_take\": \"W razie bólu po posiłku, z przerwą minimum 6 godzin między dawkami.\", \"warnings\": \"Nie stosować na czczo. Ostrożnie przy nadciśnieniu i chorobie wrzodowej żołądka.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Ibuprofen\", \"dosage_and_administration\": [\"po posiłku\"]}"
   },
   {
     "name": "Ketonal",
     "dosage": "50 mg",
     "form": "kapsułki",
-    "instructions": "w trakcie lub bezpośrednio po posiłku"
+    "instructions": "w trakcie lub bezpośrednio po posiłku",
+    "generic_name": "Ketoprofen",
+    "ai_summary": "{\"what_it_is\": \"Silny lek przeciwzapalny i przeciwbólowy na stany zapalne stawów i silne dolegliwości bólowe.\", \"how_to_take\": \"W trakcie lub bezpośrednio po posiłku, popijając dużą ilością wody lub mleka.\", \"when_to_take\": \"O stałych porach po posiłku.\", \"warnings\": \"Wysokie ryzyko podrażnienia błony śluzowej żołądka. Nie łączyć z aspiryną ani alkoholem.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Ketoprofen\", \"dosage_and_administration\": [\"w trakcie lub bezpośrednio po posiłku\"]}"
   },
   {
     "name": "Polopiryna S",
     "dosage": "500 mg",
     "form": "tabletki",
-    "instructions": "w razie potrzeby, popić wodą"
+    "instructions": "w razie potrzeby, popić wodą",
+    "generic_name": "Aspirin",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwpłytkowy (kwas acetylosalicylowy) zapobiegający powstawaniu zakrzepów, zawałom serca i udarom.\", \"how_to_take\": \"Zawsze po posiłku, popić całą szklanką wody. Tabletki dojelitowe połykać w całości, bez rozgryzania.\", \"when_to_take\": \"Najlepiej rano lub w południe po posiłku.\", \"warnings\": \"Nie przyjmować na pusty żołądek. Unikać łączenia z alkoholem oraz innymi lekami przeciwbólowymi NLPZ (np. ibuprofen, ketonal) ze względu na ryzyko krwawień z przewodu pokarmowego.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Aspirin\", \"dosage_and_administration\": [\"w razie potrzeby, popić wodą\"]}"
   },
   {
     "name": "Magne B6",
     "dosage": "48 mg magnezu",
     "form": "tabletki powlekane",
-    "instructions": "w trakcie posiłku, popić szklanką wody"
+    "instructions": "w trakcie posiłku, popić szklanką wody",
+    "generic_name": "Pyridoxine",
+    "ai_summary": "{\"what_it_is\": \"Magnez z witaminą B6 wspierający układ nerwowy, pracę mięśni i rytm serca.\", \"how_to_take\": \"W trakcie posiłku, popijając pełną szklanką wody.\", \"when_to_take\": \"Najlepiej podzielone w ciągu dnia podczas głównych posiłków.\", \"warnings\": \"Unikać jednoczesnego popijania kawą lub herbatą, które ograniczają wchłanianie magnezu.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Pyridoxine\", \"dosage_and_administration\": [\"w trakcie posiłku, popić szklanką wody\"]}"
   },
   {
     "name": "Witamina D3",
     "dosage": "2000 IU",
     "form": "kapsułki",
-    "instructions": "raz dziennie podczas posiłku zawierającego tłuszcz"
+    "instructions": "raz dziennie podczas posiłku zawierającego tłuszcz",
+    "generic_name": "Cholecalciferol",
+    "ai_summary": "{\"what_it_is\": \"Witamina D3 wspomagająca wchłanianie wapnia, zdrowie kości, siłę mięśni i odporność seniora.\", \"how_to_take\": \"Przyjmować podczas posiłku zawierającego tłuszcz (np. z masłem, oliwą lub nabiałem), popić szklanką wody.\", \"when_to_take\": \"Raz na dobę o stałej porze, najlepiej rano lub do obiadu.\", \"warnings\": \"Nie łączyć z innymi preparatami wielowitaminowymi zawierającymi wysokie dawki witaminy D bez kontroli stężenia we krwi.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Cholecalciferol\", \"dosage_and_administration\": [\"raz dziennie podczas posiłku zawierającego tłuszcz\"]}"
   },
   {
     "name": "Euthyrox N",
     "dosage": "50 µg",
     "form": "tabletki",
-    "instructions": "rano, na czczo, 30 minut przed śniadaniem"
+    "instructions": "rano, na czczo, 30 minut przed śniadaniem",
+    "generic_name": "Levothyroxine",
+    "ai_summary": "{\"what_it_is\": \"Syntetyczny hormon tarczycy stosowany w leczeniu niedoczynności tarczycy.\", \"how_to_take\": \"Rano, bezwzględnie na czczo, co najmniej 30 minut przed śniadaniem, popijając wyłącznie wodą.\", \"when_to_take\": \"Codziennie rano po przebudzeniu.\", \"warnings\": \"Nie popijać kawą, herbatą ani sokami. Zachować minimum 2 godziny odstępu od leków zawierających wapń lub żelazo.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Levothyroxine\", \"dosage_and_administration\": [\"rano, na czczo, 30 minut przed śniadaniem\"]}"
   },
   {
     "name": "Letrox",
     "dosage": "100 µg",
     "form": "tabletki",
-    "instructions": "rano, na czczo"
+    "instructions": "rano, na czczo",
+    "generic_name": "Levothyroxine",
+    "ai_summary": "{\"what_it_is\": \"Syntetyczny hormon tarczycy stosowany w leczeniu niedoczynności tarczycy.\", \"how_to_take\": \"Rano, bezwzględnie na czczo, co najmniej 30 minut przed śniadaniem, popijając wyłącznie wodą.\", \"when_to_take\": \"Codziennie rano po przebudzeniu.\", \"warnings\": \"Nie popijać kawą, herbatą ani sokami. Zachować minimum 2 godziny odstępu od leków zawierających wapń lub żelazo.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Levothyroxine\", \"dosage_and_administration\": [\"rano, na czczo\"]}"
   },
   {
     "name": "Metformax",
     "dosage": "500 mg",
     "form": "tabletki powlekane",
-    "instructions": "w trakcie lub po posiłku"
+    "instructions": "w trakcie lub po posiłku",
+    "generic_name": "Metformin",
+    "ai_summary": "{\"what_it_is\": \"Podstawowy lek przeciwcukrzycowy obniżający stężenie glukozy we krwi i zwiększający wrażliwość na insulinę.\", \"how_to_take\": \"W trakcie lub bezpośrednio po posiłku, aby ograniczyć dolegliwości żołądkowe, popić wodą.\", \"when_to_take\": \"Najczęściej podczas śniadania i/lub kolacji.\", \"warnings\": \"Nie wolno spożywać alkoholu. W przypadku badań z kontrastem jodowym należy poinformować lekarza o przyjmowaniu metforminy.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Metformin\", \"dosage_and_administration\": [\"w trakcie lub po posiłku\"]}"
   },
   {
     "name": "Glucophage",
     "dosage": "850 mg",
     "form": "tabletki powlekane",
-    "instructions": "po posiłku, wieczorem"
+    "instructions": "po posiłku, wieczorem",
+    "generic_name": "Metformin",
+    "ai_summary": "{\"what_it_is\": \"Podstawowy lek przeciwcukrzycowy obniżający stężenie glukozy we krwi i zwiększający wrażliwość na insulinę.\", \"how_to_take\": \"W trakcie lub bezpośrednio po posiłku, aby ograniczyć dolegliwości żołądkowe, popić wodą.\", \"when_to_take\": \"Najczęściej podczas śniadania i/lub kolacji.\", \"warnings\": \"Nie wolno spożywać alkoholu. W przypadku badań z kontrastem jodowym należy poinformować lekarza o przyjmowaniu metforminy.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Metformin\", \"dosage_and_administration\": [\"po posiłku, wieczorem\"]}"
   },
   {
     "name": "Amlor",
     "dosage": "5 mg",
     "form": "kapsułki twarde",
-    "instructions": "rano, niezależnie od posiłku"
+    "instructions": "rano, niezależnie od posiłku",
+    "generic_name": "Amlodipine",
+    "ai_summary": "{\"what_it_is\": \"Bloker kanału wapniowego obniżający ciśnienie tętnicze krwi i rozszerzający naczynia krwionośne.\", \"how_to_take\": \"Doustnie, popijając wodą. Posiłek nie wpływa na wchłanianie.\", \"when_to_take\": \"Raz na dobę, najlepiej rano o stałej porze.\", \"warnings\": \"Bezwzględnie unikać soku grejpfrutowego i grejpfrutów — mogą gwałtownie nasilić działanie leku i wywołać niebezpieczny spadek ciśnienia.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Amlodipine\", \"dosage_and_administration\": [\"rano, niezależnie od posiłku\"]}"
   },
   {
     "name": "Norvasc",
     "dosage": "10 mg",
     "form": "tabletki",
-    "instructions": "raz dziennie, o stałej porze"
+    "instructions": "raz dziennie, o stałej porze",
+    "generic_name": "Amlodipine",
+    "ai_summary": "{\"what_it_is\": \"Bloker kanału wapniowego obniżający ciśnienie tętnicze krwi i rozszerzający naczynia krwionośne.\", \"how_to_take\": \"Doustnie, popijając wodą. Posiłek nie wpływa na wchłanianie.\", \"when_to_take\": \"Raz na dobę, najlepiej rano o stałej porze.\", \"warnings\": \"Bezwzględnie unikać soku grejpfrutowego i grejpfrutów — mogą gwałtownie nasilić działanie leku i wywołać niebezpieczny spadek ciśnienia.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Amlodipine\", \"dosage_and_administration\": [\"raz dziennie, o stałej porze\"]}"
   },
   {
     "name": "Concor",
     "dosage": "5 mg",
     "form": "tabletki powlekane",
-    "instructions": "rano, podczas śniadania, nie rozgryzać"
+    "instructions": "rano, podczas śniadania, nie rozgryzać",
+    "generic_name": "Bisoprolol",
+    "ai_summary": "{\"what_it_is\": \"Kardioselektywny beta-bloker zwalniający rytm serca i obniżający ciśnienie tętnicze.\", \"how_to_take\": \"Rano podczas śniadania lub przed nim, popijając wodą. Połykać w całości, nie rozgryzać.\", \"when_to_take\": \"Rano o stałej porze.\", \"warnings\": \"Nigdy nie odstawiać nagle bez porozumienia z lekarzem, gdyż może dojść do groźnego skoku tętna i ciśnienia.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Bisoprolol\", \"dosage_and_administration\": [\"rano, podczas śniadania, nie rozgryzać\"]}"
   },
   {
     "name": "Tritace",
     "dosage": "5 mg",
     "form": "tabletki",
-    "instructions": "rano, przed lub po posiłku"
+    "instructions": "rano, przed lub po posiłku",
+    "generic_name": "Ramipril",
+    "ai_summary": "{\"what_it_is\": \"Inhibitor ACE obniżający ciśnienie krwi i chroniący serce oraz nerki.\", \"how_to_take\": \"Doustnie z płynem, niezależnie od posiłków.\", \"when_to_take\": \"Rano o stałej porze.\", \"warnings\": \"Może wywoływać suchy, uporczywy kaszel. Na początku leczenia może wystąpić zawrót głowy przy nagłym wstawaniu.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Ramipril\", \"dosage_and_administration\": [\"rano, przed lub po posiłku\"]}"
   },
   {
     "name": "Berlipril",
     "dosage": "10 mg",
     "form": "tabletki",
-    "instructions": "raz dziennie, o stałej porze"
+    "instructions": "raz dziennie, o stałej porze",
+    "generic_name": "Enalapril",
+    "ai_summary": "{\"what_it_is\": \"Lek hipotensyjny z grupy inhibitorów ACE stosowany w nadciśnieniu i niewydolności serca.\", \"how_to_take\": \"Doustnie, popijając szklanką wody, niezależnie od posiłku.\", \"when_to_take\": \"Codziennie o stałej porze rano lub wieczorem.\", \"warnings\": \"Unikać suplementów potasu i substytutów soli kuchennej z potasem bez kontroli elektrolitów.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Enalapril\", \"dosage_and_administration\": [\"raz dziennie, o stałej porze\"]}"
   },
   {
     "name": "Nebilet",
     "dosage": "5 mg",
     "form": "tabletki",
-    "instructions": "rano, z posiłkiem lub niezależnie od niego"
+    "instructions": "rano, z posiłkiem lub niezależnie od niego",
+    "generic_name": "Nebivolol",
+    "ai_summary": "{\"what_it_is\": \"Nowoczesny beta-adrenolityk rozszerzający naczynia krwionośne i regulujący pracę serca.\", \"how_to_take\": \"Doustnie podczas posiłku lub niezależnie od niego, popić wodą.\", \"when_to_take\": \"Raz na dobę o stałej porze.\", \"warnings\": \"Nie przerywać kuracji nagle. Zwracać uwagę na zbyt wolne tętno (poniżej 50 uderzeń na minutę).\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Nebivolol\", \"dosage_and_administration\": [\"rano, z posiłkiem lub niezależnie od niego\"]}"
   },
   {
     "name": "Lasix",
     "dosage": "40 mg",
     "form": "tabletki",
-    "instructions": "rano, na czczo"
+    "instructions": "rano, na czczo",
+    "generic_name": "Furosemide",
+    "ai_summary": "{\"what_it_is\": \"Silny lek moczopędny (diuretyk pętlowy) usuwający nadmiar wody z organizmu i zmniejszający obrzęki.\", \"how_to_take\": \"Rano, na czczo lub z lekkim posiłkiem, popijając wodą.\", \"when_to_take\": \"Rano — nie przyjmować wieczorem, aby uniknąć konieczności wstawania w nocy do toalety.\", \"warnings\": \"Wypłukuje potas z organizmu — należy regularnie badać elektrolity i dbać o odpowiednie nawodnienie w ciągu dnia.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Furosemide\", \"dosage_and_administration\": [\"rano, na czczo\"]}"
   },
   {
     "name": "Warfin",
     "dosage": "5 mg",
     "form": "tabletki powlekane",
-    "instructions": "o stałej porze wieczorem, regularne kontrole INR"
+    "instructions": "o stałej porze wieczorem, regularne kontrole INR",
+    "generic_name": "Warfarin",
+    "ai_summary": "{\"what_it_is\": \"Antagonista witaminy K, lek przeciwzakrzepowy zapobiegający powstawaniu groźnych skrzeplin.\", \"how_to_take\": \"Doustnie o stałej porze, popijając wodą.\", \"when_to_take\": \"Raz dziennie wieczorem (np. godz. 18:00–20:00).\", \"warnings\": \"Kluczowa jest stała dieta: unikać nagłych zmian w spożyciu zielonych warzyw bogatych w witaminę K (szpinak, brokuły, jarmuż). Wymaga regularnych badań wskaźnika INR.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Warfarin\", \"dosage_and_administration\": [\"o stałej porze wieczorem, regularne kontrole INR\"]}"
   },
   {
     "name": "Marevan",
     "dosage": "5 mg",
     "form": "tabletki powlekane",
-    "instructions": "wieczorem, o stałej porze"
+    "instructions": "wieczorem, o stałej porze",
+    "generic_name": "Warfarin",
+    "ai_summary": "{\"what_it_is\": \"Antagonista witaminy K, lek przeciwzakrzepowy zapobiegający powstawaniu groźnych skrzeplin.\", \"how_to_take\": \"Doustnie o stałej porze, popijając wodą.\", \"when_to_take\": \"Raz dziennie wieczorem (np. godz. 18:00–20:00).\", \"warnings\": \"Kluczowa jest stała dieta: unikać nagłych zmian w spożyciu zielonych warzyw bogatych w witaminę K (szpinak, brokuły, jarmuż). Wymaga regularnych badań wskaźnika INR.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Warfarin\", \"dosage_and_administration\": [\"wieczorem, o stałej porze\"]}"
   },
   {
     "name": "Plavix",
     "dosage": "75 mg",
     "form": "tabletki powlekane",
-    "instructions": "raz dziennie, niezależnie od posiłku"
+    "instructions": "raz dziennie, niezależnie od posiłku",
+    "generic_name": "Clopidogrel",
+    "ai_summary": "{\"what_it_is\": \"Lek przeciwpłytkowy chroniący naczynia krwionośne przed zakrzepami po zawale lub udarze.\", \"how_to_take\": \"Doustnie z posiłkiem lub bez posiłku, popić szklanką wody.\", \"when_to_take\": \"Raz na dobę o stałej porze.\", \"warnings\": \"Zgłaszać lekarzowi każde nietypowe krwawienie, łatwe siniaczenie lub czarne stolce.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Clopidogrel\", \"dosage_and_administration\": [\"raz dziennie, niezależnie od posiłku\"]}"
   },
   {
     "name": "Torvast",
     "dosage": "20 mg",
     "form": "tabletki powlekane",
-    "instructions": "wieczorem, z posiłkiem lub bez"
+    "instructions": "wieczorem, z posiłkiem lub bez",
+    "generic_name": "Atorvastatin",
+    "ai_summary": "{\"what_it_is\": \"Statyna obniżająca poziom cholesterolu LDL i trójglicerydów oraz stabilizująca blaszkę miażdżycową.\", \"how_to_take\": \"Doustnie, połykać w całości, popijając wodą. Niezależnie od posiłków.\", \"when_to_take\": \"Raz na dobę, najlepiej wieczorem przed snem.\", \"warnings\": \"Unikać picia soku grejpfrutowego. W razie wystąpienia niewyjaśnionych bólów mięśni niezwłocznie skonsultować się z lekarzem.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Atorvastatin\", \"dosage_and_administration\": [\"wieczorem, z posiłkiem lub bez\"]}"
   },
   {
     "name": "Polprazol",
     "dosage": "20 mg",
     "form": "kapsułki dojelitowe",
-    "instructions": "rano, przed posiłkiem, połykać w całości"
+    "instructions": "rano, przed posiłkiem, połykać w całości",
+    "generic_name": "Omeprazole",
+    "ai_summary": "{\"what_it_is\": \"Inhibitor pompy protonowej (IPP) zmniejszający wydzielanie kwasu solnego w żołądku, chroniący błonę śluzową.\", \"how_to_take\": \"Rano na czczo, około 30 minut przed pierwszym posiłkiem. Połykać w całości, nie rozgryzać ani nie kruszyć.\", \"when_to_take\": \"Rano przed śniadaniem.\", \"warnings\": \"Nie rozgryzać kapsułek dojelitowych. Przy długotrwałym stosowaniu kontrolować poziom witaminy B12 i magnezu.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Omeprazole\", \"dosage_and_administration\": [\"rano, przed posiłkiem, połykać w całości\"]}"
   },
   {
     "name": "Controloc",
     "dosage": "40 mg",
     "form": "tabletki dojelitowe",
-    "instructions": "rano, godzinę przed śniadaniem"
+    "instructions": "rano, godzinę przed śniadaniem",
+    "generic_name": "Pantoprazole",
+    "ai_summary": "{\"what_it_is\": \"Lek osłonowy na żołądek z grupy IPP hamujący wydzielanie kwasu i leczący refluks oraz wrzody.\", \"how_to_take\": \"Godzinę przed posiłkiem, popijając szklanką czystej wody. Połykać tabletkę w całości.\", \"when_to_take\": \"Rano przed śniadaniem.\", \"warnings\": \"Nie żuć ani nie dzielić tabletki dojelitowej.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Pantoprazole\", \"dosage_and_administration\": [\"rano, godzinę przed śniadaniem\"]}"
   },
   {
     "name": "Ventolin",
     "dosage": "100 µg/dawkę",
     "form": "aerozol inhalacyjny",
-    "instructions": "doraźnie przy duszności, 1–2 dawki"
+    "instructions": "doraźnie przy duszności, 1–2 dawki",
+    "generic_name": "Albuterol",
+    "ai_summary": "{\"what_it_is\": \"Szybkodziałający lek rozszerzający oskrzela (bronchodilatator) ułatwiający oddychanie przy duszności i astmie.\", \"how_to_take\": \"Inhalacja wziewna zgodnie z instrukcją inhalatora. Po inhalacji zaleca się wstrzymać oddech na kilka sekund.\", \"when_to_take\": \"Doraźnie w momencie napadu duszności lub 15 minut przed wysiłkiem.\", \"warnings\": \"Może wywołać przejściowe drżenie rąk i przyspieszenie bicia serca. Jeśli duszność nie ustępuje po 2 dawkach, natychmiast wezwać pomoc.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Albuterol\", \"dosage_and_administration\": [\"doraźnie przy duszności, 1–2 dawki\"]}"
   },
   {
     "name": "Symbicort",
     "dosage": "160/4,5 µg",
     "form": "aerozol inhalacyjny",
-    "instructions": "2 razy dziennie, po inhalacji przepłukać usta"
+    "instructions": "2 razy dziennie, po inhalacji przepłukać usta",
+    "generic_name": "Budesonide",
+    "ai_summary": "{\"what_it_is\": \"Wziewny glikokortykosteroid o działaniu przeciwzapalnym na drogi oddechowe w astmie i POChP.\", \"how_to_take\": \"Wziewnie. Po każdej inhalacji należy dokładnie wypłukać jamę ustną wodą i wypluć, aby zapobiec chrypce i pleśniawkom.\", \"when_to_take\": \"Zwykle 2 razy dziennie — rano i wieczorem.\", \"warnings\": \"Lek do stosowania regularnego, nie przerywać przyjmowania po poprawie samopoczucia.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Budesonide\", \"dosage_and_administration\": [\"2 razy dziennie, po inhalacji przepłukać usta\"]}"
   },
   {
     "name": "Lantus",
     "dosage": "100 j./ml",
     "form": "roztwór do wstrzykiwań",
-    "instructions": "raz dziennie, o stałej porze, podskórnie"
+    "instructions": "raz dziennie, o stałej porze, podskórnie",
+    "generic_name": "Insulin glargine",
+    "ai_summary": "{\"what_it_is\": \"Długodziałający analog insuliny zapewniający stały, dobowy poziom insuliny we krwi u chorych na cukrzycę.\", \"how_to_take\": \"Wstrzyknięcie podskórne w udo, ramię lub brzuch, zmieniając miejsca iniekcji.\", \"when_to_take\": \"Raz na dobę, bezwzględnie o tej samej godzinie każdego dnia.\", \"warnings\": \"Pilnować regularnych posiłków, aby zapobiec hipoglikemii (niedocukrzeniu). Mieć zawsze przy sobie źródło szybkiego cukru (sok, glukozę).\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Insulin glargine\", \"dosage_and_administration\": [\"raz dziennie, o stałej porze, podskórnie\"]}"
   },
   {
     "name": "Duphalac",
     "dosage": "15 ml",
     "form": "syrop",
-    "instructions": "raz dziennie, popić szklanką wody"
+    "instructions": "raz dziennie, popić szklanką wody",
+    "generic_name": "Lactulose",
+    "ai_summary": "{\"what_it_is\": \"Łagodny osmotyczny syrop przeczyszczający ułatwiający wypróżnianie i regulujący florę bakteryjną jelit.\", \"how_to_take\": \"Doustnie, popijając pełną szklanką wody lub wymieszany z sokiem/wodą.\", \"when_to_take\": \"Zazwyczaj rano podczas śniadania.\", \"warnings\": \"Wymaga picia odpowiedniej ilości płynów (min. 1,5–2 litry wody dziennie), aby syrop zadziałał prawidłowo.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Lactulose\", \"dosage_and_administration\": [\"raz dziennie, popić szklanką wody\"]}"
   },
   {
     "name": "Diosminex",
     "dosage": "500 mg",
     "form": "tabletki powlekane",
-    "instructions": "w trakcie posiłku"
+    "instructions": "w trakcie posiłku",
+    "generic_name": "Diosmin",
+    "ai_summary": "{\"what_it_is\": \"Lek flebotropowy wzmacniający naczynia krwionośne, zmniejszający obrzęki nóg i uczucie ciężkości.\", \"how_to_take\": \"Podczas posiłku, popijając wodą.\", \"when_to_take\": \"Rano lub w dwóch dawkach podzielonych rano i wieczorem.\", \"warnings\": \"Dla najlepszych efektów łączyć z umiarkowanym ruchem i unikaniem długotrwałego stania.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Diosmin\", \"dosage_and_administration\": [\"w trakcie posiłku\"]}"
   },
   {
     "name": "Aricept",
     "dosage": "10 mg",
     "form": "tabletki powlekane",
-    "instructions": "wieczorem, przed snem"
+    "instructions": "wieczorem, przed snem",
+    "generic_name": "Donepezil",
+    "ai_summary": "{\"what_it_is\": \"Inhibitor acetylocholinoesterazy spowalniający postęp objawów otępiennych w chorobie Alzheimera.\", \"how_to_take\": \"Doustnie, popijając płynem, niezależnie od posiłków.\", \"when_to_take\": \"Wieczorem bezpośrednio przed snem.\", \"warnings\": \"Może powodować wyraziste sny lub nudności na początku leczenia. Nie pomijać dawek.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Donepezil\", \"dosage_and_administration\": [\"wieczorem, przed snem\"]}"
   },
   {
     "name": "Axura",
     "dosage": "10 mg",
     "form": "tabletki powlekane",
-    "instructions": "raz dziennie, o stałej porze"
+    "instructions": "raz dziennie, o stałej porze",
+    "generic_name": "Memantine",
+    "ai_summary": "{\"what_it_is\": \"Antagonista receptorów NMDA poprawiający przewodnictwo nerwowe i pamięć w chorobie Alzheimera.\", \"how_to_take\": \"Doustnie z posiłkiem lub bez, popić wodą.\", \"when_to_take\": \"Raz dziennie o stałej porze każdego dnia.\", \"warnings\": \"Wszelkie zmiany dawki muszą być przeprowadzane ściśle według zaleceń lekarza prowadzącego.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Memantine\", \"dosage_and_administration\": [\"raz dziennie, o stałej porze\"]}"
   },
   {
     "name": "Exelon",
     "dosage": "4,6 mg/24 h",
     "form": "plaster transdermalny",
-    "instructions": "naklejać raz dziennie na czystą, suchą skórę pleców lub ramienia"
+    "instructions": "naklejać raz dziennie na czystą, suchą skórę pleców lub ramienia",
+    "generic_name": "Rivastigmine",
+    "ai_summary": "{\"what_it_is\": \"Lek wspomagający funkcje poznawcze w demencji i chorobie Parkinsona (w postaci plastrów transdermalnych lub doustnej).\", \"how_to_take\": \"Plaster naklejać na czystą, suchą i nieowłosioną skórę (plecy, ramię). Każdego dnia zmieniać miejsce przyklejenia.\", \"when_to_take\": \"Raz na 24 godziny, rano po kąpieli.\", \"warnings\": \"Nie naklejać nowego plastra w to samo miejsce częściej niż raz na 14 dni. Zdjąć stary plaster przed naklejeniem nowego.\"}",
+    "fda_raw": "{\"source\": \"U.S. Food and Drug Administration (openFDA)\", \"generic_name\": \"Rivastigmine\", \"dosage_and_administration\": [\"naklejać raz dziennie na czystą, suchą skórę pleców lub ramienia\"]}"
   }
 ]

@@ -141,6 +141,9 @@ class MedicationBase(SQLModel):
     dosage: str = Field(min_length=1, max_length=100)
     form: str | None = Field(default=None, max_length=100)
     instructions: str | None = Field(default=None, max_length=255)
+    generic_name: str | None = Field(default=None, max_length=255)
+    fda_raw: str | None = Field(default=None)
+    ai_summary: str | None = Field(default=None)
 
     @field_validator("dosage")
     @classmethod
@@ -166,6 +169,9 @@ class MedicationUpdate(SQLModel):
     dosage: str | None = Field(default=None, min_length=1, max_length=100)
     form: str | None = Field(default=None, max_length=100)
     instructions: str | None = Field(default=None, max_length=255)
+    generic_name: str | None = Field(default=None, max_length=255)
+    fda_raw: str | None = Field(default=None)
+    ai_summary: str | None = Field(default=None)
 
 
 # Database model, database table inferred from class name

@@ -158,6 +158,13 @@
       "no_answer": "Call unanswered",
       "canceled": "Call canceled"
     },
+    "tabMedications": "Medications",
+    "medicationsTitle": "Ward's Medications",
+    "medicationsDescription": "All medications prescribed across scheduled routines for this ward",
+    "medicationsEmpty": "This ward does not have any medications assigned to routines yet. Add a routine with medications to see them here.",
+    "routinesAssigned": "In routines: {{routines}}",
+    "viewMedicationDetails": "Medication details",
+    "aiTip": "AI Tip",
     "attemptLower": "attempt {{number}}",
     "durationSec": "{{number}} s"
   },
@@ -183,5 +190,29 @@
     "parsedNo": "no",
     "parsedUnclear": "unclear",
     "transcriptTitle": "Full transcript"
+  },
+  "medicationDetail": {
+    "pageTitle": "Medication Details",
+    "back": "Back",
+    "genericNameBadge": "Active substance (INN/FDA): {{name}}",
+    "dosageBadge": "Dosage: {{dosage}}",
+    "formBadge": "Form: {{form}}",
+    "standardInstructions": "Prescription instruction",
+    "aiSectionTitle": "AI Caregiver Summary",
+    "aiSectionSubtitle": "Key safety and administration insights extracted from drug documentation",
+    "whatItIsTitle": "What is this medication?",
+    "howToTakeTitle": "How to take & liquids?",
+    "whenToTakeTitle": "When is best to take?",
+    "warningsTitle": "Important warnings & what to avoid",
+    "fdaSectionTitle": "Original U.S. FDA Drug Label (English)",
+    "fdaSectionSubtitle": "Official label data from the openFDA registry",
+    "fdaBadge": "openFDA Database",
+    "fdaIndications": "Indications & Usage",
+    "fdaDosage": "Dosage & Administration",
+    "fdaWarnings": "Warnings & Precautions",
+    "fdaFoodSafety": "Food Safety & Patient Information",
+    "loading": "Loading medication details...",
+    "errorTitle": "Failed to load medication details",
+    "notFound": "Medication not found in database."
   }
 }

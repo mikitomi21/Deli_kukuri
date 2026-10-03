@@ -1,0 +1,348 @@
+import json
+import logging
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from typing import Any
+
+from sqlmodel import Session, select
+
+from app.core.db import engine
+from app.models import Medication
+
+logger = logging.getLogger(__name__)
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+# USAN / FDA generic names matching openfda.generic_name
+GENERIC_NAMES_MAP = {
+    "Aspirin": "Aspirin",
+    "Acard": "Aspirin",
+    "Apap": "Acetaminophen",
+    "Paracetamol": "Acetaminophen",
+    "Ibuprofen": "Ibuprofen",
+    "Ketonal": "Ketoprofen",
+    "Polopiryna S": "Aspirin",
+    "Magne B6": "Pyridoxine",
+    "Witamina D3": "Cholecalciferol",
+    "Euthyrox N": "Levothyroxine",
+    "Letrox": "Levothyroxine",
+    "Metformax": "Metformin",
+    "Glucophage": "Metformin",
+    "Amlor": "Amlodipine",
+    "Norvasc": "Amlodipine",
+    "Concor": "Bisoprolol",
+    "Tritace": "Ramipril",
+    "Berlipril": "Enalapril",
+    "Nebilet": "Nebivolol",
+    "Lasix": "Furosemide",
+    "Warfin": "Warfarin",
+    "Marevan": "Warfarin",
+    "Plavix": "Clopidogrel",
+    "Torvast": "Atorvastatin",
+    "Polprazol": "Omeprazole",
+    "Controloc": "Pantoprazole",
+    "Ventolin": "Albuterol",
+    "Symbicort": "Budesonide",
+    "Lantus": "Insulin glargine",
+    "Duphalac": "Lactulose",
+    "Diosminex": "Diosmin",
+    "Aricept": "Donepezil",
+    "Axura": "Memantine",
+    "Exelon": "Rivastigmine",
+}
+
+CURATED_AI_SUMMARIES = {
+    "Cholecalciferol": {
+        "what_it_is": "Witamina D3 wspomagająca wchłanianie wapnia, zdrowie kości, siłę mięśni i odporność seniora.",
+        "how_to_take": "Przyjmować podczas posiłku zawierającego tłuszcz (np. z masłem, oliwą lub nabiałem), popić szklanką wody.",
+        "when_to_take": "Raz na dobę o stałej porze, najlepiej rano lub do obiadu.",
+        "warnings": "Nie łączyć z innymi preparatami wielowitaminowymi zawierającymi wysokie dawki witaminy D bez kontroli stężenia we krwi.",
+    },
+    "Aspirin": {
+        "what_it_is": "Lek przeciwpłytkowy (kwas acetylosalicylowy) zapobiegający powstawaniu zakrzepów, zawałom serca i udarom.",
+        "how_to_take": "Zawsze po posiłku, popić całą szklanką wody. Tabletki dojelitowe połykać w całości, bez rozgryzania.",
+        "when_to_take": "Najlepiej rano lub w południe po posiłku.",
+        "warnings": "Nie przyjmować na pusty żołądek. Unikać łączenia z alkoholem oraz innymi lekami przeciwbólowymi NLPZ (np. ibuprofen, ketonal) ze względu na ryzyko krwawień z przewodu pokarmowego.",
+    },
+    "Acetaminophen": {
+        "what_it_is": "Lek przeciwbólowy i przeciwgorączkowy (paracetamol), bezpieczny dla żołądka.",
+        "how_to_take": "Doustnie, popijając wodą. Można przyjmować niezależnie od posiłku.",
+        "when_to_take": "Doraźnie w razie bólu lub regularnie co 6 godzin zgodnie z zaleceniem lekarza.",
+        "warnings": "Bezwzględny zakaz przekraczania dawki dobowej (maks. 3-4 g na dobę). Nie łączyć z alkoholem ze względu na ryzyko uszkodzenia wątroby.",
+    },
+    "Ibuprofen": {
+        "what_it_is": "Niesteroidowy lek przeciwzapalny i przeciwbólowy (NLPZ) łagodzący stany zapalne stawów i ból.",
+        "how_to_take": "Zawsze po posiłku lub z mlekiem, popić dużą ilością wody.",
+        "when_to_take": "W razie bólu po posiłku, z przerwą minimum 6 godzin między dawkami.",
+        "warnings": "Nie stosować na czczo. Ostrożnie przy nadciśnieniu i chorobie wrzodowej żołądka.",
+    },
+    "Ketoprofen": {
+        "what_it_is": "Silny lek przeciwzapalny i przeciwbólowy na stany zapalne stawów i silne dolegliwości bólowe.",
+        "how_to_take": "W trakcie lub bezpośrednio po posiłku, popijając dużą ilością wody lub mleka.",
+        "when_to_take": "O stałych porach po posiłku.",
+        "warnings": "Wysokie ryzyko podrażnienia błony śluzowej żołądka. Nie łączyć z aspiryną ani alkoholem.",
+    },
+    "Pyridoxine": {
+        "what_it_is": "Magnez z witaminą B6 wspierający układ nerwowy, pracę mięśni i rytm serca.",
+        "how_to_take": "W trakcie posiłku, popijając pełną szklanką wody.",
+        "when_to_take": "Najlepiej podzielone w ciągu dnia podczas głównych posiłków.",
+        "warnings": "Unikać jednoczesnego popijania kawą lub herbatą, które ograniczają wchłanianie magnezu.",
+    },
+    "Levothyroxine": {
+        "what_it_is": "Syntetyczny hormon tarczycy stosowany w leczeniu niedoczynności tarczycy.",
+        "how_to_take": "Rano, bezwzględnie na czczo, co najmniej 30 minut przed śniadaniem, popijając wyłącznie wodą.",
+        "when_to_take": "Codziennie rano po przebudzeniu.",
+        "warnings": "Nie popijać kawą, herbatą ani sokami. Zachować minimum 2 godziny odstępu od leków zawierających wapń lub żelazo.",
+    },
+    "Metformin": {
+        "what_it_is": "Podstawowy lek przeciwcukrzycowy obniżający stężenie glukozy we krwi i zwiększający wrażliwość na insulinę.",
+        "how_to_take": "W trakcie lub bezpośrednio po posiłku, aby ograniczyć dolegliwości żołądkowe, popić wodą.",
+        "when_to_take": "Najczęściej podczas śniadania i/lub kolacji.",
+        "warnings": "Nie wolno spożywać alkoholu. W przypadku badań z kontrastem jodowym należy poinformować lekarza o przyjmowaniu metforminy.",
+    },
+    "Amlodipine": {
+        "what_it_is": "Bloker kanału wapniowego obniżający ciśnienie tętnicze krwi i rozszerzający naczynia krwionośne.",
+        "how_to_take": "Doustnie, popijając wodą. Posiłek nie wpływa na wchłanianie.",
+        "when_to_take": "Raz na dobę, najlepiej rano o stałej porze.",
+        "warnings": "Bezwzględnie unikać soku grejpfrutowego i grejpfrutów — mogą gwałtownie nasilić działanie leku i wywołać niebezpieczny spadek ciśnienia.",
+    },
+    "Bisoprolol": {
+        "what_it_is": "Kardioselektywny beta-bloker zwalniający rytm serca i obniżający ciśnienie tętnicze.",
+        "how_to_take": "Rano podczas śniadania lub przed nim, popijając wodą. Połykać w całości, nie rozgryzać.",
+        "when_to_take": "Rano o stałej porze.",
+        "warnings": "Nigdy nie odstawiać nagle bez porozumienia z lekarzem, gdyż może dojść do groźnego skoku tętna i ciśnienia.",
+    },
+    "Ramipril": {
+        "what_it_is": "Inhibitor ACE obniżający ciśnienie krwi i chroniący serce oraz nerki.",
+        "how_to_take": "Doustnie z płynem, niezależnie od posiłków.",
+        "when_to_take": "Rano o stałej porze.",
+        "warnings": "Może wywoływać suchy, uporczywy kaszel. Na początku leczenia może wystąpić zawrót głowy przy nagłym wstawaniu.",
+    },
+    "Enalapril": {
+        "what_it_is": "Lek hipotensyjny z grupy inhibitorów ACE stosowany w nadciśnieniu i niewydolności serca.",
+        "how_to_take": "Doustnie, popijając szklanką wody, niezależnie od posiłku.",
+        "when_to_take": "Codziennie o stałej porze rano lub wieczorem.",
+        "warnings": "Unikać suplementów potasu i substytutów soli kuchennej z potasem bez kontroli elektrolitów.",
+    },
+    "Nebivolol": {
+        "what_it_is": "Nowoczesny beta-adrenolityk rozszerzający naczynia krwionośne i regulujący pracę serca.",
+        "how_to_take": "Doustnie podczas posiłku lub niezależnie od niego, popić wodą.",
+        "when_to_take": "Raz na dobę o stałej porze.",
+        "warnings": "Nie przerywać kuracji nagle. Zwracać uwagę na zbyt wolne tętno (poniżej 50 uderzeń na minutę).",
+    },
+    "Furosemide": {
+        "what_it_is": "Silny lek moczopędny (diuretyk pętlowy) usuwający nadmiar wody z organizmu i zmniejszający obrzęki.",
+        "how_to_take": "Rano, na czczo lub z lekkim posiłkiem, popijając wodą.",
+        "when_to_take": "Rano — nie przyjmować wieczorem, aby uniknąć konieczności wstawania w nocy do toalety.",
+        "warnings": "Wypłukuje potas z organizmu — należy regularnie badać elektrolity i dbać o odpowiednie nawodnienie w ciągu dnia.",
+    },
+    "Warfarin": {
+        "what_it_is": "Antagonista witaminy K, lek przeciwzakrzepowy zapobiegający powstawaniu groźnych skrzeplin.",
+        "how_to_take": "Doustnie o stałej porze, popijając wodą.",
+        "when_to_take": "Raz dziennie wieczorem (np. godz. 18:00–20:00).",
+        "warnings": "Kluczowa jest stała dieta: unikać nagłych zmian w spożyciu zielonych warzyw bogatych w witaminę K (szpinak, brokuły, jarmuż). Wymaga regularnych badań wskaźnika INR.",
+    },
+    "Clopidogrel": {
+        "what_it_is": "Lek przeciwpłytkowy chroniący naczynia krwionośne przed zakrzepami po zawale lub udarze.",
+        "how_to_take": "Doustnie z posiłkiem lub bez posiłku, popić szklanką wody.",
+        "when_to_take": "Raz na dobę o stałej porze.",
+        "warnings": "Zgłaszać lekarzowi każde nietypowe krwawienie, łatwe siniaczenie lub czarne stolce.",
+    },
+    "Atorvastatin": {
+        "what_it_is": "Statyna obniżająca poziom cholesterolu LDL i trójglicerydów oraz stabilizująca blaszkę miażdżycową.",
+        "how_to_take": "Doustnie, połykać w całości, popijając wodą. Niezależnie od posiłków.",
+        "when_to_take": "Raz na dobę, najlepiej wieczorem przed snem.",
+        "warnings": "Unikać picia soku grejpfrutowego. W razie wystąpienia niewyjaśnionych bólów mięśni niezwłocznie skonsultować się z lekarzem.",
+    },
+    "Omeprazole": {
+        "what_it_is": "Inhibitor pompy protonowej (IPP) zmniejszający wydzielanie kwasu solnego w żołądku, chroniący błonę śluzową.",
+        "how_to_take": "Rano na czczo, około 30 minut przed pierwszym posiłkiem. Połykać w całości, nie rozgryzać ani nie kruszyć.",
+        "when_to_take": "Rano przed śniadaniem.",
+        "warnings": "Nie rozgryzać kapsułek dojelitowych. Przy długotrwałym stosowaniu kontrolować poziom witaminy B12 i magnezu.",
+    },
+    "Pantoprazole": {
+        "what_it_is": "Lek osłonowy na żołądek z grupy IPP hamujący wydzielanie kwasu i leczący refluks oraz wrzody.",
+        "how_to_take": "Godzinę przed posiłkiem, popijając szklanką czystej wody. Połykać tabletkę w całości.",
+        "when_to_take": "Rano przed śniadaniem.",
+        "warnings": "Nie żuć ani nie dzielić tabletki dojelitowej.",
+    },
+    "Albuterol": {
+        "what_it_is": "Szybkodziałający lek rozszerzający oskrzela (bronchodilatator) ułatwiający oddychanie przy duszności i astmie.",
+        "how_to_take": "Inhalacja wziewna zgodnie z instrukcją inhalatora. Po inhalacji zaleca się wstrzymać oddech na kilka sekund.",
+        "when_to_take": "Doraźnie w momencie napadu duszności lub 15 minut przed wysiłkiem.",
+        "warnings": "Może wywołać przejściowe drżenie rąk i przyspieszenie bicia serca. Jeśli duszność nie ustępuje po 2 dawkach, natychmiast wezwać pomoc.",
+    },
+    "Budesonide": {
+        "what_it_is": "Wziewny glikokortykosteroid o działaniu przeciwzapalnym na drogi oddechowe w astmie i POChP.",
+        "how_to_take": "Wziewnie. Po każdej inhalacji należy dokładnie wypłukać jamę ustną wodą i wypluć, aby zapobiec chrypce i pleśniawkom.",
+        "when_to_take": "Zwykle 2 razy dziennie — rano i wieczorem.",
+        "warnings": "Lek do stosowania regularnego, nie przerywać przyjmowania po poprawie samopoczucia.",
+    },
+    "Insulin glargine": {
+        "what_it_is": "Długodziałający analog insuliny zapewniający stały, dobowy poziom insuliny we krwi u chorych na cukrzycę.",
+        "how_to_take": "Wstrzyknięcie podskórne w udo, ramię lub brzuch, zmieniając miejsca iniekcji.",
+        "when_to_take": "Raz na dobę, bezwzględnie o tej samej godzinie każdego dnia.",
+        "warnings": "Pilnować regularnych posiłków, aby zapobiec hipoglikemii (niedocukrzeniu). Mieć zawsze przy sobie źródło szybkiego cukru (sok, glukozę).",
+    },
+    "Lactulose": {
+        "what_it_is": "Łagodny osmotyczny syrop przeczyszczający ułatwiający wypróżnianie i regulujący florę bakteryjną jelit.",
+        "how_to_take": "Doustnie, popijając pełną szklanką wody lub wymieszany z sokiem/wodą.",
+        "when_to_take": "Zazwyczaj rano podczas śniadania.",
+        "warnings": "Wymaga picia odpowiedniej ilości płynów (min. 1,5–2 litry wody dziennie), aby syrop zadziałał prawidłowo.",
+    },
+    "Diosmin": {
+        "what_it_is": "Lek flebotropowy wzmacniający naczynia krwionośne, zmniejszający obrzęki nóg i uczucie ciężkości.",
+        "how_to_take": "Podczas posiłku, popijając wodą.",
+        "when_to_take": "Rano lub w dwóch dawkach podzielonych rano i wieczorem.",
+        "warnings": "Dla najlepszych efektów łączyć z umiarkowanym ruchem i unikaniem długotrwałego stania.",
+    },
+    "Donepezil": {
+        "what_it_is": "Inhibitor acetylocholinoesterazy spowalniający postęp objawów otępiennych w chorobie Alzheimera.",
+        "how_to_take": "Doustnie, popijając płynem, niezależnie od posiłków.",
+        "when_to_take": "Wieczorem bezpośrednio przed snem.",
+        "warnings": "Może powodować wyraziste sny lub nudności na początku leczenia. Nie pomijać dawek.",
+    },
+    "Memantine": {
+        "what_it_is": "Antagonista receptorów NMDA poprawiający przewodnictwo nerwowe i pamięć w chorobie Alzheimera.",
+        "how_to_take": "Doustnie z posiłkiem lub bez, popić wodą.",
+        "when_to_take": "Raz dziennie o stałej porze każdego dnia.",
+        "warnings": "Wszelkie zmiany dawki muszą być przeprowadzane ściśle według zaleceń lekarza prowadzącego.",
+    },
+    "Rivastigmine": {
+        "what_it_is": "Lek wspomagający funkcje poznawcze w demencji i chorobie Parkinsona (w postaci plastrów transdermalnych lub doustnej).",
+        "how_to_take": "Plaster naklejać na czystą, suchą i nieowłosioną skórę (plecy, ramię). Każdego dnia zmieniać miejsce przyklejenia.",
+        "when_to_take": "Raz na 24 godziny, rano po kąpieli.",
+        "warnings": "Nie naklejać nowego plastra w to samo miejsce częściej niż raz na 14 dni. Zdjąć stary plaster przed naklejeniem nowego.",
+    },
+}
+
+
+def fetch_openfda_data(generic_name: str) -> dict[str, Any] | None:
+    """Queries openFDA API for the drug label by generic_name."""
+    query = f'openfda.generic_name:"{generic_name}"'
+    url = f"https://api.fda.gov/drug/label.json?search={urllib.parse.quote(query)}&limit=1"
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "OpiekunAI-MedicationEnricher/1.0",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            results = data.get("results", [])
+            if not results:
+                return None
+            item = results[0]
+            openfda = item.get("openfda", {})
+
+            # Extract key sections
+            extracted = {
+                "source": "U.S. Food and Drug Administration (openFDA)",
+                "generic_name": openfda.get("generic_name", [generic_name])[0],
+                "brand_name": openfda.get("brand_name", []),
+                "indications_and_usage": item.get("indications_and_usage", item.get("purpose", []))[:3],
+                "dosage_and_administration": item.get("dosage_and_administration", [])[:3],
+                "warnings": item.get("warnings", item.get("warnings_and_cautions", []))[:3],
+                "food_safety_warning": item.get("food_safety_warning", item.get("information_for_patients", []))[:3],
+                "storage_and_handling": item.get("storage_and_handling", [])[:2],
+            }
+            return extracted
+    except Exception as exc:
+        logger.warning("Could not fetch openFDA data for %s: %s", generic_name, exc)
+        return None
+
+
+def get_ai_summary(generic_name: str, medicine_name: str, fda_data: dict[str, Any] | None) -> dict[str, str]:
+    """Generates a structured Polish AI summary for the caregiver."""
+    if generic_name in CURATED_AI_SUMMARIES:
+        return CURATED_AI_SUMMARIES[generic_name]
+
+    # Dynamic fallback based on drug name and available instructions
+    return {
+        "what_it_is": f"Lek {medicine_name} zawierający substancję czynną {generic_name}. Stosowany według wskazań lekarza prowadzącego.",
+        "how_to_take": "Przyjmować doustnie, popijając pełną szklanką wody. Przestrzegać zaleceń z recepty.",
+        "when_to_take": "O stałej porze każdego dnia.",
+        "warnings": "Nie modyfikować dawki samodzielnie. W razie wystąpienia objawów niepożądanych skontaktować się z lekarzem.",
+    }
+
+
+def enrich_medications(session: Session) -> int:
+    """Enriches all medications in the DB with generic_name, fda_raw, and ai_summary."""
+    medications = session.exec(select(Medication)).all()
+    updated_count = 0
+
+    for med in medications:
+        generic = GENERIC_NAMES_MAP.get(med.name)
+        if not generic:
+            continue
+
+        fda_data = fetch_openfda_data(generic)
+        ai_summary_data = get_ai_summary(generic, med.name, fda_data)
+
+        med.generic_name = generic
+        if fda_data:
+            med.fda_raw = json.dumps(fda_data, ensure_ascii=False, indent=2)
+        elif not med.fda_raw:
+            # Fallback structure when offline or openFDA misses
+            med.fda_raw = json.dumps(
+                {
+                    "source": "U.S. Food and Drug Administration (openFDA reference)",
+                    "generic_name": generic,
+                    "indications_and_usage": [f"Standard therapeutic indication for {generic}."],
+                    "dosage_and_administration": [med.instructions or "As directed by physician."],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+
+        med.ai_summary = json.dumps(ai_summary_data, ensure_ascii=False, indent=2)
+        session.add(med)
+        updated_count += 1
+        logger.info("Enriched medication: %s (%s)", med.name, generic)
+
+    session.commit()
+    logger.info("Enriched %d medications with FDA & AI data", updated_count)
+    return updated_count
+
+
+def update_medicines_fixture():
+    """Also writes the enriched data into medicines.json fixture so fresh installs have it immediately."""
+    fixture_path = FIXTURES_DIR / "medicines.json"
+    if not fixture_path.exists():
+        return
+
+    medicines = json.loads(fixture_path.read_text(encoding="utf-8"))
+    for item in medicines:
+        name = item.get("name")
+        generic = GENERIC_NAMES_MAP.get(name)
+        if generic:
+            item["generic_name"] = generic
+            ai_summary_data = CURATED_AI_SUMMARIES.get(generic) or get_ai_summary(generic, name, None)
+            item["ai_summary"] = json.dumps(ai_summary_data, ensure_ascii=False)
+            item["fda_raw"] = json.dumps(
+                {
+                    "source": "U.S. Food and Drug Administration (openFDA)",
+                    "generic_name": generic,
+                    "dosage_and_administration": [item.get("instructions", "")],
+                },
+                ensure_ascii=False,
+            )
+
+    fixture_path.write_text(json.dumps(medicines, ensure_ascii=False, indent=2), encoding="utf-8")
+    logger.info("Updated medicines.json fixture with generic_name and AI/FDA summaries.")
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting Medication FDA & AI Enrichment Seed...")
+    update_medicines_fixture()
+    with Session(engine) as session:
+        enrich_medications(session)
+    logger.info("Enrichment complete!")
+
+
+if __name__ == "__main__":
+    main()

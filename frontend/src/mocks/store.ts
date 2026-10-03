@@ -41,16 +41,293 @@ interface RoutineMedication {
   id: string
   name: string
   dosage: string
+  form?: string | null
+  instructions?: string | null
+  generic_name?: string | null
+  fda_raw?: string | null
+  ai_summary?: string | null
 }
 
 /** Fallback catalog for the medication picker when the backend is unreachable. */
 export const mockMedications: RoutineMedication[] = [
-  { id: "med-1", name: "Warfarin", dosage: "5 mg" },
-  { id: "med-2", name: "Metformina", dosage: "850 mg" },
-  { id: "med-3", name: "Bisoprolol", dosage: "2,5 mg" },
-  { id: "med-4", name: "Atorwastatyna", dosage: "20 mg" },
-  { id: "med-5", name: "Ramipryl", dosage: "5 mg" },
-  { id: "med-6", name: "Hydrochlorotiazyd", dosage: "12,5 mg" },
+  {
+    id: "med-1",
+    name: "Warfarin",
+    dosage: "5 mg",
+    form: "tabletki powlekane",
+    instructions: "o stałej porze wieczorem, regularne kontrole INR",
+    generic_name: "Warfarin",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "WARFARIN SODIUM",
+        indications_and_usage: [
+          "WARFARIN SODIUM is indicated for the prophylaxis and treatment of venous thrombosis and its extension, pulmonary embolism.",
+        ],
+        dosage_and_administration: [
+          "The dosage and administration of WARFARIN SODIUM must be individualized for each patient according to the particular patient's PT/INR response.",
+        ],
+        warnings: [
+          "WARFARIN SODIUM can cause major or fatal bleeding. Perform regular monitoring of INR in all treated patients.",
+        ],
+        food_safety_warning: [
+          "Advise patients to maintain a consistent dietary intake of vitamin K. Avoid sudden dietary changes including large amounts of green leafy vegetables.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Antagonista witaminy K, lek przeciwzakrzepowy zapobiegający powstawaniu groźnych skrzeplin krwi.",
+        how_to_take:
+          "Doustnie o stałej porze, popijając wodą. Niezwykle ważna jest stała dieta bez gwałtownych zmian w spożyciu witaminy K.",
+        when_to_take: "Raz dziennie wieczorem (np. o godz. 18:00–20:00).",
+        warnings:
+          "Unikać nagłych zmian w diecie (np. dużych ilości szpinaku, kapusty czy jarmużu). Bezwzględnie kontrolować wskaźnik INR.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-2",
+    name: "Metformina",
+    dosage: "850 mg",
+    form: "tabletki powlekane",
+    instructions: "po posiłku, wieczorem",
+    generic_name: "Metformin",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "METFORMIN HYDROCHLORIDE",
+        indications_and_usage: [
+          "METFORMIN HYDROCHLORIDE tablets are indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus.",
+        ],
+        dosage_and_administration: [
+          "Administer in divided doses with meals. Dosage increases should be made in increments of 500 mg weekly or 850 mg every 2 weeks.",
+        ],
+        warnings: [
+          "Lactic acidosis is a rare, but serious, complication that can occur due to metformin accumulation.",
+        ],
+        food_safety_warning: [
+          "Take with meals to reduce gastrointestinal discomfort.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Podstawowy lek przeciwcukrzycowy obniżający stężenie glukozy we krwi i zwiększający wrażliwość komórek na insulinę.",
+        how_to_take:
+          "Zawsze w trakcie lub bezpośrednio po posiłku, popić szklanką wody (zmniejsza to ryzyko dolegliwości żołądkowych).",
+        when_to_take:
+          "Podczas głównych posiłków (zwykle śniadanie i/lub kolacja).",
+        warnings:
+          "Całkowity zakaz spożywania alkoholu. Przy planowanych badaniach rentgenowskich z kontrastem poinformować lekarza.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-3",
+    name: "Bisoprolol",
+    dosage: "2,5 mg",
+    form: "tabletki powlekane",
+    instructions: "rano, podczas śniadania, nie rozgryzać",
+    generic_name: "Bisoprolol",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "BISOPROLOL FUMARATE",
+        indications_and_usage: [
+          "Bisoprolol fumarate is indicated in the management of hypertension.",
+        ],
+        dosage_and_administration: [
+          "The initial dose of bisoprolol fumarate is 5 mg once daily. In some patients, 2.5 mg may be an appropriate starting dose.",
+        ],
+        warnings: [
+          "Do not abruptly discontinue therapy. Severe exacerbation of angina and myocardial infarction have been reported following abrupt cessation.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Lek z grupy beta-blokerów zwalniający rytm serca i obniżający ciśnienie tętnicze.",
+        how_to_take:
+          "Rano podczas śniadania, popijając wodą. Połykać w całości, bez rozgryzania.",
+        when_to_take: "Codziennie rano o stałej porze.",
+        warnings:
+          "Nigdy nie przerywać zażywania leku nagle — grozi to gwałtownym skokiem ciśnienia i zaburzeniami rytmu serca.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-4",
+    name: "Atorwastatyna",
+    dosage: "20 mg",
+    form: "tabletki powlekane",
+    instructions: "wieczorem, z posiłkiem lub bez",
+    generic_name: "Atorvastatin",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "ATORVASTATIN CALCIUM",
+        indications_and_usage: [
+          "Lipid-lowering agent indicated to reduce the risk of myocardial infarction and stroke in patients with cardiovascular risk factors.",
+        ],
+        dosage_and_administration: [
+          "Recommended starting dose is 10 or 20 mg once daily. Can be administered as a single dose at any time of the day, with or without food.",
+        ],
+        warnings: [
+          "Myopathy and rhabdomyolysis have been reported with statin therapy. Instruct patients to report unexplained muscle pain or weakness.",
+        ],
+        food_safety_warning: [
+          "Avoid excessive consumption of grapefruit juice while taking atorvastatin.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Statyna obniżająca poziom „złego” cholesterolu (LDL) i trójglicerydów oraz chroniąca naczynia krwionośne przed miażdżycą.",
+        how_to_take:
+          "Doustnie, połykać w całości, popijając wodą. Posiłek nie wpływa na działanie.",
+        when_to_take: "Raz na dobę, najlepiej wieczorem przed snem.",
+        warnings:
+          "Nie pić soku grejpfrutowego. W razie wystąpienia niewyjaśnionych bólów mięśniowych niezwłocznie zgłosić się do lekarza.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-5",
+    name: "Ramipryl",
+    dosage: "5 mg",
+    form: "tabletki",
+    instructions: "rano, przed lub po posiłku",
+    generic_name: "Ramipril",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "RAMIPRIL",
+        indications_and_usage: [
+          "Treatment of hypertension and reduction in risk of myocardial infarction, stroke, or death from cardiovascular causes.",
+        ],
+        dosage_and_administration: [
+          "Initial dose for hypertension is 2.5 mg to 5 mg once daily. May be taken with or without food.",
+        ],
+        warnings: [
+          "Discontinue as soon as possible if angioedema occurs. Monitor renal function and serum potassium.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Lek hipotensyjny z grupy inhibitorów ACE, obniżający ciśnienie i chroniący mięsień sercowy oraz nerki.",
+        how_to_take: "Doustnie, popić szklanką wody, niezależnie od posiłków.",
+        when_to_take: "Codziennie rano o stałej porze.",
+        warnings:
+          "Może wywoływać suchy kaszel. Przy nagłym wstawaniu z łóżka może wystąpić przejściowy zawrót głowy.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-6",
+    name: "Hydrochlorotiazyd",
+    dosage: "12,5 mg",
+    form: "tabletki",
+    instructions: "rano, popić wodą",
+    generic_name: "Hydrochlorothiazide",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "HYDROCHLOROTHIAZIDE",
+        indications_and_usage: [
+          "Thiazide diuretic indicated for the treatment of hypertension alone or in combination with other antihypertensive agents.",
+        ],
+        dosage_and_administration: [
+          "Usual dose is 12.5 mg to 50 mg once daily, preferably in the morning.",
+        ],
+        warnings: [
+          "Electrolyte imbalances (hypokalemia, hyponatremia) may occur. Periodic determination of serum electrolytes should be done.",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Lek moczopędny (diuretyk tiazydowy) obniżający ciśnienie tętnicze i usuwający nadmiar soli oraz wody z organizmu.",
+        how_to_take: "Rano, podczas śniadania lub po nim, popić wodą.",
+        when_to_take:
+          "Bezwzględnie rano — nie brać wieczorem, by uniknąć wybudzania w nocy na oddawanie moczu.",
+        warnings:
+          "Zwiększa wydalanie potasu z moczem. Pić odpowiednią ilość płynów w ciągu dnia, by zapobiec odwodnieniu.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: "med-7",
+    name: "Witamina D3",
+    dosage: "2000 IU",
+    form: "kapsułki",
+    instructions: "raz dziennie podczas posiłku zawierającego tłuszcz",
+    generic_name: "Cholecalciferol",
+    fda_raw: JSON.stringify(
+      {
+        source: "U.S. Food and Drug Administration (openFDA)",
+        generic_name: "CHOLECALCIFEROL",
+        indications_and_usage: [
+          "Indicated for dietary supplementation and treatment/prevention of Vitamin D deficiency, supporting bone mineral density and calcium absorption.",
+        ],
+        dosage_and_administration: [
+          "Take orally once daily with a meal containing dietary fat for optimal absorption.",
+        ],
+        warnings: [
+          "Do not exceed recommended daily allowance. Hypercalcemia may occur with excessive intake.",
+        ],
+        food_safety_warning: [
+          "Fat-soluble vitamin: absorption is significantly enhanced when taken with meals containing dietary fats (e.g., butter, olive oil, milk).",
+        ],
+      },
+      null,
+      2,
+    ),
+    ai_summary: JSON.stringify(
+      {
+        what_it_is:
+          "Witamina D3 regulująca gospodarkę wapniowo-fosforanową, wzmacniająca kości, siłę mięśni i odporność seniora.",
+        how_to_take:
+          "Przyjmować w trakcie posiłku zawierającego tłuszcze (masło, oliwa, ser), popić szklanką wody.",
+        when_to_take: "Raz dziennie o stałej porze, rano lub podczas obiadu.",
+        warnings:
+          "Nie łączyć z innymi preparatami wielowitaminowymi zawierającymi wysokie dawki witaminy D bez kontroli stężenia we krwi.",
+      },
+      null,
+      2,
+    ),
+  },
 ]
 
 interface MockWard {
