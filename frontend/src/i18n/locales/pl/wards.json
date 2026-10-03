@@ -1,0 +1,163 @@
+{
+  "addRoutine": {
+    "successToast": "Rutyna dodana jako szkic — zatwierdź ją, aby zaplanować połączenia"
+  },
+  "addWard": {
+    "title": "Dodaj podopiecznego",
+    "description": "Podaj imię i nazwisko oraz numer telefonu — OpiekunAI będzie dzwonił na ten numer w godzinach rutyn.",
+    "fullNameLabel": "Imię i nazwisko",
+    "fullNamePlaceholder": "np. Halina Kowalska",
+    "phoneLabel": "Telefon",
+    "phonePlaceholder": "np. 600 100 200",
+    "phoneHint": "Numer zostanie zapisany w formacie +48… (E.164)",
+    "submit": "Dodaj",
+    "successToast": "Podopieczny został dodany",
+    "validation": {
+      "fullNameRequired": "Imię i nazwisko jest wymagane",
+      "fullNameMaxLength": "Maksymalnie 100 znaków",
+      "phoneRequired": "Numer telefonu jest wymagany",
+      "phoneInvalid": "Nieprawidłowy numer — np. 600 100 200 lub +48600100200"
+    }
+  },
+  "medicationPicker": {
+    "selectedAria": "Wybrane leki",
+    "amountPlaceholder": "Ilość, np. 1 tabletka",
+    "amountFor": "Ilość dla {{name}}",
+    "removeFor": "Usuń {{name}} z rutyny",
+    "searchPlaceholder": "Szukaj leku w katalogu, np. warf…",
+    "searchAria": "Szukaj leku w katalogu",
+    "loadingAria": "Ładowanie katalogu leków",
+    "emptyCatalog": "Brak leku w bazie — katalog jest tylko do odczytu w MVP."
+  },
+  "routineActions": {
+    "actionsFor": "Akcje dla rutyny {{name}}",
+    "edit": "Edytuj",
+    "approve": "Zatwierdź",
+    "resume": "Wznów",
+    "pause": "Wstrzymaj",
+    "delete": "Usuń",
+    "deleteTitle": "Usunąć rutynę?",
+    "deleteDescription": "Rutyna „{{name}}” zostanie trwale usunięta. Usuwać można tylko rutyny w szkicu.",
+    "cancel": "Anuluj",
+    "deleteConfirm": "Usuń rutynę",
+    "approvedToast": "Rutyna zatwierdzona — połączenie zostało zaplanowane",
+    "resumedToast": "Rutyna wznowiona",
+    "pausedToast": "Rutyna wstrzymana",
+    "removedToast": "Rutyna usunięta",
+    "savedToast": "Rutyna zapisana jako szkic — wymaga ponownego zatwierdzenia"
+  },
+  "routineDialog": {
+    "editTitle": "Edytuj rutynę",
+    "addTitle": "Dodaj rutynę",
+    "editDescription": "Zmiany zapisują się jako szkic — rutynę trzeba zatwierdzić ponownie.",
+    "addDescription": "Krok po kroku: godzina i nazwa, leki, sprawdzenie i zapis.",
+    "steps": {
+      "basics": "Podstawy",
+      "medications": "Leki",
+      "summary": "Podsumowanie"
+    },
+    "progressLabel": "Postęp tworzenia rutyny",
+    "nameLabel": "Nazwa",
+    "namePlaceholder": "np. Poranne leki",
+    "timeLabel": "Godzina",
+    "timeHint": "O tej godzinie OpiekunAI zadzwoni do podopiecznego.",
+    "pickMeds": "Wybierz leki z katalogu i podaj ilość",
+    "reviewName": "Nazwa",
+    "reviewTime": "Godzina",
+    "reviewMeds": "Leki",
+    "dependsLabel": "Wymaga wcześniejszych rutyn (opcjonalne)",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "saveChanges": "Zapisz zmiany",
+    "addSubmit": "Dodaj rutynę",
+    "errors": {
+      "nameRequired": "Nazwa rutyny jest wymagana",
+      "nameMaxLength": "Maksymalnie 100 znaków",
+      "timeFormat": "Podaj godzinę w formacie HH:MM",
+      "noMedications": "Dodaj przynajmniej jeden lek do rutyny",
+      "amountRequired": "Podaj ilość dla każdego leku"
+    }
+  },
+  "routineStatus": {
+    "draft": "Szkic",
+    "approved": "Zatwierdzona",
+    "paused": "Wstrzymana"
+  },
+  "outcome": {
+    "took": "Przyjęte",
+    "not_taken": "Nieprzyjęte",
+    "unclear": "Niejasna odpowiedź",
+    "no_answer": "Brak odpowiedzi",
+    "pending": "Zaplanowane"
+  },
+  "wardDeactivate": {
+    "title": "Dezaktywować podopiecznego?",
+    "description": "{{name}} zniknie z dashboardu, a system nie będzie do niego dzwonił. Historia połączeń zostaje zachowana.",
+    "cancel": "Anuluj",
+    "confirm": "Dezaktywuj",
+    "successToast": "Podopieczny zdezaktywowany"
+  },
+  "wardEdit": {
+    "title": "Edytuj podopiecznego",
+    "description": "Zmiana numeru dotyczy nowych połączeń — historia zostaje bez zmian.",
+    "fullNameLabel": "Imię i nazwisko",
+    "phoneLabel": "Telefon",
+    "phoneHint": "Numer zostanie zapisany w formacie +48… (E.164)",
+    "tzLabel": "Strefa czasowa",
+    "cancel": "Anuluj",
+    "save": "Zapisz zmiany",
+    "successToast": "Dane podopiecznego zaktualizowane"
+  },
+  "wardDetail": {
+    "pageTitle": "OpiekunAI — Podopieczny",
+    "backToList": "Wróć do listy",
+    "loading": "Ładowanie podopiecznego",
+    "loadErrorTitle": "Nie udało się pobrać danych podopiecznego",
+    "notFound": "Nie znaleziono podopiecznego",
+    "todayBadge": "Dziś {{took}}/{{total}}",
+    "weekBadge": "Ostatnie 7 dni: {{pct}}%",
+    "callNow": "Zadzwoń teraz",
+    "edit": "Edytuj",
+    "deactivate": "Dezaktywuj",
+    "testCallResult": "Połączenie testowe zakończone: {{outcome}}",
+    "noOutcome": "brak wyniku",
+    "loadingRoutines": "Ładowanie rutyn",
+    "loadingCalls": "Ładowanie połączeń",
+    "tabRoutines": "Rutyny",
+    "tabCalls": "Połączenia",
+    "upcomingTitle": "Nadchodzące połączenia",
+    "upcomingDescription": "Zaplanowane według zatwierdzonych rutyn",
+    "attemptNo": "Próba nr {{number}}",
+    "scheduledBadge": "Zaplanowane",
+    "routinesTitle": "Rutyny",
+    "routinesDescription": "Zatwierdzone rutyny są planowane do połączeń",
+    "addRoutine": "Dodaj rutynę",
+    "routinesEmpty": "Ten podopieczny nie ma jeszcze rutyn. Dodaj pierwszą rutynę, aby OpiekunAI zaczął dzwonić.",
+    "callsEmpty": "Brak połączeń — historia pojawi się po pierwszym telefonie.",
+    "callsTitle": "Historia połączeń",
+    "callsDescription": "Kliknij połączenie, aby zobaczyć transkrypcję",
+    "attemptLower": "próba {{number}}",
+    "durationSec": "{{number}} s"
+  },
+  "callDetail": {
+    "pageTitle": "OpiekunAI — Połączenie",
+    "backToWard": "Wróć do podopiecznego",
+    "loading": "Ładowanie połączenia",
+    "errorTitle": "Nie udało się pobrać połączenia",
+    "notFound": "Nie znaleziono połączenia",
+    "noConversation": "brak rozmowy",
+    "durationSec": "{{number}} s",
+    "attemptNo": "Próba nr {{number}}",
+    "turnsTitle": "Przebieg rozmowy",
+    "turnsDescription": "Każda tura: pytanie systemu i rozpoznana odpowiedź",
+    "systemLabel": "System:",
+    "wardLabel": "Podopieczny:",
+    "turnNo": "Tura {{number}}",
+    "confidence": "pewność rozpoznania: {{pct}}%",
+    "interpreted": "zinterpretowano: {{value}}",
+    "parsedYes": "tak",
+    "parsedNo": "nie",
+    "parsedUnclear": "niejasne",
+    "transcriptTitle": "Pełny transkrypt"
+  }
+}

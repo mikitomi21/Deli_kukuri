@@ -113,28 +113,6 @@ export type ItemsPublic = {
 };
 
 /**
- * MedicationCreate
- */
-export type MedicationCreate = {
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Dosage
-     */
-    dosage: string;
-    /**
-     * Form
-     */
-    form?: string | null;
-    /**
-     * Instructions
-     */
-    instructions?: string | null;
-};
-
-/**
  * MedicationPublic
  */
 export type MedicationPublic = {
@@ -406,6 +384,90 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WardCreate
+ */
+export type WardCreate = {
+    /**
+     * Full Name
+     */
+    full_name: string;
+    /**
+     * Phone E164
+     */
+    phone_e164: string;
+    /**
+     * Tz
+     */
+    tz?: string;
+};
+
+/**
+ * WardPublic
+ */
+export type WardPublic = {
+    /**
+     * Full Name
+     */
+    full_name: string;
+    /**
+     * Phone E164
+     */
+    phone_e164: string;
+    /**
+     * Tz
+     */
+    tz?: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Active
+     */
+    active: boolean;
+    /**
+     * Caregiver Id
+     */
+    caregiver_id: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * WardUpdate
+ */
+export type WardUpdate = {
+    /**
+     * Full Name
+     */
+    full_name?: string | null;
+    /**
+     * Phone E164
+     */
+    phone_e164?: string | null;
+    /**
+     * Tz
+     */
+    tz?: string | null;
+};
+
+/**
+ * WardsPublic
+ */
+export type WardsPublic = {
+    /**
+     * Data
+     */
+    data: Array<WardPublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 export type loginLoginAccessTokenData = {
@@ -992,6 +1054,10 @@ export type medicationsReadMedicationsData = {
     path?: never;
     query?: {
         /**
+         * Q
+         */
+        q?: string | null;
+        /**
          * Skip
          */
         skip?: number;
@@ -1021,30 +1087,184 @@ export type medicationsReadMedicationsResponses = {
 
 export type medicationsReadMedicationsResponse = medicationsReadMedicationsResponses[keyof medicationsReadMedicationsResponses];
 
-export type medicationsCreateMedicationData = {
-    body: MedicationCreate;
-    path?: never;
+export type medicationsReadMedicationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
     query?: never;
-    url: '/api/v1/medications/';
+    url: '/api/v1/medications/{id}';
 };
 
-export type medicationsCreateMedicationErrors = {
+export type medicationsReadMedicationErrors = {
     /**
      * Validation Error
      */
     422: HTTPValidationError;
 };
 
-export type medicationsCreateMedicationError = medicationsCreateMedicationErrors[keyof medicationsCreateMedicationErrors];
+export type medicationsReadMedicationError = medicationsReadMedicationErrors[keyof medicationsReadMedicationErrors];
 
-export type medicationsCreateMedicationResponses = {
+export type medicationsReadMedicationResponses = {
     /**
      * Successful Response
      */
     200: MedicationPublic;
 };
 
-export type medicationsCreateMedicationResponse = medicationsCreateMedicationResponses[keyof medicationsCreateMedicationResponses];
+export type medicationsReadMedicationResponse = medicationsReadMedicationResponses[keyof medicationsReadMedicationResponses];
+
+export type wardsReadWardsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/wards/';
+};
+
+export type wardsReadWardsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsReadWardsError = wardsReadWardsErrors[keyof wardsReadWardsErrors];
+
+export type wardsReadWardsResponses = {
+    /**
+     * Successful Response
+     */
+    200: WardsPublic;
+};
+
+export type wardsReadWardsResponse = wardsReadWardsResponses[keyof wardsReadWardsResponses];
+
+export type wardsCreateWardData = {
+    body: WardCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/wards/';
+};
+
+export type wardsCreateWardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsCreateWardError = wardsCreateWardErrors[keyof wardsCreateWardErrors];
+
+export type wardsCreateWardResponses = {
+    /**
+     * Successful Response
+     */
+    200: WardPublic;
+};
+
+export type wardsCreateWardResponse = wardsCreateWardResponses[keyof wardsCreateWardResponses];
+
+export type wardsDeleteWardData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/wards/{id}';
+};
+
+export type wardsDeleteWardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsDeleteWardError = wardsDeleteWardErrors[keyof wardsDeleteWardErrors];
+
+export type wardsDeleteWardResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type wardsDeleteWardResponse = wardsDeleteWardResponses[keyof wardsDeleteWardResponses];
+
+export type wardsReadWardData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/wards/{id}';
+};
+
+export type wardsReadWardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsReadWardError = wardsReadWardErrors[keyof wardsReadWardErrors];
+
+export type wardsReadWardResponses = {
+    /**
+     * Successful Response
+     */
+    200: WardPublic;
+};
+
+export type wardsReadWardResponse = wardsReadWardResponses[keyof wardsReadWardResponses];
+
+export type wardsUpdateWardData = {
+    body: WardUpdate;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/wards/{id}';
+};
+
+export type wardsUpdateWardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type wardsUpdateWardError = wardsUpdateWardErrors[keyof wardsUpdateWardErrors];
+
+export type wardsUpdateWardResponses = {
+    /**
+     * Successful Response
+     */
+    200: WardPublic;
+};
+
+export type wardsUpdateWardResponse = wardsUpdateWardResponses[keyof wardsUpdateWardResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

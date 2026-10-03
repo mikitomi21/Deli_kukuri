@@ -18,6 +18,8 @@ import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutWardsWardIdRouteImport } from './routes/_layout/wards/$wardId'
+import { Route as LayoutWardsWardIdCallsCallIdRouteImport } from './routes/_layout/wards/$wardId/calls/$callId'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -63,6 +65,17 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutWardsWardIdRoute = LayoutWardsWardIdRouteImport.update({
+  id: '/wards/$wardId',
+  path: '/wards/$wardId',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutWardsWardIdCallsCallIdRoute =
+  LayoutWardsWardIdCallsCallIdRouteImport.update({
+    id: '/calls/$callId',
+    path: '/calls/$callId',
+    getParentRoute: () => LayoutWardsWardIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -73,6 +86,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
+  '/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -83,6 +98,8 @@ export interface FileRoutesByTo {
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
+  '/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +112,8 @@ export interface FileRoutesById {
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/wards/$wardId': typeof LayoutWardsWardIdRouteWithChildren
+  '/_layout/wards/$wardId/calls/$callId': typeof LayoutWardsWardIdCallsCallIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +126,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/items'
     | '/settings'
+    | '/wards/$wardId'
+    | '/wards/$wardId/calls/$callId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -117,6 +138,8 @@ export interface FileRouteTypes {
     | '/items'
     | '/settings'
     | '/'
+    | '/wards/$wardId'
+    | '/wards/$wardId/calls/$callId'
   id:
     | '__root__'
     | '/_layout'
@@ -128,6 +151,8 @@ export interface FileRouteTypes {
     | '/_layout/items'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/wards/$wardId'
+    | '/_layout/wards/$wardId/calls/$callId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,14 +228,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/wards/$wardId': {
+      id: '/_layout/wards/$wardId'
+      path: '/wards/$wardId'
+      fullPath: '/wards/$wardId'
+      preLoaderRoute: typeof LayoutWardsWardIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/wards/$wardId/calls/$callId': {
+      id: '/_layout/wards/$wardId/calls/$callId'
+      path: '/calls/$callId'
+      fullPath: '/wards/$wardId/calls/$callId'
+      preLoaderRoute: typeof LayoutWardsWardIdCallsCallIdRouteImport
+      parentRoute: typeof LayoutWardsWardIdRoute
+    }
   }
 }
+
+interface LayoutWardsWardIdRouteChildren {
+  LayoutWardsWardIdCallsCallIdRoute: typeof LayoutWardsWardIdCallsCallIdRoute
+}
+
+const LayoutWardsWardIdRouteChildren: LayoutWardsWardIdRouteChildren = {
+  LayoutWardsWardIdCallsCallIdRoute: LayoutWardsWardIdCallsCallIdRoute,
+}
+
+const LayoutWardsWardIdRouteWithChildren =
+  LayoutWardsWardIdRoute._addFileChildren(LayoutWardsWardIdRouteChildren)
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutWardsWardIdRoute: typeof LayoutWardsWardIdRouteWithChildren
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -218,6 +269,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutWardsWardIdRoute: LayoutWardsWardIdRouteWithChildren,
 }
 
 const LayoutRouteWithChildren =

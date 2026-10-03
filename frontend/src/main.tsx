@@ -12,6 +12,7 @@ import { client } from "./client/client.gen"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
+import "./i18n"
 import { routeTree } from "./routeTree.gen"
 
 client.setConfig({

@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Suspense } from "react"
+import { useTranslation } from "react-i18next"
 
 import {
   type MedicationPublic,
@@ -15,6 +16,7 @@ import { medicationColumns } from "@/components/Admin/medicationColumns"
 import { DataTable } from "@/components/Common/DataTable"
 import PendingUsers from "@/components/Pending/PendingUsers"
 import useAuth from "@/hooks/useAuth"
+import i18n from "@/i18n"
 
 function getUsersQueryOptions() {
   return {
@@ -49,7 +51,7 @@ export const Route = createFileRoute("/_layout/admin")({
   head: () => ({
     meta: [
       {
-        title: "Admin - Kukurin Mafia",
+        title: i18n.getFixedT(null, "admin")("route.metaTitle"),
       },
     ],
   }),
@@ -95,13 +97,17 @@ function MedicationsTable() {
 }
 
 function Admin() {
+  const { t } = useTranslation("admin")
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("adminPage.usersTitle")}
+          </h1>
           <p className="text-muted-foreground">
-            Manage user accounts and permissions
+            {t("adminPage.usersDescription")}
           </p>
         </div>
         <AddUser />
@@ -109,9 +115,11 @@ function Admin() {
       <UsersTable />
       <div className="mt-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Medications</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("adminPage.medicationsTitle")}
+          </h1>
           <p className="text-muted-foreground">
-            Global drug catalog available to all caregivers in routines
+            {t("adminPage.medicationsDescription")}
           </p>
         </div>
         <AddMedication />

@@ -1,0 +1,42 @@
+{
+  "page": {
+    "title": "Ustawienia użytkownika",
+    "subtitle": "Zarządzaj ustawieniami swojego konta i preferencjami",
+    "metaTitle": "Ustawienia – FastAPI Template",
+    "tabs": {
+      "myProfile": "Mój profil",
+      "password": "Hasło",
+      "dangerZone": "Strefa ryzyka"
+    }
+  },
+  "userInformation": {
+    "title": "Dane użytkownika",
+    "fullName": "Imię i nazwisko",
+    "email": "E-mail",
+    "notAvailable": "Brak danych",
+    "emailInvalid": "Nieprawidłowy adres e-mail",
+    "updated": "Dane użytkownika zostały zaktualizowane"
+  },
+  "changePassword": {
+    "title": "Zmiana hasła",
+    "currentPassword": "Aktualne hasło",
+    "newPassword": "Nowe hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "passwordRequired": "Hasło jest wymagane",
+    "passwordMinLength": "Hasło musi mieć co najmniej 8 znaków",
+    "confirmRequired": "Potwierdzenie hasła jest wymagane",
+    "passwordsMismatch": "Hasła nie są identyczne",
+    "updateButton": "Zaktualizuj hasło",
+    "updated": "Hasło zostało zaktualizowane"
+  },
+  "deleteAccount": {
+    "title": "Usuwanie konta",
+    "description": "Trwale usuń swoje konto i wszystkie powiązane dane."
+  },
+  "deleteConfirmation": {
+    "trigger": "Usuń konto",
+    "title": "Wymagane potwierdzenie",
+    "description": "Wszystkie dane Twojego konta zostaną <0>trwale usunięte.</0> Jeśli jesteś pewien, kliknij <1>„Potwierdź”</1>, aby kontynuować. Tej operacji nie można cofnąć.",
+    "deleted": "Twoje konto zostało pomyślnie usunięte"
+  }
+}
