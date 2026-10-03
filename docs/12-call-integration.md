@@ -6,8 +6,9 @@ The branch also includes `origin/main` through `cd173e6`, retaining medication
 editing/deletion, routine payload mapping and API mode as the default. The shared
 API client is regenerated from the combined backend schema. Local frontend `.env`
 overrides remain ignored; use `frontend/.env.example` for configuration.
-Each call uses a separate child process with the ward's name, timezone and
-medications from the approved routine. The gateway authenticates backend
+Each call uses a separate child process with the ward's name, timezone,
+medications from the approved routine and its planned administration hour
+(`time_of_day`, forwarded as `scheduled_time`). The gateway authenticates backend
 requests and Twilio WebSocket upgrades, and persists summaries and final
 statuses through authenticated backend callbacks.
 

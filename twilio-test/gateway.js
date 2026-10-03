@@ -68,16 +68,19 @@ function createGateway({ env = process.env, spawn = fork, deliver = fetch } = {}
         !env.OPENAI_API_KEY || !env.PUBLIC_URL) {
       return res.status(503).json({ detail: "Voice provider is not configured" });
     }
-    const { task_id, to, ward_name, medications, tz } = req.body;
+    const { task_id, to, ward_name, medications, tz, scheduled_time } = req.body;
     if (!/^[0-9a-f-]{36}$/i.test(task_id || "") || !/^\+[1-9]\d{6,14}$/.test(to || "") ||
         !Array.isArray(medications) || !medications.length ||
-        !medications.every((item) => typeof item === "string" && item.length > 0)) {
+        !medications.every((item) => typeof item === "string" && item.length > 0) ||
+        (scheduled_time !== undefined && scheduled_time !== null &&
+         !/^([01]\d|2[0-3]):[0-5]\d$/.test(scheduled_time))) {
       return res.status(422).json({ detail: "Invalid call context" });
     }
     if (!calls.has(task_id)) {
       const streamKey = randomUUID();
       const child = spawn(path.join(__dirname, "call-leki.js"), ["--no-call"], {
         env: { ...env, PORT: "0", LEKI_JSON: JSON.stringify(medications),
+          PLAN_GODZINA: scheduled_time || "",
           PACJENT_IMIE: ward_name || "", PACJENT_TZ: tz || "Europe/Warsaw",
           PUBLIC_URL: `${env.PUBLIC_URL.replace(/\/$/, "")}/calls/${streamKey}`,
           SMS_TO: "", TRANSCRIPTS_DIR: env.TRANSCRIPTS_DIR || "/tmp/voice-transcripts",

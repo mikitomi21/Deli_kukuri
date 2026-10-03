@@ -93,27 +93,33 @@ test("gateway isolates call contexts, dials once and persists ordered events", a
   try {
     const base = `http://127.0.0.1:${server.address().port}`;
     const payload = { task_id: randomUUID(), to: "+48600100200", ward_name: "Ward A", tz: "Europe/Warsaw",
-      medications: ["Medication A, 5 mg (1 tablet)"] };
+      scheduled_time: "08:00", medications: ["Medication A, 5 mg (1 tablet)"] };
     const request = (body, token = "test-token") => fetch(`${base}/internal/calls`, {
       method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     assert.equal((await request(payload, "wrong")).status, 401);
     assert.equal((await request({ ...payload, to: "invalid" })).status, 422);
+    assert.equal((await request({ ...payload, task_id: randomUUID(), scheduled_time: "25:00" })).status, 422);
     assert.equal((await request(payload)).status, 201);
     assert.equal((await request(payload)).status, 201);
     assert.equal(children.length, 1);
     assert.deepEqual(JSON.parse(children[0].options.env.LEKI_JSON), payload.medications);
     assert.equal(children[0].options.env.PACJENT_IMIE, "Ward A");
+    assert.equal(children[0].options.env.PLAN_GODZINA, "08:00");
     assert.equal(children[0].options.env.SMS_TO, "");
     children[0].child.emit("message", { event: "summary", sid: "CA00200", medications: { "Medication A": 1 } });
     children[0].child.emit("message", { event: "terminal", sid: "CA00200", status: "completed", duration_sec: 34 });
     await new Promise((resolve) => setTimeout(resolve, 20));
     assert.deepEqual(events.map((event) => event.event), ["summary", "terminal"]);
-    await request({ ...payload, task_id: randomUUID(), ward_name: "Ward B", medications: ["Medication B"] });
+    await request({ ...payload, task_id: randomUUID(), ward_name: "Ward B", scheduled_time: "14:30", medications: ["Medication B"] });
     assert.equal(children.length, 2);
     assert.notEqual(children[0].options.env.PUBLIC_URL, children[1].options.env.PUBLIC_URL);
     assert.equal(children[1].options.env.PACJENT_IMIE, "Ward B");
+    assert.equal(children[1].options.env.PLAN_GODZINA, "14:30");
+    // Without a scheduled time the consultant still works, just without the hour.
+    await request({ task_id: randomUUID(), to: "+48600100200", medications: ["Medication C"] });
+    assert.equal(children[2].options.env.PLAN_GODZINA, "");
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

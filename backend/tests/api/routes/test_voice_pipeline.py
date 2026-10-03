@@ -77,6 +77,7 @@ def test_manual_call_provider_result_and_history(
     task_id = response.json()["id"]
     assert voice_pipeline[0]["to"] == "+48600100200"
     assert voice_pipeline[0]["ward_name"] == "Pipeline ward"
+    assert voice_pipeline[0]["scheduled_time"] == "12:00"
     assert voice_pipeline[0]["medications"]
     placing.place_task_call(task_id)
     assert len(voice_pipeline) == 1  # Worker replays must not dial twice.

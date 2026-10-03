@@ -26,7 +26,7 @@ def voice_provider_ready() -> bool:
             f"{settings.VOICE_SERVICE_URL.rstrip('/')}/health", timeout=2
         )
         return response.is_success and response.json().get("ready") is True
-    except httpx.HTTPError, ValueError:
+    except (httpx.HTTPError, ValueError):
         return False
 
 
@@ -50,8 +50,10 @@ def place_task_call(task_id: str) -> None:
             return
         if not settings.VOICE_SERVICE_TOKEN:
             raise RuntimeError("VOICE_SERVICE_TOKEN is not configured")
+        # These strings are read aloud by the AI consultant, so the dose must
+        # be explicit ("Medicine 5 mg, dawka: 1") — never an unexplained number.
         medications = [
-            f"{item.medication.name} {item.medication.dosage}, {item.amount_label}"
+            f"{item.medication.name} {item.medication.dosage}, dawka: {item.amount_label}"
             for item in routine.items
             if item.medication
         ]
@@ -79,6 +81,9 @@ def place_task_call(task_id: str) -> None:
                     "to": ward.phone_e164,
                     "ward_name": ward.full_name,
                     "tz": ward.tz,
+                    # Planned administration hour (routine time_of_day) so the
+                    # AI can ask closed "did you take it at HH:MM" questions.
+                    "scheduled_time": routine.time_of_day.strftime("%H:%M"),
                     "medications": medications,
                 },
                 timeout=30,
@@ -92,7 +97,7 @@ def place_task_call(task_id: str) -> None:
                 .values(twilio_call_sid=provider_call["sid"])
             )
             session.commit()
-        except httpx.HTTPError, KeyError, ValueError:
+        except (httpx.HTTPError, KeyError, ValueError):
             session.rollback()
             call = session.get(Call, call_id)
             task = session.get(CallTask, uuid.UUID(task_id))

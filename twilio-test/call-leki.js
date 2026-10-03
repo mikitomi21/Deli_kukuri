@@ -36,6 +36,10 @@ const LEKI = process.env.LEKI_JSON ? JSON.parse(process.env.LEKI_JSON) : (proces
 // Opcjonalne imię pacjenta (env PACJENT_IMIE) — tylko personalizacja pytań
 const IMIE_PACJENTA = (process.env.PACJENT_IMIE || "").trim();
 
+// Planowana pora przyjęcia leków (env PLAN_GODZINA, "HH:MM" z rutyny) — znany
+// fakt dla promptu, żeby AI pytało potwierdzająco, a nie "o której godzinie?"
+const PLAN_GODZINA = (process.env.PLAN_GODZINA || "").trim();
+
 // Barge-in (przerywanie AI jak w asystentach głosowych): po ilu ms CIĄGŁEGO
 // głosu rozmówcy podczas wypowiedzi AI uciąć AI. Krótkie dźwięki tła (szum,
 // kaszlnięcie) nie przerywają. 0 wyłącza barge-in.
@@ -284,17 +288,44 @@ function buildInstructions() {
     minute: "2-digit"
   }).format(new Date());
 
-  return `
-Jesteś polskojęzycznym asystentem telefonicznym AI. Dzwonisz do pacjenta, żeby zbadać,
-czy przyjął dzisiejsze dawki swoich leków. Twoim celem jest zebrać odpowiedzi o WSZYSTKICH
-lekach z listy, a potem uprzejmie zakończyć rozmowę.
+  const oGodzinie = PLAN_GODZINA ? ` o godz. ${PLAN_GODZINA}` : "";
+  const poraFakt = PLAN_GODZINA
+    ? `Planowa pora przyjęcia dzisiejszych dawek: ${PLAN_GODZINA}.`
+    : `Planowa pora przyjęcia nie jest podana — pytaj o dzisiejszą dawkę bez podawania godziny.`;
 
-Leki do odpytania (i wyłącznie te):
+  return `
+Jesteś polskojęzycznym asystentem telefonicznym AI. Dzwonisz do pacjenta o planowanej
+porze przyjmowania leków, żeby potwierdzić, czy przyjął dzisiejszą dawkę. Twoim celem
+jest zebrać odpowiedź o WSZYSTKICH lekach z listy, a potem uprzejmie się pożegnać
+i zakończyć rozmowę.
+
+FAKTY, KTÓRE ZNASZ (masz je z systemu — NIGDY o nie nie pytaj):
+${poraFakt}
+Leki i dawki do potwierdzenia (i wyłącznie te):
 ${listaLekow}
+
+NIGDY nie pytaj „o której godzinie", „jakiej dawki" ani „jakie leki przyjmuje Pan" —
+te dane znasz i podajesz je sam w pytaniach. Pytasz wyłącznie potwierdzająco, pytaniami
+zamkniętymi, na które odpowiedź brzmi tak albo nie.
 
 ${pacjent}
 
 Rozmowa odbywa się: ${teraz} (czas polski).
+
+Przebieg rozmowy:
+1. Przedstaw się: „Dzień dobry, dzwoni asystent AI przypominający o lekach. Czy mogę
+   potwierdzić z Panem/Panią dzisiejsze leki?" — i czekaj na odpowiedź.
+2. Potem zapytaj o KAŻDY lek z listy, po kolei, JEDNO pytanie naraz, według wzoru:
+   „Czy przyjął Pan / przyjęła Pani dzisiaj${oGodzinie} lek {nazwa} {dawka}?" —
+   nazwę, postać i dawkę bierz z listy powyżej (np. „...dzisiaj${oGodzinie} lek
+   Ibuprofen 200 mg, dawka: 2?"). Po każdym pytaniu czekaj na odpowiedź.
+3. Jeśli pacjent potwierdzi przyjęcie — odnotuj to i przejdź do kolejnego leku.
+4. Jeśli pacjent powie, że przyjął lek o innej porze albo w innej dawce — nie poprawiaj
+   go i nie dyskutuj; przyjmij to jako informację i zanotuj dokładnie w podsumowaniu.
+5. Jeśli pacjent nie przyjął dawki — możesz raz, delikatnie zapytać, czy zamierza ją
+   jeszcze przyjąć. Nie namawiaj ponownie.
+6. Odpowiedź wymijającą, niejasną albo słabo słyszalną dopytaj raz, najwyżej dwa razy.
+   Jeśli nadal nie ma jasnej odpowiedzi, uznaj lek za NIEPRZYJĘTY.
 
 Zasady rozmowy:
 - Mów zawsze po polsku, krótko i naturalnie, jak człowiek przez telefon.
@@ -304,32 +335,30 @@ Zasady rozmowy:
   swoje ostatnie pytanie albo przejdź do kolejnego.
 - Gdy rozmówca Cię przerwie w pół zdania, przestań mówić i krótko zareaguj na to, co
   powiedział — a jeśli pytanie nadal jest aktualne, dokończ je.
-- Rozmowę zacznij od przedstawienia się, np. "Dzień dobry, dzwoni asystent AI przypominający
-  o lekach. Czy mogę zapytać o dzisiejsze leki?" — i dopiero potem przechodź do pytań.
-- Zadawaj JEDNO pytanie naraz i czekaj na odpowiedź.
-- Zapytaj po kolei o KAŻDY lek z listy, np. "Czy przyjął lub przyjęła Pan(i) dzisiaj lek X?".
-  Jeśli rozmówca mówi, że brał lek, możesz dopytać o porę (rano, wieczorem).
-- Odpowiedź wymijającą, niejasną albo słabo słyszalną dopytaj raz, najwyżej dwa razy.
-  Jeśli nadal nie ma jasnej odpowiedzi, uznaj lek za NIEPRZYJĘTY.
-- Nie wymyślaj leków spoza listy i nie doradzaj w dawkowaniu — pytania o dawki odsyłaj
-  do lekarza lub ulotki.
+- Nie wymyślaj leków spoza listy i nie doradzaj w dawkowaniu ani w medycynie — pytania
+  o zmianę dawkowania odsyłaj do lekarza lub ulotki.
 - Jeśli rozmówca zmienia temat, uprzejmie wróć do pytań o leki.
 - Jeśli pod telefonem nie jest pacjent albo rozmówca prosi o zakończenie: podziękuj,
   pożegnaj się i wywołaj end_call (leki bez potwierdzenia oznacz jako nieprzyjęte,
   a sytuację opisz w podsumowaniu).
 
-Zakończenie rozmowy:
-- Gdy masz jasną odpowiedź o każdym leku (albo rozmowa musi się skończyć): poinformuj
-  rozmówcę, że zebrałeś już wszystkie potrzebne informacje, podziękuj mu za rozmowę
-  i życz mu wszystkiego dobrego, dobierając życzenie do pory dnia z nagłówka
-  (rano i do popołudnia: "życzę udanego dnia", wieczorem i nocą: "życzę spokojnej
-  nocy, dobranoc"). Np.: "Zebrałem już wszystkie potrzebne informacje. Dziękuję bardzo
-  za rozmowę i życzę udanego dnia. Do widzenia!". Potem wywołaj narzędzie end_call.
-- Narzędzie end_call wywołaj DOKŁNIE RAZ, zawsze na samym końcu rozmowy, po pożegnaniu.
-- W parametrach end_call przekaż: leki (wynik dla każdego leku z listy: przyjety
-  true/false), imie (imię rozmówcy, jeśli go podać, inaczej pusty string) oraz
-  podsumowanie (2-4 zdania po polsku: kto odebrał, które leki przyjął, które nie,
-  jak przebiegała rozmowa).
+ZAKOŃCZENIE ROZMOWY — OBOWIĄZKOWE, W DOKŁADNIE TEJ KOLEJNOŚCI:
+1. Powiedz rozmówcy, że zebrałeś już wszystkie potrzebne informacje.
+2. Podziękuj mu za rozmowę.
+3. Dodaj życzenie dopasowane do pory dnia z nagłówka (rano i do popołudnia: „życzę
+   udanego dnia", wieczorem i nocą: „życzę spokojnej nocy, dobranoc") i pożegnaj się
+   słowami „Do widzenia!".
+4. Dopiero PO wypowiedzianym na głos pożegnaniu z punktów 1-3 wywołaj narzędzie end_call.
+
+Wywołanie end_call bez uprzedniego, głośnego pożegnania jest BŁĘDEM — rozmówca usłyszy
+wtedy nagłe zerwanie połączenia. end_call wywołujesz DOKŁADNIE RAZ, zawsze na samym
+końcu rozmowy. W parametrach end_call przekaż:
+- leki — wynik dla każdego leku z listy (przyjety true/false; w uwadze zapisz szczegół,
+  np. „przyjęty o innej porze", „przyjął inną dawkę", „zamierza przyjąć później";
+  pusty string, gdy nie ma uwag),
+- imie — imię rozmówcy, jeśli go podał, inaczej pusty string,
+- podsumowanie — 2-4 zdania po polsku: kto odebrał, które leki przyjęto w planowej
+  porze i dawce, które nie, jak przebiegała rozmowa.
 `.trim();
 }
 
@@ -337,8 +366,9 @@ const END_CALL_TOOL = {
   type: "function",
   name: "end_call",
   description:
-    "Zakończ rozmowę telefoniczną. Wywołaj dokładnie raz, po pożegnaniu się " +
-    "z rozmówcą, gdy masz już odpowiedzi o wszystkich lekach albo rozmowa musi się skończyć.",
+    "Zakończ rozmowę telefoniczną. Wywołaj DOKŁNIE RAZ i dopiero PO głośnym " +
+    "pożegnaniu się z rozmówcą (podziękowanie, życzenie, „Do widzenia!”), gdy masz " +
+    "już odpowiedzi o wszystkich lekach albo rozmowa musi się skończyć.",
   parameters: {
     type: "object",
     properties: {
@@ -357,6 +387,12 @@ const END_CALL_TOOL = {
               type: "boolean",
               description:
                 "true — pacjent potwierdził przyjęcie dawki, false — brak potwierdzenia"
+            },
+            uwaga: {
+              type: "string",
+              description:
+                "Szczegół, jeśli nie jest zwykłym potwierdzeniem, np. „przyjęty o innej " +
+                "porze”, „przyjął inną dawkę”, „zamierza przyjąć później”; pusty string gdy brak"
             }
           },
           required: ["nazwa", "przyjety"]
@@ -384,14 +420,25 @@ function summarizeFromAi(args) {
   const fromAi = Array.isArray(args.leki) ? args.leki : [];
 
   const lekiWynik = {};
+  const uwagi = {};
   for (const lek of LEKI) {
-    const match = fromAi.find(
-      (item) =>
-        item &&
-        typeof item.nazwa === "string" &&
-        item.nazwa.trim().toLowerCase().includes(lek.toLowerCase())
-    );
+    const match = fromAi.find((item) => {
+      if (!item || typeof item.nazwa !== "string") {
+        return false;
+      }
+      const nazwa = item.nazwa.trim().toLowerCase();
+      if (!nazwa) {
+        return false;
+      }
+      // Tolerate the model echoing the name shorter or longer than the list entry.
+      return nazwa.includes(lek.toLowerCase()) || lek.toLowerCase().includes(nazwa);
+    });
     lekiWynik[lek] = match && match.przyjety === true ? 1 : 0;
+    const uwaga =
+      match && typeof match.uwaga === "string" ? match.uwaga.trim() : "";
+    if (uwaga) {
+      uwagi[lek] = uwaga;
+    }
   }
 
   // "USER"/"AI" to etykiety z transkrypcji, nie imiona — model potrafi je
@@ -413,6 +460,7 @@ function summarizeFromAi(args) {
   return {
     imie: imiePoprawne ? imie : "",
     leki: lekiWynik,
+    uwagi: uwagi,
     podsumowanie: String(args.podsumowanie || "").trim()
   };
 }
@@ -437,6 +485,7 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
     zapisano_o: new Date().toISOString(),
     imie: wynik.imie,
     leki: wynik.leki,
+    uwagi: wynik.uwagi || {},
     podsumowanie: wynik.podsumowanie
   };
 
@@ -450,9 +499,12 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
         `źródło: ${zrodlo}`,
         `imię: ${wynik.imie || "(nie podano)"}`,
         "leki:",
-        ...LEKI.map(
-          (lek) => `  - ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY (1)" : "NIEPRZYJĘTY (0)"}`
-        ),
+        ...LEKI.map((lek) => {
+          const status =
+            wynik.leki[lek] === 1 ? "PRZYJĘTY (1)" : "NIEPRZYJĘTY (0)";
+          const uwaga = wynik.uwagi && wynik.uwagi[lek];
+          return `  - ${lek}: ${status}${uwaga ? ` — ${uwaga}` : ""}`;
+        }),
         `podsumowanie: ${wynik.podsumowanie || "(brak)"}`
       ].join("\n") +
       "\n"
@@ -546,13 +598,18 @@ async function runFallbackSummarize(callSid, transcriptFile) {
               "leków. Zwróć WYŁĄCZNIE obiekt JSON postaci: {\"imie\": \"<imię rozmówcy — tylko " +
               "jeśli rozmówca je WYPOWIEDZIAŁ w rozmowie; NIGDY etykiety USER/AI z transkrypcji; " +
               "pusty string gdy brak>\", \"leki\": {\"<lek>\": 0 lub 1 dla każdego leku z listy, 0 gdy " +
-              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<2-4 zdania po polsku>\"}."
+              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<2-4 zdania po polsku>\"}. " +
+              "Jeśli podano planową porę przyjęcia, uwzględnij w podsumowaniu, czy dawki " +
+              "przyjęto w planowej porze i dawce."
           },
           {
             role: "user",
             content:
               "Leki: " +
               LEKI.join(", ") +
+              (PLAN_GODZINA
+                ? "\nPlanowa pora przyjęcia: " + PLAN_GODZINA
+                : "") +
               "\n\nTranskrypcja:\n" +
               turny.join("\n")
           }
@@ -727,7 +784,8 @@ wss.on("connection", (twilioWs) => {
 
     openaiWs.send(JSON.stringify(sessionUpdate));
 
-    console.log("⚙️ Konfiguracja OpenAI wysłana (rozmowa o lekach: " + LEKI.join(", ") + ")");
+    console.log("⚙️ Konfiguracja OpenAI wysłana (rozmowa o lekach: " + LEKI.join(", ") +
+      (PLAN_GODZINA ? ", plan: " + PLAN_GODZINA : "") + ")");
   });
 
   // ----------------------------------------------------------
@@ -953,7 +1011,8 @@ wss.on("connection", (twilioWs) => {
     console.log("========== AI KONCZY ROZMOWE ==========");
     console.log("Imię:", wynik.imie || "(nie podano)");
     for (const lek of LEKI) {
-      console.log(`  ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY" : "NIEPRZYJĘTY"}`);
+      const uwaga = wynik.uwagi && wynik.uwagi[lek];
+      console.log(`  ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY" : "NIEPRZYJĘTY"}${uwaga ? ` — ${uwaga}` : ""}`);
     }
     console.log("Podsumowanie:", wynik.podsumowanie || "(brak)");
     console.log("=======================================");
