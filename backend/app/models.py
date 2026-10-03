@@ -1,8 +1,8 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 from typing import Annotated
 
-from pydantic import EmailStr, StringConstraints
+from pydantic import AliasChoices, EmailStr, StringConstraints
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -198,6 +198,123 @@ class WardPublic(WardBase):
 
 class WardsPublic(SQLModel):
     data: list[WardPublic]
+    count: int
+
+
+# Rutyny — status bramkuje schedulowanie: materializer planuje tylko `approved`
+# (docs/03-data-model.md, docs/04-user-stories.md C2–C4).
+# MVP: "daily"; zarezerwowany format tygodniowy "MO,TU,..." (post-MVP).
+DAYS_MASK_PATTERN = r"^daily$|^(MO|TU|WE|TH|FR|SA|SU)(,(MO|TU|WE|TH|FR|SA|SU)){0,6}$"
+DaysMask = Annotated[str, StringConstraints(pattern=DAYS_MASK_PATTERN, max_length=64)]
+
+
+class RoutineBase(SQLModel):
+    name: str = Field(min_length=1, max_length=255)
+    time_of_day: time
+    # W API pole nazywa się `days` (docs/05); kolumna zostaje `days_mask` (docs/03).
+    # Dyrektywa niżej: SQLModel.Field nie typuje validation_alias/serialization_alias
+    days_mask: DaysMask = Field(  # type: ignore
+        default="daily",
+        validation_alias=AliasChoices("days", "days_mask"),
+        serialization_alias="days",
+    )
+
+
+class RoutineItemCreate(SQLModel):
+    medication_id: uuid.UUID
+    amount_label: str = Field(min_length=1, max_length=255)
+
+
+# Properties to receive via API on creation: items + dependencies w jednym payloadzie
+class RoutineCreate(RoutineBase):
+    items: list[RoutineItemCreate] = []
+    depends_on: list[uuid.UUID] = []
+
+
+# Properties to receive via API on update, all are optional.
+# Edycja (nawet pauzowanej) cofa status do `draft` — obsługa w routingu (C4, D10).
+class RoutineUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    time_of_day: time | None = None
+    days_mask: DaysMask | None = Field(  # type: ignore
+        default=None,
+        validation_alias=AliasChoices("days", "days_mask"),
+        serialization_alias="days",
+    )
+    items: list[RoutineItemCreate] | None = None
+    depends_on: list[uuid.UUID] | None = None
+
+
+# Database model, database table inferred from class name
+class Routine(RoutineBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    status: str = Field(default="draft", max_length=32)
+    ward_id: uuid.UUID = Field(
+        foreign_key="ward.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+    items: list[RoutineItem] = Relationship(cascade_delete=True)
+
+
+class RoutineItem(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    routine_id: uuid.UUID = Field(
+        foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    medication_id: uuid.UUID = Field(foreign_key="medication.id", nullable=False)
+    amount_label: str = Field(min_length=1, max_length=255)
+    medication: Medication | None = Relationship()
+
+
+# `dependent_routine` wymaga `prerequisite_routine` — walidacja przy approve,
+# runtime enforcement podczas rozmowy = post-MVP (docs/03-data-model.md).
+class RoutineDependency(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    dependent_routine_id: uuid.UUID = Field(
+        foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    prerequisite_routine_id: uuid.UUID = Field(
+        foreign_key="routine.id", nullable=False, ondelete="CASCADE", index=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "dependent_routine_id",
+            "prerequisite_routine_id",
+            name="uq_routine_dependency",
+        ),
+    )
+
+
+class RoutineItemPublic(SQLModel):
+    id: uuid.UUID
+    medication_id: uuid.UUID
+    amount_label: str
+    medication: MedicationPublic | None = None
+
+
+# Zależność w odpowiedzi: id, nazwa i status wymaganej rutyny
+# (chip „wymaga: Rano 9:00" w kreatorze, docs/04-user-stories.md C3)
+class RoutineDependencyPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    status: str
+
+
+class RoutinePublic(RoutineBase):
+    id: uuid.UUID
+    ward_id: uuid.UUID
+    status: str
+    items: list[RoutineItemPublic] = []
+    depends_on: list[RoutineDependencyPublic] = []
+    created_at: datetime | None = None
+
+
+class RoutinesPublic(SQLModel):
+    data: list[RoutinePublic]
     count: int
 
 
