@@ -25,29 +25,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Wyślij pliki compose na VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "compose.yml,compose.deploy.yml"
-          target: /opt/dzwonilek
-          overwrite: true
-      - name: Pull obrazu (${{ inputs.image_tag }}) i restart stacka
-        uses: appleboy/ssh-action@v1.2.4
+      - name: Deploy (scp compose + pull tag + restart stacka)
+        run: bash devops/deploy.sh
         env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           IMAGE_TAG: ${{ inputs.image_tag }}
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          envs: IMAGE_TAG
-          script: |
-            set -e
-            cd /opt/dzwonilek
-            # ściągnij wybrany tag i otaguj go lokalnie jako latest (compose ma latest na sztywno)
-            docker pull docker.io/timosch99/dzwonilek:${IMAGE_TAG}
-            docker tag docker.io/timosch99/dzwonilek:${IMAGE_TAG} docker.io/timosch99/dzwonilek:latest
-            docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d --remove-orphans
-            docker image prune -f
