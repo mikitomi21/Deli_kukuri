@@ -27,23 +27,43 @@ import {
 } from "@/lib/routineHistory"
 
 // Presentation only — labels come from the wards namespace (outcome.* /
-// wardDetail.historyNoCall), same split as RoutineStatusBadge.
+// wardDetail.historyNoCall), same split as RoutineStatusBadge. The tinted
+// background is the main signal: within one day each routine reads on its
+// own (morning taken = green, evening missed = red), not just whole days.
 const statusMeta: Record<
   HistoryCellStatus,
-  { icon: typeof CircleCheck; iconClassName: string }
+  { icon: typeof CircleCheck; iconClassName: string; cellClassName: string }
 > = {
   took: {
     icon: CircleCheck,
     iconClassName: "text-emerald-600 dark:text-emerald-400",
+    cellClassName: "bg-success/15",
   },
-  not_taken: { icon: X, iconClassName: "text-destructive" },
+  not_taken: {
+    icon: X,
+    iconClassName: "text-destructive",
+    cellClassName: "bg-destructive/10",
+  },
   unclear: {
     icon: CircleHelp,
     iconClassName: "text-amber-600 dark:text-amber-400",
+    cellClassName: "bg-warning/15",
   },
-  no_answer: { icon: PhoneOff, iconClassName: "text-muted-foreground" },
-  pending: { icon: Clock, iconClassName: "text-muted-foreground" },
-  none: { icon: Minus, iconClassName: "text-muted-foreground/50" },
+  no_answer: {
+    icon: PhoneOff,
+    iconClassName: "text-muted-foreground",
+    cellClassName: "bg-muted",
+  },
+  pending: {
+    icon: Clock,
+    iconClassName: "text-muted-foreground",
+    cellClassName: "bg-muted/50",
+  },
+  none: {
+    icon: Minus,
+    iconClassName: "text-muted-foreground/50",
+    cellClassName: "",
+  },
 }
 
 const weekdayFormat = (date: Date) =>
@@ -65,9 +85,10 @@ function statusLabel(status: HistoryCellStatus, t: (key: string) => string) {
 }
 
 /**
- * Ward detail calendar: last 7 days as columns, the ward's approved routines
- * as rows, every cell showing whether the call reported the medication as
- * taken. Read-only summary — the full transcript lives in the calls tab.
+ * Ward detail calendar: a week back and a week ahead as day columns, the
+ * ward's approved routines as rows; every cell tinted with that day's call
+ * outcome (taken / missed / unclear / planned). Read-only summary — the
+ * full transcript lives in the calls tab.
  */
 export function RoutineHistoryCalendar({
   wardId,
@@ -87,13 +108,14 @@ export function RoutineHistoryCalendar({
     refetchInterval: 5000,
   })
 
-  // Today is the last column — reveal it instead of the empty past on load.
+  // Center today's column: outcomes to the left, the plan ahead to the right.
   const scrollerRef = useRef<HTMLDivElement>(null)
   const ready = !wardPending && !callsPending
   useEffect(() => {
-    if (ready && scrollerRef.current) {
-      scrollerRef.current.scrollLeft = scrollerRef.current.scrollWidth
-    }
+    if (!ready) return
+    scrollerRef.current
+      ?.querySelector<HTMLElement>("[data-today='true']")
+      ?.scrollIntoView({ inline: "center", block: "nearest" })
   }, [ready])
 
   if (wardPending || callsPending) {
@@ -111,8 +133,8 @@ export function RoutineHistoryCalendar({
   }
 
   const routines = ward?.routines ?? []
-  const history = buildRoutineHistory({ routines, calls, tz })
-  const todayKey = ` · ${t("wardDetail.historyToday")}`
+  const history = buildRoutineHistory({ routines, calls, tz, futureDays: 7 })
+  const todaySuffix = ` · ${t("wardDetail.historyToday")}`
 
   return (
     <Card>
@@ -131,13 +153,14 @@ export function RoutineHistoryCalendar({
           </p>
         ) : (
           <div ref={scrollerRef} className="overflow-x-auto">
-            <div className="grid min-w-[980px] grid-cols-7 gap-2">
+            <div className="flex w-max gap-2">
               {history.days.map((day, dayIndex) => (
                 <div
                   key={day.key}
+                  data-today={day.isToday || undefined}
                   className={cn(
-                    "flex flex-col gap-1 rounded-lg border p-2",
-                    day.isToday && "border-primary/50 bg-primary/5",
+                    "flex w-36 shrink-0 flex-col gap-1 rounded-lg border p-2",
+                    day.isToday && "border-primary/50",
                   )}
                 >
                   <div
@@ -147,7 +170,7 @@ export function RoutineHistoryCalendar({
                     )}
                   >
                     {weekdayFormat(new Date(`${day.key}T12:00:00`))}
-                    {day.isToday && todayKey}
+                    {day.isToday && todaySuffix}
                   </div>
                   <ul className="flex flex-col gap-1">
                     {history.rows.map(({ routine, statuses }) => {
@@ -156,10 +179,15 @@ export function RoutineHistoryCalendar({
                         <li
                           key={routine.id}
                           title={`${routine.name} · ${statusLabel(status, t)}`}
-                          className="flex items-center gap-1.5 rounded-md px-1 py-0.5 text-xs"
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs",
+                            statusMeta[status].cellClassName,
+                          )}
                         >
                           <HistoryStatusIcon status={status} />
-                          <span className="min-w-0 truncate">{routine.name}</span>
+                          <span className="min-w-0 truncate font-medium">
+                            {routine.name}
+                          </span>
                           <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
                             {routine.time_of_day}
                           </span>

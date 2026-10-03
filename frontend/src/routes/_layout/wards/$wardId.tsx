@@ -266,6 +266,7 @@ function WardTabs({
       <TabsContent value="routines" className="mt-4">
         <RoutinesSection
           wardId={wardId}
+          tz={tz}
           addRoutineOpen={addRoutineOpen}
           onAddRoutineOpenChange={onAddRoutineOpenChange}
         />
@@ -448,10 +449,12 @@ function WardMedicationsSection({ wardId }: { wardId: string }) {
 
 function RoutinesSection({
   wardId,
+  tz,
   addRoutineOpen,
   onAddRoutineOpenChange,
 }: {
   wardId: string
+  tz: string
   addRoutineOpen: boolean
   onAddRoutineOpenChange: (open: boolean) => void
 }) {
@@ -600,6 +603,9 @@ function RoutinesSection({
           )}
         </CardContent>
       </Card>
+
+      {/* Intake calendar at the bottom: outcomes behind, the plan ahead */}
+      <RoutineHistoryCalendar wardId={wardId} tz={tz} />
     </div>
   )
 }

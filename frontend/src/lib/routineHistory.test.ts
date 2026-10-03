@@ -108,15 +108,53 @@ describe("buildRoutineHistory", () => {
     ])
   })
 
-  it("reports none for routines without calls in the window", () => {
+  it("reports none in the past but planned (pending) today without calls", () => {
     const history = buildRoutineHistory({
       routines: [makeRoutine("r-9")],
       calls: [],
       tz: TZ,
       now: NOW,
     })
-    expect(history.rows[0].statuses.every((status) => status === "none")).toBe(
-      true,
-    )
+    expect(history.rows[0].statuses).toEqual([
+      "none",
+      "none",
+      "none",
+      "none",
+      "none",
+      "none",
+      "pending",
+    ])
+  })
+
+  it("extends ahead as planned days for approved routines only", () => {
+    const history = buildRoutineHistory({
+      routines: [makeRoutine("r-1"), makeRoutine("r-paused", "paused")],
+      calls: [],
+      tz: TZ,
+      now: NOW,
+      futureDays: 7,
+    })
+    expect(history.days).toHaveLength(14)
+    expect(history.todayIndex).toBe(6)
+    const [approved, paused] = history.rows
+    expect(approved.statuses).toEqual([
+      "none",
+      "none",
+      "none",
+      "none",
+      "none",
+      "none",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+    ])
+    // Paused routines are not scheduled — no plan today or ahead.
+    expect(paused.statuses[6]).toBe("none")
+    expect(paused.statuses[13]).toBe("none")
   })
 })
