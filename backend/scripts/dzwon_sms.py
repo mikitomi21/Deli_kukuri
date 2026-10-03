@@ -11,11 +11,12 @@ wysyła transkrypcję do OpenAI, które dla każdego leku wywnioskowuje z tekstu
 Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS z szablonem
 Content Template (SMS_TEMPLATE_SID: "Pan/i {{1}} nie wzięła następujących
 leków: {{2}}") z pełnego konta Twilio (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/
-SMS_FROM) na numer podany jako TRZECI argument — {{1}} = imię powiedziane
-w rozmowie (wyciągnięte przez GPT z transkrypcji) lub 4. argument CLI,
-{{2}} = lista niezażytych leków (przecinki, "!" na końcu). Jeśli wszystkie
-leki mają 1 — SMS nie jest wysyłany. Gdyby wysyłka SMS padła, skrypt robi
-fallback: połączenie głosowe odczytujące listę niezażytych leków (TTS).
+SMS_FROM) na numer podany jako TRZECI argument — {{1}} = imię (domyślnie
+"Jan"; GPT podstawia imię powiedziane w rozmowie, a 4. argument CLI
+nadpisuje oba), {{2}} = lista niezażytych leków (przecinki, "!" na końcu).
+Jeśli wszystkie leki mają 1 — SMS nie jest wysyłany. Gdyby wysyłka SMS
+padła, skrypt robi fallback: połączenie głosowe odczytujące listę
+niezażytych leków (TTS).
 
 Użycie:
     python dzwon_sms.py <numer-dokad> <numer-od> <numer-odbiorcy-sms>
@@ -420,17 +421,14 @@ def main():
     imie = str(wynik.get("imie") or "").strip()
     if len(sys.argv) > 3:
         imie = sys.argv[3]
-    if imie:
-        print(f"Imię rozmówcy (do szablonu): {imie}")
-    else:
-        print("(rozmówca nie podał imienia — pole {{1}} w SMS będzie puste)")
+    # imię domyślne, gdy rozmówca nic nie powiedział albo GPT zwrócił numer zamiast imienia
+    if not imie or any(ch.isdigit() for ch in imie):
+        imie = "Jan"
+    print(f"Imię do szablonu: {imie}")
     if not niewziete:
         print("\nWszystkie leki zażyte (1) — SMS nie wysłany.")
         return
-    if imie:
-        body = f"Pan {imie} nie wziął następujących leków: {', '.join(niewziete)}"
-    else:
-        body = f"Nie wzięto następujących leków: {', '.join(niewziete)}"
+    body = f"Pan {imie} nie wziął następujących leków: {', '.join(niewziete)}"
     try:
         msg = send_sms(env, sms_to, imie, niewziete)
         print(f"\nSMS (szablon {SMS_TEMPLATE_SID}) wysłany do {sms_to}")
