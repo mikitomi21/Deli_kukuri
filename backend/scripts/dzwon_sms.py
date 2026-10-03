@@ -9,10 +9,11 @@ wysyła transkrypcję do OpenAI, które dla każdego leku wywnioskowuje z tekstu
 0 (nieprzyjęty) lub 1 (przyjęty) i zwraca JSON {"nazwa_leku": 0|1}.
 
 Na końcu: jeśli choć jeden lek ma 0, skrypt wysyła SMS z szablonem
-Content Template (SMS_TEMPLATE_SID — stała treść "Pan Jakub nie wziął
-wszystkich leków") z pełnego konta Twilio (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/
-SMS_FROM) na numer podany jako TRZECI argument. Jeśli wszystkie leki mają 1 —
-SMS nie jest wysyłany. Gdyby wysyłka SMS padła (np. brak KYC), skrypt robi
+Content Template (SMS_TEMPLATE_SID: "Pan/i {{1}} nie wzięła następujących
+leków: {{2}}") z pełnego konta Twilio (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/
+SMS_FROM) na numer podany jako TRZECI argument — {{1}} = PACJENT,
+{{2}} = lista niezażytych leków (przecinki, "!" na końcu). Jeśli wszystkie
+leki mają 1 — SMS nie jest wysyłany. Gdyby wysyłka SMS padła, skrypt robi
 fallback: połączenie głosowe odczytujące listę niezażytych leków (TTS).
 
 Użycie:
@@ -41,9 +42,12 @@ LEKI = ["ibuprofen", "paracetamol", "aspiryna"]
 # ... po odpowiedzi na ostatnie pytanie kończy rozmowę.
 ROZMOWA = [f"Czy brała lub brał Pan(i) dzisiaj lek {lek}?" for lek in LEKI]
 
-# Szablon Content Template (konsola: Messaging → Content Template Builder)
-# używany do SMS-a z wynikiem — stała treść: "Pan Jakub nie wziął wszystkich leków"
-SMS_TEMPLATE_SID = "HX976048a53e1a278363c1ca50c7ec49a6"
+# Szablon Content Template (konsola: Messaging → Content Template Builder):
+# "Pan/i {{1}} nie wzięła następujących leków: {{2}}"
+SMS_TEMPLATE_SID = "HX5902b613312fa5e9275702207a99966b"
+
+# Imię wstawiane do szablonu jako {{1}}
+PACJENT = "Jakub"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_FILE = os.path.join(SCRIPT_DIR, ".env")
@@ -224,11 +228,12 @@ def leki_niewziete(wynik):
     return out
 
 
-def send_sms(env, to_number):
-    """Wysyła SMS z szablonem Content Template (stała treść z konsoli:
-    "Pan Jakub nie wziął wszystkich leków") z pełnego konta Twilio
-    (SMS_ACCOUNT_SID/SMS_AUTH_TOKEN/SMS_FROM). Szablon omija blokadę
-    własnej treści SMS (błędy 572006/20003 na koncie bez KYC)."""
+def send_sms(env, to_number, imie, niewziete):
+    """Wysyła SMS z szablonem Content Template ("Pan/i {{1}} nie wzięła
+    następujących leków: {{2}}") z pełnego konta Twilio (SMS_ACCOUNT_SID/
+    SMS_AUTH_TOKEN/SMS_FROM). Szablon omija blokadę własnej treści SMS
+    (błędy 572006/20003 na koncie bez KYC)."""
+    variables = {"1": imie, "2": ", ".join(niewziete) + "!"}
     sid = env.get("SMS_ACCOUNT_SID") or env["TWILIO_ACCOUNT_SID"]
     token = env.get("SMS_AUTH_TOKEN") or env["TWILIO_AUTH_TOKEN"]
     from_number = env.get("SMS_FROM") or env["CALL_FROM"]
@@ -244,6 +249,7 @@ def send_sms(env, to_number):
             "To": to_number,
             "From": from_number,
             "ContentSid": SMS_TEMPLATE_SID,
+            "ContentVariables": json.dumps(variables, ensure_ascii=False),
         }
     ).encode()
     try:
@@ -411,9 +417,9 @@ def main():
     if not niewziete:
         print("\nWszystkie leki zażyte (1) — SMS nie wysłany.")
         return
-    body = "Pan Jakub nie zażył: " + ", ".join(niewziete)  # lista do konsoli i fallbacku głosowego
+    body = f"Pan {PACJENT} nie wziął następujących leków: {', '.join(niewziete)}"  # tekst do fallbacku głosowego
     try:
-        msg = send_sms(env, sms_to)
+        msg = send_sms(env, sms_to, PACJENT, niewziete)
         print(f"\nSMS (szablon {SMS_TEMPLATE_SID}) wysłany do {sms_to}")
         print(f"  SID: {msg['sid']}, status: {msg['status']}")
         print(f"  Niezażyte leki: {', '.join(niewziete)}")
