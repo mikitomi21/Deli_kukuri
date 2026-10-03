@@ -9,22 +9,23 @@
 ## 0. Jak działa pipeline (`.github/workflows/deploy-vps.yml`)
 
 ```
-PR (zawsze): test
-Run workflow na main (ręcznie po merge'u): test → build → push → deploy
+PR: test (ci.yml)
+merge do main: test → build → push (ci.yml, automat)
+deploy: osobny, RĘCZNY workflow (deploy-vps.yml → Run workflow)
    │
    ▼
-┌─────────┐   ┌──────────────┐   ┌────────────────┐   ┌─────────────────┐
-│  test   │──▶│ build & push │──▶│ deploy (SSH)   │──▶│ VPS: pull + up  │
-│ backend │   │ obraz do     │   │ scp compose    │   │ migracje + seed │
-│ frontend│   │ Docker Hub   │   │ pull + restart │   │ (prestart.sh)   │
-└─────────┘   └──────────────┘   └────────────────┘   └─────────────────┘
+┌─────────┐   ┌──────────────┐        ┌────────────────────┐   ┌────────────────┐
+│  test   │──▶│ build & push │        │ deploy (SSH)       │──▶│ VPS: pull + up │
+│ backend │   │ obraz do     │  ────▶ │ scp compose +      │   │ migracje +     │
+│ frontend│   │ Docker Hub   │ ręcznie│ pull + restart     │   │ seed           │
+└─────────┘   └──────────────┘        └────────────────────┘   └────────────────┘
 ```
 
 - **test** — pytest backendu (z prawdziwym Postgresem i Mailpitem z compose) + build frontendu (typecheck + bundling).
 - **build & push** — jeden obraz `backend` (frontend jest wbudowany w obraz — `backend/Dockerfile`), tagowany `latest` + `sha`. Buduje się **na runnerze GitHuba**, nie na VPS — 1 vCPU/2 GB by tego nie udźwignął.
 - **deploy** — SCP plików compose na VPS, potem `docker compose pull backend` + `up -d` (migracje + seed odpala `prestart.sh` w komendzie kontenera — wszystko idempotentne). Na serwerze nie ma repo ani gita.
 
-Trigger: **pull_request** odpala job `test`; **Run workflow** (na gałęzi `main`, po merge'u) odpala pełny łańcuch test → build → push → deploy.
+Dwa workflow: **ci.yml** — `pull_request` odpala job `test`, `merge do main` (push) odpala test → build → push obrazu; **deploy-vps.yml** — tylko ręczny (Run workflow), wdraża wybrany tag obrazu na VPS.
 
 ---
 
@@ -143,9 +144,9 @@ Po propagacji (`dig +short dzwonilek.pl`) Traefik sam wystawi certyfikat Let's E
 
 ## 2. Pierwszy deploy
 
-Po zrobieniu kroków 1.x i dodaniu sekretów z sekcji 3 odpal workflow ręcznie:
-**GitHub → Actions → Deploy to VPS → Run workflow** (albo zwykły push do `main`.
-CI wyśle pliki compose, ściągnie obraz i podniesie stack.
+Po zrobieniu kroków 1.x i dodaniu sekretów z sekcji 3:
+**GitHub → Actions → Deploy to VPS → Run workflow** (image_tag: `latest`).
+Deploy wyśle pliki compose, ściągnie obraz i podniesie stack.
 
 Na VPS możesz obserwować:
 
@@ -189,18 +190,13 @@ używa (serwer ciągnie obraz z publicznego repo anonimowo, patrz krok 1.6).
 git checkout -b feature/x
 # ...zmiany...
 git push origin feature/x        # PR → odpalają się testy (backend + frontend)
-# merge do main
-# GitHub → Actions → "Deploy to VPS" → Run workflow (gałąź: main)  ← deploy ręczny
+# merge do main → automatycznie: test → build → push obrazu
+# DEPLOY: Actions → "Deploy to VPS" → Run workflow (image_tag: latest)
 ```
 
-**Rollback** do poprzedniej wersji (obrazy tagowane są SHA-m):
-
-```bash
-ssh root@185.193.114.6
-cd /opt/dzwonilek
-DOCKER_IMAGE_BACKEND=docker.io/timosch99/dzwonilek:<POPRZEDNI-SHA> \
-  docker compose --env-file .env -f compose.yml -f compose.deploy.yml up -d backend
-```
+**Rollback** do poprzedniej wersji (obrazy tagowane są SHA-m): GitHub → Actions →
+**Deploy to VPS** → Run workflow → `image_tag`: `<POPRZEDNI-SHA>` (skopiuj z runu
+Test & Build). Deploy sam przełączy stack na ten obraz — bez SSH-owania.
 
 **Wyłączenie / status:**
 
