@@ -4,7 +4,7 @@
   },
   "addWard": {
     "title": "Dodaj podopiecznego",
-    "description": "Podaj imię i nazwisko oraz numer telefonu — OpiekunAI będzie dzwonił na ten numer w godzinach rutyn.",
+    "description": "Podaj imię i nazwisko oraz numer telefonu — DzwoniLek będzie dzwonił na ten numer w godzinach rutyn.",
     "fullNameLabel": "Imię i nazwisko",
     "fullNamePlaceholder": "np. Halina Kowalska",
     "phoneLabel": "Telefon",
@@ -60,7 +60,7 @@
     "nameLabel": "Nazwa",
     "namePlaceholder": "np. Poranne leki",
     "timeLabel": "Godzina",
-    "timeHint": "O tej godzinie OpiekunAI zadzwoni do podopiecznego.",
+    "timeHint": "O tej godzinie DzwoniLek zadzwoni do podopiecznego.",
     "pickMeds": "Wybierz leki z katalogu i podaj ilość",
     "reviewName": "Nazwa",
     "reviewTime": "Godzina",
@@ -109,7 +109,7 @@
     "successToast": "Dane podopiecznego zaktualizowane"
   },
   "wardDetail": {
-    "pageTitle": "OpiekunAI — Podopieczny",
+    "pageTitle": "DzwoniLek — Podopieczny",
     "backToList": "Wróć do listy",
     "loading": "Ładowanie podopiecznego",
     "loadErrorTitle": "Nie udało się pobrać danych podopiecznego",
@@ -132,7 +132,7 @@
     "routinesTitle": "Rutyny",
     "routinesDescription": "Zatwierdzone rutyny są planowane do połączeń",
     "addRoutine": "Dodaj rutynę",
-    "routinesEmpty": "Ten podopieczny nie ma jeszcze rutyn. Dodaj pierwszą rutynę, aby OpiekunAI zaczął dzwonić.",
+    "routinesEmpty": "Ten podopieczny nie ma jeszcze rutyn. Dodaj pierwszą rutynę, aby DzwoniLek zaczął dzwonić.",
     "callsEmpty": "Brak połączeń — historia pojawi się po pierwszym telefonie.",
     "callsTitle": "Historia połączeń",
     "callsDescription": "Kliknij połączenie, aby zobaczyć transkrypcję",
@@ -140,7 +140,7 @@
     "durationSec": "{{number}} s"
   },
   "callDetail": {
-    "pageTitle": "OpiekunAI — Połączenie",
+    "pageTitle": "DzwoniLek — Połączenie",
     "backToWard": "Wróć do podopiecznego",
     "loading": "Ładowanie połączenia",
     "errorTitle": "Nie udało się pobrać połączenia",

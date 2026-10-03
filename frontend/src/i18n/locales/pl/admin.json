@@ -1,6 +1,6 @@
 {
   "route": {
-    "metaTitle": "Administrator — Kukurin Mafia"
+    "metaTitle": "Administrator — DzwoniLek"
   },
   "adminPage": {
     "usersTitle": "Użytkownicy",
@@ -85,13 +85,13 @@
     "instructions": "Instrukcja"
   },
   "dashboard": {
-    "metaTitle": "OpiekunAI — Dzisiaj",
+    "metaTitle": "DzwoniLek — Dzisiaj",
     "summaryAllGood": "Wszystko OK",
     "summaryNeedsAttention": "Wymaga uwagi",
     "loadingWards": "Ładowanie podopiecznych",
     "loadFailedTitle": "Nie udało się pobrać danych",
     "emptyTitle": "Nie masz jeszcze podopiecznych",
-    "emptyDescription": "Dodaj pierwszego podopiecznego, aby OpiekunAI mógł dzwonić i przypominać o lekach.",
+    "emptyDescription": "Dodaj pierwszego podopiecznego, aby DzwoniLek mógł dzwonić i przypominać o lekach.",
     "addWard": "Dodaj podopiecznego",
     "todayTitle": "Dzisiaj",
     "todaySubtitle": "Rutyny i wyniki połączeń Twoich podopiecznych",

@@ -4,14 +4,12 @@ import { initReactI18next } from "react-i18next"
 import adminEn from "./locales/en/admin.json"
 import authEn from "./locales/en/auth.json"
 import commonEn from "./locales/en/common.json"
-import itemsEn from "./locales/en/items.json"
 import routesEn from "./locales/en/routes.json"
 import settingsEn from "./locales/en/settings.json"
 import wardsEn from "./locales/en/wards.json"
 import adminPl from "./locales/pl/admin.json"
 import authPl from "./locales/pl/auth.json"
 import commonPl from "./locales/pl/common.json"
-import itemsPl from "./locales/pl/items.json"
 import routesPl from "./locales/pl/routes.json"
 import settingsPl from "./locales/pl/settings.json"
 import wardsPl from "./locales/pl/wards.json"
@@ -38,7 +36,6 @@ i18n.use(initReactI18next).init({
       common: commonPl,
       auth: authPl,
       admin: adminPl,
-      items: itemsPl,
       wards: wardsPl,
       settings: settingsPl,
       routes: routesPl,
@@ -47,7 +44,6 @@ i18n.use(initReactI18next).init({
       common: commonEn,
       auth: authEn,
       admin: adminEn,
-      items: itemsEn,
       wards: wardsEn,
       settings: settingsEn,
       routes: routesEn,

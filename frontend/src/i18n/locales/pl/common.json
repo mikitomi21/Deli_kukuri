@@ -1,7 +1,6 @@
 {
   "nav": {
     "dashboard": "Pulpit",
-    "items": "Elementy",
     "admin": "Administrator"
   },
   "actions": {
@@ -29,6 +28,6 @@
     "lastPage": "Przejdź do ostatniej strony"
   },
   "logo": {
-    "brand": "Kukurin Mafia"
+    "brand": "DzwoniLek"
   }
 }

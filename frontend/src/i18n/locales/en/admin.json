@@ -1,6 +1,6 @@
 {
   "route": {
-    "metaTitle": "Admin — Kukurin Mafia"
+    "metaTitle": "Admin — DzwoniLek"
   },
   "adminPage": {
     "usersTitle": "Users",
@@ -85,13 +85,13 @@
     "instructions": "Instructions"
   },
   "dashboard": {
-    "metaTitle": "OpiekunAI — Today",
+    "metaTitle": "DzwoniLek — Today",
     "summaryAllGood": "All good",
     "summaryNeedsAttention": "Needs attention",
     "loadingWards": "Loading wards",
     "loadFailedTitle": "Failed to load data",
     "emptyTitle": "You have no wards yet",
-    "emptyDescription": "Add your first ward so OpiekunAI can call and remind them about their medications.",
+    "emptyDescription": "Add your first ward so DzwoniLek can call and remind them about their medications.",
     "addWard": "Add ward",
     "todayTitle": "Today",
     "todaySubtitle": "Routines and call results for your wards",

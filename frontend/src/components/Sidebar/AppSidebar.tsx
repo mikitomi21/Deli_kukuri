@@ -1,4 +1,4 @@
-import { Briefcase, Home, Users } from "lucide-react"
+import { Home, Users } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
@@ -19,7 +19,6 @@ export function AppSidebar() {
 
   const baseItems: Item[] = [
     { icon: Home, title: t("nav.dashboard"), path: "/" },
-    { icon: Briefcase, title: t("nav.items"), path: "/items" },
   ]
 
   const items = currentUser?.is_superuser

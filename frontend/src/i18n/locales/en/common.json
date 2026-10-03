@@ -1,7 +1,6 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "items": "Items",
     "admin": "Admin"
   },
   "actions": {
@@ -29,6 +28,6 @@
     "lastPage": "Go to last page"
   },
   "logo": {
-    "brand": "Kukurin Mafia"
+    "brand": "DzwoniLek"
   }
 }

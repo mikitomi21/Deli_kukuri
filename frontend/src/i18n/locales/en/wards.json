@@ -4,7 +4,7 @@
   },
   "addWard": {
     "title": "Add ward",
-    "description": "Enter the full name and phone number — OpiekunAI will call this number at routine times.",
+    "description": "Enter the full name and phone number — DzwoniLek will call this number at routine times.",
     "fullNameLabel": "Full name",
     "fullNamePlaceholder": "e.g. Halina Kowalska",
     "phoneLabel": "Phone",
@@ -60,7 +60,7 @@
     "nameLabel": "Name",
     "namePlaceholder": "e.g. Morning medications",
     "timeLabel": "Time",
-    "timeHint": "OpiekunAI will call the ward at this time.",
+    "timeHint": "DzwoniLek will call the ward at this time.",
     "pickMeds": "Pick medications from the catalog and enter the amount",
     "reviewName": "Name",
     "reviewTime": "Time",
@@ -109,7 +109,7 @@
     "successToast": "Ward details have been updated"
   },
   "wardDetail": {
-    "pageTitle": "OpiekunAI — Ward",
+    "pageTitle": "DzwoniLek — Ward",
     "backToList": "Back to list",
     "loading": "Loading ward",
     "loadErrorTitle": "Failed to load ward details",
@@ -132,7 +132,7 @@
     "routinesTitle": "Routines",
     "routinesDescription": "Approved routines are scheduled for calls",
     "addRoutine": "Add routine",
-    "routinesEmpty": "This ward has no routines yet. Add the first routine so OpiekunAI can start calling.",
+    "routinesEmpty": "This ward has no routines yet. Add the first routine so DzwoniLek can start calling.",
     "callsEmpty": "No calls yet — history will appear after the first phone call.",
     "callsTitle": "Call history",
     "callsDescription": "Click a call to see the transcript",
@@ -140,7 +140,7 @@
     "durationSec": "{{number}} s"
   },
   "callDetail": {
-    "pageTitle": "OpiekunAI — Call",
+    "pageTitle": "DzwoniLek — Call",
     "backToWard": "Back to ward",
     "loading": "Loading call",
     "errorTitle": "Failed to load call",
