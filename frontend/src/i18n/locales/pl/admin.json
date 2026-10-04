@@ -87,6 +87,7 @@
   "dashboard": {
     "metaTitle": "DzwoniLek — Dzisiaj",
     "summaryAllGood": "Wszystko OK",
+    "summaryPlanned": "0/{{total}} · zaplanowane",
     "summaryNeedsAttention": "Wymaga uwagi",
     "loadingWards": "Ładowanie podopiecznych",
     "loadFailedTitle": "Nie udało się pobrać danych",
@@ -95,7 +96,6 @@
     "addWard": "Dodaj podopiecznego",
     "todayTitle": "Dzisiaj",
     "todaySubtitle": "Rutyny i wyniki połączeń Twoich podopiecznych",
-    "scheduledBadge": "{{total}} zaplanowanych",
     "statWards": "Podopieczni",
     "statTakenToday": "Przyjęte dzisiaj",
     "statRemainingToday": "Pozostało dziś",

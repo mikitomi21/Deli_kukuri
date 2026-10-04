@@ -87,6 +87,7 @@
   "dashboard": {
     "metaTitle": "DzwoniLek — Today",
     "summaryAllGood": "All good",
+    "summaryPlanned": "0/{{total}} · planned",
     "summaryNeedsAttention": "Needs attention",
     "loadingWards": "Loading wards",
     "loadFailedTitle": "Failed to load data",
@@ -95,7 +96,6 @@
     "addWard": "Add ward",
     "todayTitle": "Today",
     "todaySubtitle": "Routines and call results for your wards",
-    "scheduledBadge": "{{total}} scheduled",
     "statWards": "Wards",
     "statTakenToday": "Taken today",
     "statRemainingToday": "Remaining today",
