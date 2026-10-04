@@ -131,3 +131,93 @@
     cursor: pointer;
   }
 }
+
+@layer components {
+  .landing-glow {
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--primary) 22%, transparent),
+      transparent
+    );
+  }
+
+  .landing-grid {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 56px 56px;
+    background-position: center -1px;
+    mask-image: radial-gradient(ellipse at top, black 30%, transparent 75%);
+  }
+
+  .landing-wave-bar {
+    transform-origin: center;
+    animation: landing-wave 1.1s ease-in-out infinite;
+  }
+
+  .landing-ring {
+    animation: landing-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .landing-flow-dot {
+    animation: landing-flow 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}
+
+@keyframes landing-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes landing-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-flow {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has([data-landing]) {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-wave-bar,
+  .landing-ring,
+  .landing-flow-dot {
+    animation: none;
+  }
+}

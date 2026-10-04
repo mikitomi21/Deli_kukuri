@@ -64,6 +64,7 @@ class VoiceEvent(SQLModel):
     event: Literal["summary", "terminal"]
     sid: str
     medications: dict[str, Literal[0, 1]] = {}
+    health_concerns: list[str] = []
     transcript: str = ""
     notes: str = ""
     status: Literal["completed", "busy", "failed", "no-answer", "canceled"] | None = (
@@ -125,7 +126,10 @@ def _prepare_sms_notification(
     )
     call_failed = event.event == "terminal" and event.status != "completed"
     has_issue = (
-        result.outcome != CallOutcome.TOOK or missing_response or call_failed
+        result.outcome != CallOutcome.TOOK
+        or missing_response
+        or call_failed
+        or bool(event.health_concerns)
     )
     if preference == "issues_only" and not has_issue:
         return None
@@ -140,27 +144,27 @@ def _prepare_sms_notification(
         logger.warning("Medication SMS skipped because Twilio SMS settings are missing")
         return None
 
-    lines = ["Podsumowanie rozmowy", f"Podopieczny: {ward.full_name}"]
+    lines = ["DzwoniLek — raport z połączenia", f"Podopieczny: {ward.full_name}"]
     if event.notes.strip():
         lines.extend(["", event.notes.strip()[:500]])
-    problems = []
-    if event.status and event.status != "completed":
+    else:
         status_messages = {
-            "no-answer": "Nie uzyskano odpowiedzi na połączenie.",
-            "busy": "Linia była zajęta.",
+            "no-answer": "Nikt nie odebrał połączenia.",
+            "busy": "Połączenie nie doszło do skutku, ponieważ linia była zajęta.",
             "failed": "Połączenie nie powiodło się.",
             "canceled": "Połączenie zostało przerwane.",
         }
-        problems.append(status_messages.get(event.status, "Połączenie nie powiodło się."))
-    if missed:
-        problems.append(f"Niepotwierdzone przyjęcie: {', '.join(missed)}.")
-    if missing_response and not missed:
-        problems.append("Nie uzyskano potwierdzenia przyjęcia wszystkich leków.")
-    if not problems:
-        problems.append("Brak wykrytych problemów.")
-    lines.extend(["", "Wykryte problemy:"])
-    lines.extend(f"• {problem}" for problem in problems)
-    lines.extend(["", "DzwoniLek"])
+        if event.status and event.status != "completed":
+            summary = status_messages.get(event.status, "Połączenie nie powiodło się.")
+        elif missed:
+            summary = f"Nie potwierdzono przyjęcia: {', '.join(missed)}."
+        elif missing_response:
+            summary = "Nie uzyskano potwierdzenia przyjęcia wszystkich leków."
+        elif result.outcome == CallOutcome.TOOK:
+            summary = "Wszystkie leki zostały przyjęte. Wszystko jest w porządku."
+        else:
+            summary = "Nie udało się ustalić, czy wszystkie leki zostały przyjęte."
+        lines.extend(["", summary])
 
     return EscalationEvent(
         call_result_id=result.id,

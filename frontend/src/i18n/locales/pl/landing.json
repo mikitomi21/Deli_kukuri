@@ -1,0 +1,178 @@
+{
+  "metaTitle": "DzwoniLek — spokojna głowa, zwykły telefon",
+  "nav": {
+    "label": "Sekcje strony",
+    "how": "Jak to działa",
+    "call": "Rozmowa",
+    "medications": "Leki",
+    "peace": "Spokój",
+    "logIn": "Zaloguj się",
+    "signUp": "Załóż konto",
+    "dashboard": "Przejdź do pulpitu"
+  },
+  "hero": {
+    "eyebrow": "Asystent głosowy, który pamięta o lekach",
+    "titleLine1": "Spokojna głowa.",
+    "titleLine2": "Zwykły telefon.",
+    "lead": "DzwoniLek dzwoni do Twojej mamy, taty, babci czy dziadka dokładnie wtedy, gdy przychodzi pora na leki. Pyta, czy zostały przyjęte, a Ty widzisz odpowiedź w aplikacji. Bez smartfona i bez instalowania czegokolwiek po ich stronie.",
+    "primaryCta": "Zacznij za darmo",
+    "secondaryCta": "Zobacz, jak to działa",
+    "trust": {
+      "anyPhone": "Działa na każdym telefonie",
+      "noApp": "Senior niczego nie instaluje",
+      "openFda": "Wiedza o lekach z openFDA"
+    },
+    "address": "dzwonilek.pl",
+    "screenshotAlt": "Pulpit DzwoniLek z listą podopiecznych, najbliższymi połączeniami i podsumowaniem dnia",
+    "incomingLabel": "Połączenie przychodzące",
+    "incomingCaller": "DzwoniLek",
+    "incomingText": "Dzień dobry, pani Halino. Czy przyjęła pani już poranny Acard?",
+    "acceptedLabel": "Przyjęte",
+    "acceptedText": "Rano 9:00 · Acard 75 mg"
+  },
+  "why": {
+    "eyebrow": "Dlaczego DzwoniLek",
+    "statement": "Większość przypominajek zakłada, że senior ma smartfon, zainstaluje aplikację, zapamięta hasło i nie przeoczy powiadomienia. A przecież wystarczy po prostu zadzwonić.",
+    "points": {
+      "phone": {
+        "title": "Zwykły telefon wystarczy",
+        "text": "Stacjonarny albo komórkowy z przyciskami. Jeśli dzwoni, to działa."
+      },
+      "noSetup": {
+        "title": "Zero instalacji i haseł",
+        "text": "Po stronie bliskiej osoby nie ma niczego do konfiguracji. Wszystko ustawiasz Ty."
+      },
+      "voice": {
+        "title": "Rozmowa zamiast ekranu",
+        "text": "Krótkie, życzliwe pytanie o konkretny lek. Wystarczy odpowiedzieć „tak” albo „nie”."
+      }
+    }
+  },
+  "how": {
+    "eyebrow": "Jak to działa",
+    "title": "Pięć prostych kroków do spokojnej głowy",
+    "lead": "Wszystko konfigurujesz raz, w kilka minut. Potem DzwoniLek pracuje codziennie, o stałych porach.",
+    "stepLabel": "Krok {{number}}",
+    "steps": {
+      "ward": {
+        "title": "Dodaj bliską osobę",
+        "text": "Wpisz imię, nazwisko i numer telefonu. To wszystko, czego potrzebujemy, żeby zadzwonić do mamy, taty czy dziadka.",
+        "alt": "Okno dodawania podopiecznego z imieniem, numerem telefonu i ustawieniami powiadomień SMS"
+      },
+      "routine": {
+        "title": "Ułóż rutynę leków",
+        "text": "Wybierz godzinę, dodaj leki z katalogu i podaj ilość, np. jedna tabletka albo pół. Rano, w południe, wieczorem, tyle rutyn, ile trzeba.",
+        "alt": "Kreator rutyny z wybranymi lekami Acard i Amlor oraz ich ilością"
+      },
+      "schedule": {
+        "title": "Zatwierdź, a resztę zrobimy my",
+        "text": "Zatwierdzone rutyny same układają się w harmonogram połączeń. Widzisz, kiedy zadzwonimy następnym razem.",
+        "alt": "Lista zatwierdzonych rutyn i nadchodzących połączeń podopiecznego"
+      },
+      "call": {
+        "title": "DzwoniLek dzwoni o czasie",
+        "text": "Asystent głosowy pyta o każdy lek po kolei i rozumie odpowiedź. Nikt nie odebrał? Spróbujemy ponownie.",
+        "alt": "Przebieg rozmowy: pytania asystenta o leki i rozpoznane odpowiedzi podopiecznej"
+      },
+      "result": {
+        "title": "Ty po prostu wiesz",
+        "text": "Kalendarz pokazuje każdy dzień i każdą rutynę: przyjęte, pominięte albo bez odpowiedzi. Bez dzwonienia z pytaniem „mamo, wzięłaś już?”.",
+        "alt": "Tygodniowy kalendarz przyjmowania leków z oznaczeniem przyjętych i nieprzyjętych dawek"
+      }
+    }
+  },
+  "call": {
+    "eyebrow": "Rozmowa",
+    "title": "Brzmi jak troska, nie jak automat",
+    "lead": "Krótko, wyraźnie i spokojnie. Asystent pyta o konkretny lek i dawkę, a odpowiedź „tak, przed chwilą” rozumie tak samo dobrze jak zwykłe „tak”.",
+    "points": {
+      "retry": "Nie odebrano? Kolejna próba po kwadransie.",
+      "transcript": "Każda rozmowa zapisana z transkrypcją i podsumowaniem.",
+      "sms": "Gdy lek nie został przyjęty, dostajesz SMS."
+    },
+    "phone": {
+      "caller": "DzwoniLek",
+      "status": "Rozmowa w toku",
+      "listening": "Asystent słucha",
+      "assistant": "Asystent",
+      "ward": "Pani Halina",
+      "transcriptLabel": "Przebieg przykładowej rozmowy"
+    },
+    "lines": {
+      "greeting": "Dobry wieczór, pani Halino. Tu DzwoniLek, dzwonię w sprawie wieczornych leków.",
+      "askFirst": "Czy przyjęła pani dziś Glucophage 850 mg, jedną tabletkę?",
+      "answerFirst": "Tak, przed chwilą, po kolacji.",
+      "askSecond": "Świetnie. A Magne B6, też jedną tabletkę?",
+      "answerSecond": "Tak, razem z tamtym.",
+      "goodbye": "Dziękuję. Życzę spokojnego wieczoru!"
+    },
+    "results": {
+      "label": "Wynik rozmowy",
+      "first": "Glucophage 850 mg",
+      "second": "Magne B6",
+      "taken": "Przyjęte",
+      "confidence": "pewność {{value}}%"
+    }
+  },
+  "medications": {
+    "eyebrow": "Baza leków",
+    "title": "Wiesz, co bierze. I na co uważać.",
+    "lead": "Dane o lekach pobieramy z openFDA, oficjalnej bazy amerykańskiej agencji leków. Długie, techniczne ulotki AI zamienia w krótkie podsumowanie po polsku: to, co naprawdę ważne dla opiekuna.",
+    "pipeline": {
+      "label": "Jak powstaje podsumowanie leku",
+      "source": {
+        "title": "openFDA",
+        "text": "Oficjalna dokumentacja rejestracyjna"
+      },
+      "ai": {
+        "title": "Analiza AI",
+        "text": "Wyciąga najistotniejsze informacje"
+      },
+      "summary": {
+        "title": "Podsumowanie",
+        "text": "Krótko, jasno i po polsku"
+      }
+    },
+    "aiAlt": "Podsumowanie AI leku Acard: czym jest, jak go brać, kiedy przyjmować i najważniejsze ostrzeżenia",
+    "fdaAlt": "Oryginalna dokumentacja leku z bazy openFDA w języku angielskim",
+    "listAlt": "Lista wszystkich leków przyjmowanych przez podopieczną, z dawkami i porami",
+    "listCaption": "Wszystkie leki bliskiej osoby w jednym miejscu, z dawką i porą przyjmowania.",
+    "disclaimer": "Podsumowania mają charakter informacyjny i nie zastępują porady lekarza ani farmaceuty."
+  },
+  "peace": {
+    "eyebrow": "Spokój",
+    "title": "Spokój, który widać w kalendarzu",
+    "lead": "Jeden rzut oka wystarczy, żeby wiedzieć, czy wszystko jest w porządku. A jeśli nie jest, dowiesz się od razu.",
+    "points": {
+      "history": {
+        "title": "Historia tydzień po tygodniu",
+        "text": "Każda rutyna i każdy dzień w jednym widoku."
+      },
+      "calls": {
+        "title": "Każda rozmowa pod ręką",
+        "text": "Wynik, czas trwania, transkrypcja i podsumowanie."
+      },
+      "alerts": {
+        "title": "SMS, gdy coś jest nie tak",
+        "text": "Sam decydujesz: zawsze, tylko przy problemie albo wcale."
+      }
+    },
+    "calendarAlt": "Kalendarz przyjmowania leków z wynikami rozmów z ostatniego tygodnia",
+    "callsAlt": "Historia połączeń z wynikiem dotyczącym leków dla każdej rozmowy",
+    "sms": {
+      "label": "SMS od DzwoniLek",
+      "time": "teraz",
+      "text": "Halina Kowalska: wieczorne leki (20:00) nieprzyjęte. Warto zadzwonić i sprawdzić."
+    }
+  },
+  "cta": {
+    "title": "Daj sobie spokojną głowę",
+    "lead": "Załóż konto, dodaj bliską osobę i ułóż pierwszą rutynę. Pierwszy telefon może zadzwonić jeszcze dziś.",
+    "primary": "Załóż konto",
+    "secondary": "Mam już konto"
+  },
+  "footer": {
+    "tagline": "Asystent głosowy przypominający o lekach.",
+    "copyright": "DzwoniLek © {{year}}"
+  }
+}

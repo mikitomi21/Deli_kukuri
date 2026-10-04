@@ -1,0 +1,178 @@
+{
+  "metaTitle": "DzwoniLek — peace of mind, ordinary phone",
+  "nav": {
+    "label": "Page sections",
+    "how": "How it works",
+    "call": "The call",
+    "medications": "Medications",
+    "peace": "Peace of mind",
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "dashboard": "Go to dashboard"
+  },
+  "hero": {
+    "eyebrow": "A voice assistant that remembers the meds",
+    "titleLine1": "Peace of mind.",
+    "titleLine2": "Ordinary phone.",
+    "lead": "DzwoniLek calls your mom, dad, grandma or grandpa exactly when it's time for their medication. It asks whether they took it, and you see the answer in the app. No smartphone and nothing to install on their side.",
+    "primaryCta": "Get started for free",
+    "secondaryCta": "See how it works",
+    "trust": {
+      "anyPhone": "Works with any phone",
+      "noApp": "Nothing for them to install",
+      "openFda": "Drug knowledge from openFDA"
+    },
+    "address": "dzwonilek.pl",
+    "screenshotAlt": "DzwoniLek dashboard with the list of care recipients, upcoming calls and today's summary",
+    "incomingLabel": "Incoming call",
+    "incomingCaller": "DzwoniLek",
+    "incomingText": "Good morning, Halina. Have you taken your morning Acard yet?",
+    "acceptedLabel": "Taken",
+    "acceptedText": "Morning 9:00 · Acard 75 mg"
+  },
+  "why": {
+    "eyebrow": "Why DzwoniLek",
+    "statement": "Most reminder apps assume an older person owns a smartphone, installs an app, remembers a password and never misses a notification. But all it really takes is a phone call.",
+    "points": {
+      "phone": {
+        "title": "An ordinary phone is enough",
+        "text": "A landline or a mobile with buttons. If it rings, it works."
+      },
+      "noSetup": {
+        "title": "No installs, no passwords",
+        "text": "There is nothing to set up on your loved one's side. You configure everything."
+      },
+      "voice": {
+        "title": "A conversation, not a screen",
+        "text": "A short, kind question about a specific medication. A simple \"yes\" or \"no\" is all it takes."
+      }
+    }
+  },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "Five simple steps to peace of mind",
+    "lead": "You set everything up once, in a few minutes. From then on DzwoniLek works every day, on schedule.",
+    "stepLabel": "Step {{number}}",
+    "steps": {
+      "ward": {
+        "title": "Add your loved one",
+        "text": "Enter their name and phone number. That's all we need to call your mom, dad or grandpa.",
+        "alt": "Add care recipient dialog with name, phone number and SMS notification settings"
+      },
+      "routine": {
+        "title": "Build a medication routine",
+        "text": "Pick a time, add medications from the catalog and set the amount, e.g. one tablet or a half. Morning, noon, evening: as many routines as needed.",
+        "alt": "Routine wizard with Acard and Amlor selected along with their amounts"
+      },
+      "schedule": {
+        "title": "Approve it, we handle the rest",
+        "text": "Approved routines turn into a call schedule on their own. You always see when the next call is due.",
+        "alt": "List of approved routines and upcoming calls for a care recipient"
+      },
+      "call": {
+        "title": "DzwoniLek calls on time",
+        "text": "The voice assistant asks about each medication in turn and understands the answer. Nobody picked up? We'll try again.",
+        "alt": "Call breakdown: the assistant's questions about medications and the recognized answers"
+      },
+      "result": {
+        "title": "You simply know",
+        "text": "The calendar shows every day and every routine: taken, missed or unanswered. No more calling to ask \"Mom, did you take them yet?\".",
+        "alt": "Weekly medication calendar marking taken and missed doses"
+      }
+    }
+  },
+  "call": {
+    "eyebrow": "The call",
+    "title": "It sounds like care, not a robot",
+    "lead": "Short, clear and calm. The assistant asks about a specific medication and dose, and understands \"yes, just now\" as well as a plain \"yes\".",
+    "points": {
+      "retry": "No answer? Another attempt fifteen minutes later.",
+      "transcript": "Every call saved with a transcript and a summary.",
+      "sms": "If a medication wasn't taken, you get a text message."
+    },
+    "phone": {
+      "caller": "DzwoniLek",
+      "status": "Call in progress",
+      "listening": "Assistant is listening",
+      "assistant": "Assistant",
+      "ward": "Halina",
+      "transcriptLabel": "Sample call transcript"
+    },
+    "lines": {
+      "greeting": "Good evening, Halina. This is DzwoniLek, calling about your evening medication.",
+      "askFirst": "Have you taken Glucophage 850 mg today, one tablet?",
+      "answerFirst": "Yes, just now, after dinner.",
+      "askSecond": "Great. And Magne B6, also one tablet?",
+      "answerSecond": "Yes, together with the other one.",
+      "goodbye": "Thank you. Have a peaceful evening!"
+    },
+    "results": {
+      "label": "Call result",
+      "first": "Glucophage 850 mg",
+      "second": "Magne B6",
+      "taken": "Taken",
+      "confidence": "{{value}}% confidence"
+    }
+  },
+  "medications": {
+    "eyebrow": "Medication database",
+    "title": "Know what they take. And what to watch for.",
+    "lead": "Drug data comes from openFDA, the official database of the U.S. Food and Drug Administration. AI turns long, technical leaflets into a short, plain-language summary: what actually matters to a caregiver.",
+    "pipeline": {
+      "label": "How a medication summary is made",
+      "source": {
+        "title": "openFDA",
+        "text": "Official registration documents"
+      },
+      "ai": {
+        "title": "AI analysis",
+        "text": "Extracts the essential information"
+      },
+      "summary": {
+        "title": "Summary",
+        "text": "Short, clear and in your language"
+      }
+    },
+    "aiAlt": "AI summary of Acard: what it is, how to take it, when to take it and key warnings",
+    "fdaAlt": "Original medication documentation from the openFDA database",
+    "listAlt": "List of all medications taken by the care recipient, with doses and times",
+    "listCaption": "All of your loved one's medications in one place, with dose and time.",
+    "disclaimer": "Summaries are for information only and do not replace advice from a doctor or pharmacist."
+  },
+  "peace": {
+    "eyebrow": "Peace of mind",
+    "title": "Peace of mind you can see on a calendar",
+    "lead": "One glance is enough to know everything is fine. And if it isn't, you'll find out right away.",
+    "points": {
+      "history": {
+        "title": "Week-by-week history",
+        "text": "Every routine and every day in a single view."
+      },
+      "calls": {
+        "title": "Every call at hand",
+        "text": "Result, duration, transcript and summary."
+      },
+      "alerts": {
+        "title": "A text when something's wrong",
+        "text": "You decide: always, only on problems, or never."
+      }
+    },
+    "calendarAlt": "Medication calendar with call results from the last week",
+    "callsAlt": "Call history with the medication result for every call",
+    "sms": {
+      "label": "Text from DzwoniLek",
+      "time": "now",
+      "text": "Halina Kowalska: evening medication (20:00) not taken. Worth giving her a call."
+    }
+  },
+  "cta": {
+    "title": "Give yourself peace of mind",
+    "lead": "Create an account, add your loved one and build the first routine. The first call can ring as soon as today.",
+    "primary": "Create an account",
+    "secondary": "I already have an account"
+  },
+  "footer": {
+    "tagline": "A voice assistant that reminds about medication.",
+    "copyright": "DzwoniLek © {{year}}"
+  }
+}

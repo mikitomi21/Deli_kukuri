@@ -13,10 +13,10 @@ import { isLoggedIn } from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     if (!isLoggedIn()) {
       throw redirect({
-        to: "/login",
+        to: location.pathname === "/" ? "/welcome" : "/login",
       })
     }
   },
