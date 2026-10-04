@@ -83,33 +83,24 @@ const smsClient = twilio(
 );
 
 function buildSummarySms(wynik) {
-  const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
-  const problemy = niepotwierdzone.length
-    ? [`• Nie potwierdzono przyjęcia: ${niepotwierdzone.join(", ")}.`]
-    : ["• Brak wykrytych problemów."];
   const podsumowanie = String(wynik.podsumowanie || "").trim();
 
   return [
-    "Podsumowanie rozmowy:",
+    "DzwoniLek — raport z połączenia",
+    wynik.imie ? `Rozmówca: ${wynik.imie}` : "",
     podsumowanie || "Nie udało się przygotować podsumowania rozmowy.",
-    "",
-    "Wykryte problemy:",
-    ...problemy,
-    "",
-    "DzwoniLek"
   ]
+    .filter(Boolean)
     .join("\n");
 }
 
 async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
-  const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
-  if (niepotwierdzone.length === 0) {
-    return "Wszystkie leki zostały przyjęte. Wszystko jest w porządku.";
-  }
-
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || !transcriptFile || !fs.existsSync(transcriptFile)) {
-    return "Nie udało się wygenerować podsumowania z transkryptu.";
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
   }
 
   const turns = fs
@@ -117,7 +108,10 @@ async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
     .split("\n")
     .filter((line) => /^\[[^\]]+\] (AI|USER): /.test(line));
   if (turns.length === 0) {
-    return "Nie udało się wygenerować podsumowania z transkryptu.";
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
   }
 
   try {
@@ -134,18 +128,24 @@ async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
           {
             role: "system",
             content:
-              "Napisz krótkie, naturalne podsumowanie po polsku na podstawie pełnego " +
-              "transkryptu. Skup się na niepotwierdzonych lekach i podanym przez rozmówcę " +
-              "powodzie, jeśli taki podał. Nazwy leków znajdą się osobno w końcowej liście, " +
-              "więc nie powtarzaj ich. Jeśli powodu nie podano, napisz to wprost. Nie " +
-              "wymyślaj powodów ani nie uznawaj braku odpowiedzi za odmowę. Używaj naturalnej " +
-              "polszczyzny, poprawnej odmiany i polskich znaków. Zwróć wyłącznie JSON: " +
-              "{\"podsumowanie\": \"1-2 zdania\"}."
+              "Napisz jedno krótkie, naturalne podsumowanie po polsku na podstawie pełnego " +
+              "transkryptu i podanych statusów. Wymień, które leki rozmówca przyjął, a których " +
+              "nie przyjął lub których przyjęcia nie udało się potwierdzić. Przy nieprzyjętym " +
+              "leku podaj powód wyłącznie wtedy, gdy rozmówca wyraźnie go podał. Odróżniaj " +
+              "odmowę od braku potwierdzenia. Uwzględnij dolegliwości i złe samopoczucie " +
+              "zgłoszone przez podopiecznego, nawet jeśli wszystkie leki zostały przyjęte. " +
+              "Dolegliwości wymień w osobnym polu JSON i opisz także w podsumowaniu. Jeśli " +
+              "wszystkie leki przyjęto i nie zgłoszono dolegliwości, napisz krótko, że wszystko " +
+              "jest w porządku. Nie dopowiadaj faktów ani objawów. Dbaj o naturalną polszczyznę, " +
+              "poprawną odmianę i polskie znaki. Zwróć wyłącznie JSON: " +
+              "{\"podsumowanie\": \"1-3 zdania\", \"dolegliwosci\": [\"...\"]}."
           },
           {
             role: "user",
             content:
-              `Niepotwierdzone leki: ${niepotwierdzone.join(", ")}.\n\n` +
+              `Status leków (1 = przyjęty, 0 = niepotwierdzony): ${LEKI.map(
+                (lek) => `${lek}: ${wynik.leki[lek]}`
+              ).join("; ")}\n\n` +
               `Pełny transkrypt rozmowy:\n${turns.join("\n")}`
           }
         ]
@@ -156,11 +156,19 @@ async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
       throw new Error(data.error?.message || `HTTP ${response.status}`);
     }
     const result = JSON.parse(data.choices[0].message.content);
-    return String(result.podsumowanie || "").trim() ||
-      "Nie udało się wygenerować podsumowania z transkryptu.";
+    return {
+      podsumowanie: String(result.podsumowanie || "").trim() ||
+        "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: Array.isArray(result.dolegliwosci)
+        ? result.dolegliwosci.filter((item) => typeof item === "string" && item.trim())
+        : []
+    };
   } catch (error) {
     console.log("❌ Nie udało się wygenerować podsumowania SMS:", error.message);
-    return "Nie udało się wygenerować podsumowania z transkryptu.";
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
   }
 }
 
@@ -502,9 +510,11 @@ async function savePodsumowanie(
     return null;
   }
 
+  const summary = await generateSmsSummaryFromTranscript(transcriptFile, wynik);
   wynik = {
     ...wynik,
-    podsumowanie: await generateSmsSummaryFromTranscript(transcriptFile, wynik)
+    podsumowanie: summary.podsumowanie,
+    dolegliwosci: summary.dolegliwosci
   };
 
   const podsumowanieFile = transcriptFile.replace(/\.txt$/, "_podsumowanie.json");
@@ -515,7 +525,8 @@ async function savePodsumowanie(
     zapisano_o: new Date().toISOString(),
     imie: wynik.imie,
     leki: wynik.leki,
-    podsumowanie: wynik.podsumowanie
+    podsumowanie: wynik.podsumowanie,
+    dolegliwosci: wynik.dolegliwosci
   };
 
   fs.writeFileSync(podsumowanieFile, JSON.stringify(data, null, 2) + "\n");
@@ -543,6 +554,7 @@ async function savePodsumowanie(
   // Persist the result in the application when hosted by the gateway.
   if (process.send) process.send({ event: "summary", sid: callSid,
     medications: wynik.leki, notes: wynik.podsumowanie,
+    health_concerns: wynik.dolegliwosci,
     transcript: fs.readFileSync(transcriptFile, "utf8") });
 
   console.log("📝 Podsumowanie zapisane:", podsumowanieFile);
