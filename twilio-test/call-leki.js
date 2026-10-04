@@ -796,6 +796,10 @@ wss.on("connection", (twilioWs) => {
   // questions?", when, and when the user last spoke. The watchdog uses these
   // to end the call even if the model never re-calls end_call.
   const farewellRe = /do\s?widzenia|dobranoc/i;
+  // Looser farewell signals for the safety net only ("thanks for the call",
+  // "żegnam") — mid-call thanks would just start a 15 s grace window.
+  const farewellLooseRe =
+    /do\s?widzenia|dobranoc|żegnam|dziękuję (bardzo )?za rozmowę/i;
   // The summary opens the closing sequence ("Podsumuję: ...") — no extra
   // "any more questions?" step; thanks and farewell follow straight away.
   const closingRe = /(podsumuj|podsumowując|podsumowanie)/i;
@@ -805,6 +809,30 @@ wss.on("connection", (twilioWs) => {
     /(już wyjaśniam|już wyjaśnię|już przypomnę|już to krótko|zaraz wyjaśnię|zaraz przypomnę|wyjaśnię to|przypomnę to|powiem krótko|krótko wyjaśnię|krótko przypomnę)/i;
   let closingAsked = false;
   let closingStartedAt = null;
+  let lastFarewellAt = null;
+  let lastAiUtteranceAt = null;
+
+  // The closing sequence is considered started when the model recaps the
+  // medication states — either with the instructed "Podsumuję..." opener or
+  // by naming EVERY medication with a state word in a non-question utterance
+  // (the model often paraphrases the recap without the word "podsumuję").
+  function isRecapUtterance(transcript) {
+    if (closingRe.test(transcript)) {
+      return true;
+    }
+    const clean = transcript.trim();
+    if (clean.endsWith("?")) {
+      return false;
+    }
+    const t = clean.toLowerCase();
+    const namedMeds = LEKI.filter((lek) =>
+      t.includes(lek.split(",")[0].trim().toLowerCase())
+    );
+    return (
+      namedMeds.length === LEKI.length &&
+      /(przyjęt|nieprzyjęt|planowan|później|wzią|wzięt|przyjmie)/i.test(t)
+    );
+  }
   let lastUserSpeechAt = null;
   // Set when the server nudged the farewell; the hangup is armed when the
   // farewell transcript actually arrives (never at nudge time — that cut the
@@ -1003,9 +1031,13 @@ wss.on("connection", (twilioWs) => {
           aiUtterances.shift();
         }
 
-        if (closingRe.test(transcript)) {
+        lastAiUtteranceAt = Date.now();
+        if (isRecapUtterance(transcript)) {
           closingAsked = true;
           closingStartedAt = Date.now();
+        }
+        if (farewellLooseRe.test(transcript)) {
+          lastFarewellAt = Date.now();
         }
 
         // The summary starts the closing; a farewell utterance — the same one
@@ -1235,7 +1267,7 @@ wss.on("connection", (twilioWs) => {
     // the model through the closing sequence and keep the call open. Hangup
     // is NOT armed here; the next end_call goes through the farewell guard.
     if (
-      !closingRe.test(aiUtterances.join(" ")) &&
+      !aiUtterances.some(isRecapUtterance) &&
       closingNudges < 1 &&
       openaiWs.readyState === WebSocket.OPEN
     ) {
@@ -1452,7 +1484,29 @@ wss.on("connection", (twilioWs) => {
   // happens for 20 s (no farewell spoken, no user speech), nudge the farewell
   // and hang up.
   const closingWatchdog = setInterval(() => {
-    if (hangupDone || !closingStartedAt) {
+    if (hangupDone) {
+      return;
+    }
+
+    // Safety net: ANY spoken farewell with nothing after it (no new AI
+    // utterance, no user speech) must still end the call — covers paraphrased
+    // farewells and recaps that dodged both closing markers.
+    if (
+      lastFarewellAt !== null &&
+      lastFarewellAt === lastAiUtteranceAt &&
+      (lastUserSpeechAt === null || lastUserSpeechAt < lastFarewellAt) &&
+      Date.now() - lastFarewellAt > 15000
+    ) {
+      console.log("");
+      console.log("⚠️ pożegnanie bez rozłączenia — kończę rozmowę");
+      lastFarewellAt = null;
+      farewellPending = false;
+      hangupArmed = true;
+      scheduleHangup();
+      return;
+    }
+
+    if (!closingStartedAt) {
       return;
     }
     const lastActivity = Math.max(closingStartedAt, lastUserSpeechAt || 0);
