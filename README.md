@@ -27,7 +27,7 @@ Aplikacja działa na żywo pod adresem **https://dzwonilek.pl/welcome**
 
 1. Wejdź na **https://dzwonilek.pl/welcome**
 2. **Zaloguj się** — login i hasło podajemy w formularzu zgłoszeniowym
-3. W **Ustawieniach → „Dane użytkownika"** wpisz swój numer w polu **„Numer telefonu administratora"** — na ten numer przyjdzie SMS z podsumowaniem rozmowy
+3. Na pulpicie kliknij baner **„Ustaw numer telefonu do powiadomień" → „Ustaw numer telefonu"** i wpisz swój numer — na ten numer przyjdzie SMS z podsumowaniem rozmowy
 4. Na pulpicie kliknij **„Dodaj podopiecznego"**
 5. Wpisz **imię i nazwisko** oraz **numer telefonu**, na który ma być wykonywane połączenie
 6. Kliknij **nazwę dodanego podopiecznego** — tutaj zarządzasz jego rutynami
