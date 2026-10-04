@@ -201,11 +201,12 @@
     "systemLabel": "System:",
     "wardLabel": "Ward:",
     "turnNo": "Turn {{number}}",
-    "confidence": "recognition confidence: {{pct}}%",
-    "interpreted": "interpreted: {{value}}",
-    "parsedYes": "yes",
-    "parsedNo": "no",
-    "parsedUnclear": "unclear",
+    "noAnswer": "No answer",
+    "confidenceShort": "{{pct}}% confidence",
+    "interpretedLabel": "Interpreted as:",
+    "answerYes": "Yes",
+    "answerNo": "No",
+    "answerUnclear": "Unclear",
     "transcriptTitle": "Full transcript"
   },
   "medicationDetail": {

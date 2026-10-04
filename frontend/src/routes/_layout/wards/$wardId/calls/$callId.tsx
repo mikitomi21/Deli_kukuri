@@ -3,7 +3,6 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft, Clock, Hash, Send } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { LoadingButton } from "@/components/ui/loading-button"
 import {
   Card,
   CardContent,
@@ -11,10 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { LoadingButton } from "@/components/ui/loading-button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { CallConversation } from "@/components/Wards/CallConversation"
 import { TodayOutcomeBadge } from "@/components/Wards/RoutineStatusBadge"
-import { fetchCall, sendCallSummarySms } from "@/hooks/useCalls"
 import { getWardsMode } from "@/hooks/apiMode"
+import { fetchCall, sendCallSummarySms } from "@/hooks/useCalls"
 import useCustomToast from "@/hooks/useCustomToast"
 import i18n from "@/i18n"
 import { handleError } from "@/utils"
@@ -154,42 +155,7 @@ function CallDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-3">
-              {call.turns.map((turn) => (
-                <li key={turn.turn_no} className="rounded-md border p-3">
-                  <p className="text-sm">
-                    <span className="font-medium">
-                      {t("callDetail.systemLabel")}
-                    </span>{" "}
-                    {turn.question}
-                  </p>
-                  <p className="mt-1 text-sm">
-                    <span className="font-medium">
-                      {t("callDetail.wardLabel")}
-                    </span>{" "}
-                    {turn.speech_result || "—"}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t("callDetail.turnNo", { number: turn.turn_no })} ·{" "}
-                    {t("callDetail.confidence", {
-                      pct: (turn.confidence * 100).toFixed(0),
-                    })}
-                    {turn.parsed &&
-                      ` · ${t("callDetail.interpreted", {
-                        value: t(
-                          `callDetail.parsed${
-                            turn.parsed === "yes"
-                              ? "Yes"
-                              : turn.parsed === "no"
-                                ? "No"
-                                : "Unclear"
-                          }`,
-                        ),
-                      })}`}
-                  </p>
-                </li>
-              ))}
-            </ol>
+            <CallConversation turns={call.turns} />
           </CardContent>
         </Card>
       )}
