@@ -69,10 +69,10 @@ const BARGE_IN_RMS = Number(process.env.BARGE_IN_RMS ?? 1500);
 // Ile ms audio w kolejce Twilio uznajemy za "AI jeszcze gra" (zapas na jitter)
 const PLAYBACK_MARGIN_MS = 20;
 
-// Ile sekund ciszy po pytaniu zamykającym ("czy chce Pan jeszcze o coś
-// zapytać?") może minąć, zanim watchdog się pożegna i rozłączy. Długie okno,
-// żeby senior zdążył pomyśleć i odpowiedzieć.
-const CLOSING_WAIT_SEC = Number(process.env.CLOSING_WAIT_SEC ?? 45);
+// Ile sekund ciszy w fazie zakończenia (po podsumowaniu) może minąć, zanim
+// watchdog się pożegna i rozłączy. Podsumowanie i pożegnanie płyną jednym
+// oddechem — dłuższa pauza oznacza, że model zawiśł.
+const CLOSING_WAIT_SEC = Number(process.env.CLOSING_WAIT_SEC ?? 20);
 
 // Tabela dekodowania G.711 µ-law → PCM (własny VAD na surowych ramkach)
 const MULAW_TABLE = (() => {
@@ -415,22 +415,15 @@ Przebieg zakończenia, w tej kolejności:
 1. Podsumuj krótko na głos, co ustaliłeś, własnymi słowami, obejmując stan każdego
    leku — przyjęty, nieprzyjęty, planowany na później — np.: „Podsumuję: Polopirynę
    Pan przyjął, a Apap jeszcze nie — planuje Pan go wziąć za chwilę."
-2. Powiedz, że masz już wszystko, co potrzebne, i zapytaj o ewentualne pytania, np.
-   „Mam już wszystko, co potrzebne. Czy chce Pan jeszcze o coś zapytać?" — i CZEKAJ
-   na odpowiedź. Skończ wypowiedź na tym pytaniu — NIE dodawaj „jeśli nie, to
-   dziękuję...", nie odpowiadaj za rozmówcę i nie żegnaj się w tym samym oddechu;
-   pożegnanie przychodzi dopiero po odpowiedzi rozmówcy.
-3. Jeśli pytanie padło — odpowiedz od razu, w pełni, w JEDNEJ wypowiedzi, wyłącznie
-   na podstawie informacji o lekach (pytania wykraczające poza nie odsyłaj do lekarza
-   lub ulotki). Nie zapowiadaj odpowiedzi („już wyjaśniam", „zaraz przypomnę") —
-   po prostu odpowiedz. Po odpowiedzi NIE pytaj już drugi raz, czy są jeszcze
-   pytania — przejdź od razu do podziękowania i pożegnania (punkt 4).
-4. Jeśli pytań nie ma — podziękuj bardzo za rozmowę (np. „Dziękuję bardzo za rozmowę"),
-   życz czegoś dopasowanego do AKTUALNEJ pory dnia z nagłówka (rano i do popołudnia:
+2. Od razu podziękuj bardzo za rozmowę (np. „Dziękuję bardzo za rozmowę"), życz
+   czegoś dopasowanego do AKTUALNEJ pory dnia z nagłówka (rano i do popołudnia:
    „miłego dnia", wieczorem i nocą: „dobrej nocy", „dobranoc") i pożegnaj się
-   („Do widzenia!"). Całość może brzmieć: „Dziękuję bardzo za rozmowę — miłego dnia!
-   Do widzenia."
-5. Dopiero PO wypowiedzianym na głos pożegnaniu z punktów 1-4 wywołaj narzędzie end_call.
+   („Do widzenia!"). Podsumowanie i pożegnanie mogą płynąć jednym oddechem, np.:
+   „Podsumuję: Polopirynę Pan przyjął, Apapu jeszcze nie — planuje Pan go wziąć
+   za chwilę. Dziękuję bardzo za rozmowę — miłego dnia! Do widzenia."
+3. Dopiero PO wypowiedzianym na głos pożegnaniu z punktów 1-2 wywołaj narzędzie
+   end_call. Nie pytaj rozmówcy o żadne dodatkowe pytania — zakończenie płynie
+   prosto z podsumowania do pożegnania.
 
 Wywołanie end_call bez uprzedniego, głośnego pożegnania jest BŁĘDEM — rozmówca usłyszy
 wtedy nagłe zerwanie połączenia. end_call wywołujesz DOKŁADNIE RAZ, zawsze na samym
@@ -803,14 +796,15 @@ wss.on("connection", (twilioWs) => {
   // questions?", when, and when the user last spoke. The watchdog uses these
   // to end the call even if the model never re-calls end_call.
   const farewellRe = /do\s?widzenia|dobranoc/i;
-  const closingQuestionRe =
-    /(o coś zapytać|jakieś pytani|coś jeszcze|jeszcze coś|coś doda)/i;
+  // The summary opens the closing sequence ("Podsumuję: ...") — no extra
+  // "any more questions?" step; thanks and farewell follow straight away.
+  const closingRe = /(podsumuj|podsumowując|podsumowanie)/i;
   // Announcement-only utterances ("sure, I'll explain in a moment") that the
   // model tends to emit and then stall on without ever delivering the answer.
   const announcementRe =
     /(już wyjaśniam|już wyjaśnię|już przypomnę|już to krótko|zaraz wyjaśnię|zaraz przypomnę|wyjaśnię to|przypomnę to|powiem krótko|krótko wyjaśnię|krótko przypomnę)/i;
   let closingAsked = false;
-  let closingQuestionSpokenAt = null;
+  let closingStartedAt = null;
   let lastUserSpeechAt = null;
   // Set when the server nudged the farewell; the hangup is armed when the
   // farewell transcript actually arrives (never at nudge time — that cut the
@@ -1009,21 +1003,18 @@ wss.on("connection", (twilioWs) => {
           aiUtterances.shift();
         }
 
-        if (closingQuestionRe.test(transcript)) {
+        if (closingRe.test(transcript)) {
           closingAsked = true;
-          closingQuestionSpokenAt = Date.now();
+          closingStartedAt = Date.now();
         }
 
-        // A spoken farewell after the closing sequence ends the call even if
-        // the model never re-calls end_call. Two gates: the closing question
-        // was asked AND the caller answered it (spoke after it) — or the
-        // server itself nudged this farewell (farewellPending), which already
-        // means the closing flow was in its final step.
-        const closingAnswered =
-          closingQuestionSpokenAt !== null &&
-          lastUserSpeechAt !== null &&
-          lastUserSpeechAt > closingQuestionSpokenAt;
-        if (farewellRe.test(transcript) && (closingAnswered || farewellPending)) {
+        // The summary starts the closing; a farewell utterance — the same one
+        // or a later one — ends the call even if the model never calls
+        // end_call. A server-nudged farewell (farewellPending) counts too.
+        if (
+          farewellRe.test(transcript) &&
+          (closingAsked || farewellPending)
+        ) {
           farewellPending = false;
           hangupArmed = true;
           scheduleHangup();
@@ -1244,13 +1235,13 @@ wss.on("connection", (twilioWs) => {
     // the model through the closing sequence and keep the call open. Hangup
     // is NOT armed here; the next end_call goes through the farewell guard.
     if (
-      !closingQuestionRe.test(aiUtterances.join(" ")) &&
+      !closingRe.test(aiUtterances.join(" ")) &&
       closingNudges < 1 &&
       openaiWs.readyState === WebSocket.OPEN
     ) {
       closingNudges++;
       console.log("");
-      console.log("⚠️ end_call bez podsumowania i pytania zamykającego — wstrzykuję zakończenie");
+      console.log("⚠️ end_call bez podsumowania — wstrzykuję zakończenie");
       openaiWs.send(
         JSON.stringify({
           type: "response.create",
@@ -1260,10 +1251,11 @@ wss.on("connection", (twilioWs) => {
               "Jeszcze nie zakańczaj rozmowy. Zanim pożegnasz rozmówcę: po pierwsze, jeśli w jego " +
               "ostatniej wypowiedzi padło pytanie albo prośba (np. o poradę dotyczącą leku) — " +
               "najpierw krótko na nie odpowiedz, wyłącznie na podstawie informacji o lekach, " +
-              "którymi dysponujesz. Po drugie, podsumuj krótko na głos stan każdego leku: " +
-              "przyjęty, nieprzyjęty albo planowany na później. Po trzecie, zapytaj: „Czy chce " +
-              "Pan jeszcze o coś zapytać?” — i czekaj na odpowiedź. Nie wywołuj teraz narzędzia " +
-              "end_call; wywołasz je dopiero, gdy rozmówca odpowie, a Ty się pożegnasz."
+              "którymi dysponujesz. Po drugie, podsumuj krótko na głos stan każdego leku: przyjęty, " +
+              "nieprzyjęty albo planowany na później. Po trzecie, podziękuj bardzo za rozmowę, " +
+              "dodaj życzenie dopasowane do pory dnia i pożegnaj się słowami „Do widzenia!”. " +
+              "Podsumowanie i pożegnanie powiedz w jednym oddechu i dopiero na samym końcu " +
+              "wywołaj narzędzie end_call."
           }
         })
       );
@@ -1460,16 +1452,16 @@ wss.on("connection", (twilioWs) => {
   // happens for 20 s (no farewell spoken, no user speech), nudge the farewell
   // and hang up.
   const closingWatchdog = setInterval(() => {
-    if (hangupDone || !closingQuestionSpokenAt) {
+    if (hangupDone || !closingStartedAt) {
       return;
     }
-    const lastActivity = Math.max(closingQuestionSpokenAt, lastUserSpeechAt || 0);
+    const lastActivity = Math.max(closingStartedAt, lastUserSpeechAt || 0);
     if (Date.now() - lastActivity < CLOSING_WAIT_SEC * 1000) {
       return;
     }
-    closingQuestionSpokenAt = null;
+    closingStartedAt = null;
     console.log("");
-    console.log("⚠️ brak odpowiedzi po pytaniu zamykającym — kończę rozmowę");
+    console.log("⚠️ brak dokończenia po podsumowaniu — kończę rozmowę");
     // The model may have merged the farewell into the closing question —
     // in that case just hang up, no second farewell needed.
     if (!farewellRe.test(lastAiText) && farewellNudges < 2) {
