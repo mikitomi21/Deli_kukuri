@@ -36,14 +36,30 @@ const LEKI = process.env.LEKI_JSON ? JSON.parse(process.env.LEKI_JSON) : (proces
 // Opcjonalne imię pacjenta (env PACJENT_IMIE) — tylko personalizacja pytań
 const IMIE_PACJENTA = (process.env.PACJENT_IMIE || "").trim();
 
+// Planowana pora przyjęcia leków (env PLAN_GODZINA, "HH:MM" z rutyny) — znany
+// fakt dla promptu, żeby AI pytało potwierdzająco, a nie "o której godzinie?"
+const PLAN_GODZINA = (process.env.PLAN_GODZINA || "").trim();
+
+// Szczegóły leków z katalogu (env LEKI_SZCZEGOLY_JSON, opcjonalne) — źródło
+// odpowiedzi, gdy pacjent pyta czym jest lek albo ma wątpliwości.
+const LEKI_SZCZEGOLY = (() => {
+  try {
+    const parsed = JSON.parse(process.env.LEKI_SZCZEGOLY_JSON || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+})();
+
 // Barge-in (przerywanie AI jak w asystentach głosowych): po ilu ms CIĄGŁEGO
 // głosu rozmówcy podczas wypowiedzi AI uciąć AI. Krótkie dźwięki tła (szum,
 // kaszlnięcie) nie przerywają. 0 wyłącza barge-in.
 const BARGE_IN_MS = Number(process.env.BARGE_IN_MS ?? 600);
 
 // Próg VAD 0-1 — im wyżej, tym głośniejszy/czyściej musi zabrzmieć głos,
-// żeby uznać mowę (odporność na szum pomieszczenia).
-const VAD_THRESHOLD = Number(process.env.VAD_THRESHOLD ?? 0.75);
+// żeby uznać mowę (odporność na szum pomieszczenia). Niższy próg łapie też
+// cichy, wahający się głos seniora; kosztem większej wrażliwości na szum.
+const VAD_THRESHOLD = Number(process.env.VAD_THRESHOLD ?? 0.6);
 
 // Głośność (RMS po dekodowaniu µ-law) od której dźwięk z mikrofonu podczas
 // grania AI traktujemy jako mowę rozmówcy (kandydat na przerwanie). Za nisko —
@@ -52,6 +68,11 @@ const BARGE_IN_RMS = Number(process.env.BARGE_IN_RMS ?? 1500);
 
 // Ile ms audio w kolejce Twilio uznajemy za "AI jeszcze gra" (zapas na jitter)
 const PLAYBACK_MARGIN_MS = 20;
+
+// Ile sekund ciszy w fazie zakończenia (po podsumowaniu) może minąć, zanim
+// watchdog się pożegna i rozłączy. Podsumowanie i pożegnanie płyną jednym
+// oddechem — dłuższa pauza oznacza, że model zawiśł.
+const CLOSING_WAIT_SEC = Number(process.env.CLOSING_WAIT_SEC ?? 20);
 
 // Tabela dekodowania G.711 µ-law → PCM (własny VAD na surowych ramkach)
 const MULAW_TABLE = (() => {
@@ -359,53 +380,136 @@ function buildInstructions() {
     minute: "2-digit"
   }).format(new Date());
 
-  return `
-Jesteś polskojęzycznym asystentem telefonicznym AI. Dzwonisz do pacjenta, żeby zbadać,
-czy przyjął dzisiejsze dawki swoich leków. Twoim celem jest zebrać odpowiedzi o WSZYSTKICH
-lekach z listy, a potem uprzejmie zakończyć rozmowę.
+  const oGodzinie = PLAN_GODZINA ? ` o godz. ${PLAN_GODZINA}` : "";
+  const poraFakt = PLAN_GODZINA
+    ? `Planowa pora przyjęcia dzisiejszych dawek: ${PLAN_GODZINA}.`
+    : `Planowa pora przyjęcia nie jest podana — pytaj o dzisiejszą dawkę bez podawania godziny.`;
 
-Leki do odpytania (i wyłącznie te):
+  const szczegolyLinie = LEKI.flatMap((lek) => {
+    const info = LEKI_SZCZEGOLY.find((d) => d && d.label === lek);
+    if (!info) {
+      return [];
+    }
+    const parts = [];
+    if (info.what_it_is) parts.push(`co to za lek: ${info.what_it_is}`);
+    if (info.generic_name) parts.push(`substancja czynna: ${info.generic_name}`);
+    if (info.form) parts.push(`postać: ${info.form}`);
+    if (info.how_to_take) parts.push(`jak przyjmować: ${info.how_to_take}`);
+    if (info.when_to_take) parts.push(`kiedy przyjmować: ${info.when_to_take}`);
+    if (info.warnings) parts.push(`na co uważać: ${info.warnings}`);
+    return parts.length > 0 ? [`- ${lek} — ${parts.join("; ")}`] : [];
+  }).join("\n");
+
+  const szczegolyBlok = szczegolyLinie
+    ? `INFORMACJE O LEKACH (z systemu — korzystaj z nich, gdy rozmówca pyta albo ma wątpliwości):
+${szczegolyLinie}
+
+Gdy rozmówca zapyta, czym jest lek, po co go przyjmuje albo jak go zażywać, odpowiedz
+krótko (1-2 zdania), własnymi słowami, wyłącznie na podstawie powyższych informacji.
+Gdy czegoś tam nie ma albo pytanie idzie dalej (zmiana dawkowania, łączenie z innymi
+lekami, możliwe skutki uboczne) — powiedz szczerze, że tego nie podasz, i odeślij
+go do lekarza lub ulotki.`
+    : "";
+
+  return `
+Jesteś polskojęzycznym asystentem telefonicznym AI. Dzwonisz do pacjenta o planowanej
+porze przyjmowania leków, żeby potwierdzić, czy przyjął dzisiejszą dawkę. Twoim celem
+jest zebrać odpowiedź o WSZYSTKICH lekach z listy, a potem uprzejmie się pożegnać
+i zakończyć rozmowę.
+
+FAKTY, KTÓRE ZNASZ (masz je z systemu — NIGDY o nie nie pytaj):
+${poraFakt}
+Leki i dawki do potwierdzenia (i wyłącznie te):
 ${listaLekow}
 
-${pacjent}
+NIGDY nie pytaj „o której godzinie", „jakiej dawki" ani „jakie leki przyjmuje Pan" —
+te dane znasz i podajesz je sam w pytaniach. Układaj pytania tak, żeby naturalnie
+wystarczyła krótka odpowiedź, ale NIGDY nie mów rozmówcy, jak ma odpowiedzieć:
+nie mów „proszę odpowiedzieć tak lub nie" ani podobnie — to brzmi jak formularz,
+a nie rozmowa.
+
+${szczegolyBlok ? `${szczegolyBlok}\n\n` : ""}${pacjent}
 
 Rozmowa odbywa się: ${teraz} (czas polski).
 
-Zasady rozmowy:
-- Mów zawsze po polsku, krótko i naturalnie, jak człowiek przez telefon.
+Jak rozmawiać (to rozmowa z człowiekiem, nie odprawa):
+- Mów po polsku, krótko, luźno i naturalnie, jak człowiek przez telefon. Godziny i
+  liczby mów tak, jak mówi się je na głos („koło ósmej", „dwie tabletki"), nie czytaj
+  ich jak z formularza.
+- Nie czytaj żadnego zdania z tych instrukcji słowo w słowo — przykłady pokazują tylko
+  brzmienie; każda wypowiedź powinna być twoja, po swojemu.
 - Nie przedstawiaj się jako człowiek — jesteś asystentem AI pilnującym przyjmowania leków.
 - Telefon zbiera też głosy z otoczenia. Jeśli usłyszysz rozmowę innych osób albo wypowiedź
-  NIE skierowaną do Ciebie, nie odnoś się do niej i nie komentuj jej — spokojnie powtórz
-  swoje ostatnie pytanie albo przejdź do kolejnego.
+  NIE skierowaną do Ciebie, nie odnoś się do niej i nie komentuj jej — spokojnie wróć do
+  ostatniego pytania albo przejdź do kolejnego.
 - Gdy rozmówca Cię przerwie w pół zdania, przestań mówić i krótko zareaguj na to, co
-  powiedział — a jeśli pytanie nadal jest aktualne, dokończ je.
-- Rozmowę zacznij od przedstawienia się, np. "Dzień dobry, dzwoni asystent AI przypominający
-  o lekach. Czy mogę zapytać o dzisiejsze leki?" — i dopiero potem przechodź do pytań.
-- Zadawaj JEDNO pytanie naraz i czekaj na odpowiedź.
-- Zapytaj po kolei o KAŻDY lek z listy, np. "Czy przyjął lub przyjęła Pan(i) dzisiaj lek X?".
-  Jeśli rozmówca mówi, że brał lek, możesz dopytać o porę (rano, wieczorem).
-- Odpowiedź wymijającą, niejasną albo słabo słyszalną dopytaj raz, najwyżej dwa razy.
-  Jeśli nadal nie ma jasnej odpowiedzi, uznaj lek za NIEPRZYJĘTY.
-- Nie wymyślaj leków spoza listy i nie doradzaj w dawkowaniu — pytania o dawki odsyłaj
-  do lekarza lub ulotki.
-- Jeśli rozmówca zmienia temat, uprzejmie wróć do pytań o leki.
+  powiedział — a jeśli pytanie nadal jest aktualne, wróć do niego.
+- Reaguj krótko i po ludzku na odpowiedzi („super", „rozumiem", „no to dobrze"), bez
+  przesadnego entuzjazmu, i płynnie przechodź do kolejnego leku.
+- Odpowiadaj od razu całością: NIGDY nie zapowiadaj, że „zaraz coś wyjaśnisz",
+  „już przypomnisz" albo „jeszcze dopytasz" — jeśli masz coś powiedzieć, powiedz to
+  w całości w tym samym oddechu. Zapowiedź bez treści zostawia rozmówcę w ciszy.
+- Nie wymyślaj leków spoza listy i nie doradzaj w dawkowaniu ani w medycynie — pytania
+  o zmianę dawkowania odsyłaj do lekarza lub ulotki.
+- Jeśli rozmówca schodzi na bok, uprzejmie wróć do pytań o leki.
 - Jeśli pod telefonem nie jest pacjent albo rozmówca prosi o zakończenie: podziękuj,
   pożegnaj się i wywołaj end_call (leki bez potwierdzenia oznacz jako nieprzyjęte,
   a sytuację opisz w podsumowaniu).
 
-Zakończenie rozmowy:
-- Gdy masz jasną odpowiedź o każdym leku (albo rozmowa musi się skończyć): poinformuj
-  rozmówcę, że zebrałeś już wszystkie potrzebne informacje, podziękuj mu za rozmowę
-  i życz mu wszystkiego dobrego, dobierając życzenie do pory dnia z nagłówka
-  (rano i do popołudnia: "życzę udanego dnia", wieczorem i nocą: "życzę spokojnej
-  nocy, dobranoc"). Np.: "Zebrałem już wszystkie potrzebne informacje. Dziękuję bardzo
-  za rozmowę i życzę udanego dnia. Do widzenia!". Potem wywołaj narzędzie end_call.
-- Narzędzie end_call wywołaj DOKŁNIE RAZ, zawsze na samym końcu rozmowy, po pożegnaniu.
-- W parametrach end_call przekaż: leki (wynik dla każdego leku z listy: przyjety
-  true/false), imie (imię rozmówcy, jeśli go podać, inaczej pusty string) oraz
-  podsumowanie (1-2 zdania naturalną, poprawną polszczyzną o przebiegu rozmowy
+Przebieg rozmowy:
+1. Przedstaw się własnymi słowami, krótko i po ludzku, np. „Dzień dobry, dzwonię jako
+   asystent AI, który pilnuje przyjmowania leków. Ma Pan chwilę, żeby potwierdzić
+   dzisiejsze dawki?" — i czekaj na odpowiedź.
+2. Potem zapytaj po kolei o KAŻDY lek z listy, JEDNO pytanie naraz. W każdym pytaniu
+   sam podaj to, co wiesz: nazwę leku oraz — jeśli znasz — planowaną porę i dawkę.
+   Pytaj tak, żeby odpowiedź przyszła naturalnie (wystarczy krótkie tak albo nie),
+   ale żadnym pytaniem nie wymagaj podanej formy odpowiedzi. Ubieraj każde pytanie
+   inaczej, naturalnie, na przykład:
+   - „No i jak, Ibuprofen${oGodzinie} się udał? Te dwie tabletki?"
+   - „A Paracetamol w południe, ta jedna tabletka — wziął Pan?"
+   - „I jeszcze Apap, koło dwunastej, jedna tabletka. Poszło?"
+   Żadne dwa pytania nie powinny brzmieć identycznie. Po każdym pytaniu czekaj na
+   odpowiedź.
+3. Jeśli pacjent potwierdzi przyjęcie — krótka, naturalna reakcja i przejdź do
+   kolejnego leku.
+4. Jeśli pacjent powie, że przyjął lek o innej porze albo w innej dawce — nie poprawiaj
+   go i nie dyskutuj; przyjmij to jako informację i zanotuj dokładnie w podsumowaniu.
+5. Jeśli pacjent nie przyjął dawki — możesz raz, delikatnie zapytać, czy zamierza ją
+   jeszcze przyjąć. Nie namawiaj ponownie.
+6. Odpowiedź wymijającą, niejasną albo słabo słyszalną dopytaj raz, najwyżej dwa razy,
+   za każdym razem inaczej sformułowana. Jeśli nadal nie ma jasnej odpowiedzi, uznaj
+   lek za NIEPRZYJĘTY.
+
+ZAKOŃCZENIE ROZMOWY — zacznij je dopiero, gdy spełnione są OBA warunki:
+- masz wynik dla KAŻDEGO leku z listy (przyjęty, nieprzyjęty albo „przyjmie później"),
+- niczego nie jesteś winien rozmówcy: jeśli w jego ostatniej wypowiedzi padło pytanie
+  albo prośba (np. o poradę dotyczącą leku) — najpierw krótko na nią odpowiedz
+  i dopiero potem zaczynaj zakończenie.
+
+Przebieg zakończenia, w tej kolejności:
+1. Podsumuj krótko na głos, co ustaliłeś, własnymi słowami, obejmując stan każdego
+   leku — przyjęty, nieprzyjęty, planowany na później — np.: „Podsumuję: Polopirynę
+   Pan przyjął, a Apap jeszcze nie — planuje Pan go wziąć za chwilę."
+2. Od razu podziękuj bardzo za rozmowę (np. „Dziękuję bardzo za rozmowę"), życz
+   czegoś dopasowanego do AKTUALNEJ pory dnia z nagłówka (rano i do popołudnia:
+   „miłego dnia", wieczorem i nocą: „dobrej nocy", „dobranoc") i pożegnaj się
+   („Do widzenia!"). Podsumowanie i pożegnanie mogą płynąć jednym oddechem, np.:
+   „Podsumuję: Polopirynę Pan przyjął, Apapu jeszcze nie — planuje Pan go wziąć
+   za chwilę. Dziękuję bardzo za rozmowę — miłego dnia! Do widzenia."
+3. Dopiero PO wypowiedzianym na głos pożegnaniu z punktów 1-2 wywołaj narzędzie
+   end_call. Nie pytaj rozmówcy o żadne dodatkowe pytania — zakończenie płynie
+   prosto z podsumowania do pożegnania.
+
+Wywołanie end_call bez uprzedniego, głośnego pożegnania jest BŁĘDEM — rozmówca usłyszy
+wtedy nagłe zerwanie połączenia. end_call wywołujesz DOKŁADNIE RAZ, zawsze na samym
+końcu rozmowy. W parametrach end_call przekaż:
+- leki — wynik dla każdego leku z listy (przyjety true/false; w uwadze zapisz szczegół,
+  np. „przyjęty o innej porze", „przyjął inną dawkę", „zamierza przyjąć później";
+  pusty string, gdy nie ma uwag),
+- imie — imię rozmówcy, jeśli go podał, inaczej pusty string,
+- podsumowanie — 1-2 zdania naturalną, poprawną polszczyzną o przebiegu rozmowy
   i istotnym kontekście. Nie wymieniaj leków ani ich statusów — zostaną pokazane
-  osobno na końcu SMS-a. Nie dodawaj informacji, których nie ma w rozmowie).
+  osobno na końcu SMS-a. Nie dodawaj informacji, których nie ma w rozmowie.
 `.trim();
 }
 
@@ -413,8 +517,9 @@ const END_CALL_TOOL = {
   type: "function",
   name: "end_call",
   description:
-    "Zakończ rozmowę telefoniczną. Wywołaj dokładnie raz, po pożegnaniu się " +
-    "z rozmówcą, gdy masz już odpowiedzi o wszystkich lekach albo rozmowa musi się skończyć.",
+    "Zakończ rozmowę telefoniczną. Wywołaj DOKŁNIE RAZ i dopiero PO głośnym " +
+    "pożegnaniu się z rozmówcą (podziękowanie, życzenie, „Do widzenia!”), gdy masz " +
+    "już odpowiedzi o wszystkich lekach albo rozmowa musi się skończyć.",
   parameters: {
     type: "object",
     properties: {
@@ -433,6 +538,12 @@ const END_CALL_TOOL = {
               type: "boolean",
               description:
                 "true — pacjent potwierdził przyjęcie dawki, false — brak potwierdzenia"
+            },
+            uwaga: {
+              type: "string",
+              description:
+                "Szczegół, jeśli nie jest zwykłym potwierdzeniem, np. „przyjęty o innej " +
+                "porze”, „przyjął inną dawkę”, „zamierza przyjąć później”; pusty string gdy brak"
             }
           },
           required: ["nazwa", "przyjety"]
@@ -460,14 +571,25 @@ function summarizeFromAi(args) {
   const fromAi = Array.isArray(args.leki) ? args.leki : [];
 
   const lekiWynik = {};
+  const uwagi = {};
   for (const lek of LEKI) {
-    const match = fromAi.find(
-      (item) =>
-        item &&
-        typeof item.nazwa === "string" &&
-        item.nazwa.trim().toLowerCase().includes(lek.toLowerCase())
-    );
+    const match = fromAi.find((item) => {
+      if (!item || typeof item.nazwa !== "string") {
+        return false;
+      }
+      const nazwa = item.nazwa.trim().toLowerCase();
+      if (!nazwa) {
+        return false;
+      }
+      // Tolerate the model echoing the name shorter or longer than the list entry.
+      return nazwa.includes(lek.toLowerCase()) || lek.toLowerCase().includes(nazwa);
+    });
     lekiWynik[lek] = match && match.przyjety === true ? 1 : 0;
+    const uwaga =
+      match && typeof match.uwaga === "string" ? match.uwaga.trim() : "";
+    if (uwaga) {
+      uwagi[lek] = uwaga;
+    }
   }
 
   // "USER"/"AI" to etykiety z transkrypcji, nie imiona — model potrafi je
@@ -489,6 +611,7 @@ function summarizeFromAi(args) {
   return {
     imie: imiePoprawne ? imie : "",
     leki: lekiWynik,
+    uwagi: uwagi,
     podsumowanie: String(args.podsumowanie || "").trim()
   };
 }
@@ -525,6 +648,7 @@ async function savePodsumowanie(
     zapisano_o: new Date().toISOString(),
     imie: wynik.imie,
     leki: wynik.leki,
+    uwagi: wynik.uwagi || {},
     podsumowanie: wynik.podsumowanie,
     dolegliwosci: wynik.dolegliwosci
   };
@@ -539,9 +663,12 @@ async function savePodsumowanie(
         `źródło: ${zrodlo}`,
         `imię: ${wynik.imie || "(nie podano)"}`,
         "leki:",
-        ...LEKI.map(
-          (lek) => `  - ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY (1)" : "NIEPRZYJĘTY (0)"}`
-        ),
+        ...LEKI.map((lek) => {
+          const status =
+            wynik.leki[lek] === 1 ? "PRZYJĘTY (1)" : "NIEPRZYJĘTY (0)";
+          const uwaga = wynik.uwagi && wynik.uwagi[lek];
+          return `  - ${lek}: ${status}${uwaga ? ` — ${uwaga}` : ""}`;
+        }),
         `podsumowanie: ${wynik.podsumowanie || "(brak)"}`
       ].join("\n") +
       "\n"
@@ -643,6 +770,9 @@ async function runFallbackSummarize(callSid, transcriptFile) {
             content:
               "Leki: " +
               LEKI.join(", ") +
+              (PLAN_GODZINA
+                ? "\nPlanowa pora przyjęcia: " + PLAN_GODZINA
+                : "") +
               "\n\nTranskrypcja:\n" +
               turny.join("\n")
           }
@@ -742,6 +872,63 @@ wss.on("connection", (twilioWs) => {
 
   const handledFunctionCalls = new Set();
 
+  // Last spoken AI utterance — used to detect a missing farewell before hangup.
+  let lastAiText = "";
+  let farewellNudges = 0;
+  // Recent AI utterances (last few) — used to detect the closing sequence
+  // (recap + "any questions?") even a turn or two before end_call.
+  let aiUtterances = [];
+  let closingNudges = 0;
+
+  // Closing-sequence tracking: whether the model already asked "any more
+  // questions?", when, and when the user last spoke. The watchdog uses these
+  // to end the call even if the model never re-calls end_call.
+  const farewellRe = /do\s?widzenia|dobranoc/i;
+  // Looser farewell signals for the safety net only ("thanks for the call",
+  // "żegnam") — mid-call thanks would just start a 15 s grace window.
+  const farewellLooseRe =
+    /do\s?widzenia|dobranoc|żegnam|dziękuję (bardzo )?za rozmowę/i;
+  // The summary opens the closing sequence ("Podsumuję: ...") — no extra
+  // "any more questions?" step; thanks and farewell follow straight away.
+  const closingRe = /(podsumuj|podsumowując|podsumowanie)/i;
+  // Announcement-only utterances ("sure, I'll explain in a moment") that the
+  // model tends to emit and then stall on without ever delivering the answer.
+  const announcementRe =
+    /(już wyjaśniam|już wyjaśnię|już przypomnę|już to krótko|zaraz wyjaśnię|zaraz przypomnę|wyjaśnię to|przypomnę to|powiem krótko|krótko wyjaśnię|krótko przypomnę)/i;
+  let closingAsked = false;
+  let closingStartedAt = null;
+  let lastFarewellAt = null;
+  let lastAiUtteranceAt = null;
+
+  // The closing sequence is considered started when the model recaps the
+  // medication states — either with the instructed "Podsumuję..." opener or
+  // by naming EVERY medication with a state word in a non-question utterance
+  // (the model often paraphrases the recap without the word "podsumuję").
+  function isRecapUtterance(transcript) {
+    if (closingRe.test(transcript)) {
+      return true;
+    }
+    const clean = transcript.trim();
+    if (clean.endsWith("?")) {
+      return false;
+    }
+    const t = clean.toLowerCase();
+    const namedMeds = LEKI.filter((lek) =>
+      t.includes(lek.split(",")[0].trim().toLowerCase())
+    );
+    return (
+      namedMeds.length === LEKI.length &&
+      /(przyjęt|nieprzyjęt|planowan|później|wzią|wzięt|przyjmie)/i.test(t)
+    );
+  }
+  let lastUserSpeechAt = null;
+  // Set when the server nudged the farewell; the hangup is armed when the
+  // farewell transcript actually arrives (never at nudge time — that cut the
+  // farewell off mid-word).
+  let farewellPending = false;
+  let continuationNudges = 0;
+  let continuationTimer = null;
+
   // ----------------------------------------------------------
   // OPENAI REALTIME
   // ----------------------------------------------------------
@@ -797,8 +984,8 @@ wss.on("connection", (twilioWs) => {
             turn_detection: {
               type: "server_vad",
               threshold: VAD_THRESHOLD,
-              prefix_padding_ms: 500,
-              silence_duration_ms: 800,
+              prefix_padding_ms: 700,
+              silence_duration_ms: 1500,
               create_response: true,
               interrupt_response: false
             }
@@ -817,7 +1004,8 @@ wss.on("connection", (twilioWs) => {
 
     openaiWs.send(JSON.stringify(sessionUpdate));
 
-    console.log("⚙️ Konfiguracja OpenAI wysłana (rozmowa o lekach: " + LEKI.join(", ") + ")");
+    console.log("⚙️ Konfiguracja OpenAI wysłana (rozmowa o lekach: " + LEKI.join(", ") +
+      (PLAN_GODZINA ? ", plan: " + PLAN_GODZINA : "") + ")");
   });
 
   // ----------------------------------------------------------
@@ -854,6 +1042,10 @@ wss.on("connection", (twilioWs) => {
 
       else if (event.type === "response.created") {
         suppressAudio = false;
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
       }
 
       // ------------------------------------------------------
@@ -861,6 +1053,11 @@ wss.on("connection", (twilioWs) => {
       // ------------------------------------------------------
 
       else if (event.type === "input_audio_buffer.speech_started") {
+        lastUserSpeechAt = Date.now();
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
         console.log("");
         console.log("🎤 USER SPEAKING...");
       }
@@ -915,6 +1112,33 @@ wss.on("connection", (twilioWs) => {
         console.log(transcript);
 
         saveTranscript(transcriptFile, "AI", transcript);
+
+        lastAiText = transcript;
+        aiUtterances.push(transcript);
+        if (aiUtterances.length > 3) {
+          aiUtterances.shift();
+        }
+
+        lastAiUtteranceAt = Date.now();
+        if (isRecapUtterance(transcript)) {
+          closingAsked = true;
+          closingStartedAt = Date.now();
+        }
+        if (farewellLooseRe.test(transcript)) {
+          lastFarewellAt = Date.now();
+        }
+
+        // The summary starts the closing; a farewell utterance — the same one
+        // or a later one — ends the call even if the model never calls
+        // end_call. A server-nudged farewell (farewellPending) counts too.
+        if (
+          farewellRe.test(transcript) &&
+          (closingAsked || farewellPending)
+        ) {
+          farewellPending = false;
+          hangupArmed = true;
+          scheduleHangup();
+        }
       }
 
       // ------------------------------------------------------
@@ -997,6 +1221,25 @@ wss.on("connection", (twilioWs) => {
 
         suppressAudio = false;
 
+        // Announcement-stall net: if the response ended on a bare promise
+        // ("sure, I'll explain in a moment"), give the model a short window
+        // to continue on its own, then nudge it to deliver the content.
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
+        if (!hangupArmed && !hangupDone && announcementRe.test(lastAiText)) {
+          continuationTimer = setTimeout(() => {
+            continuationTimer = null;
+            if (hangupDone || finalized || hangupArmed) {
+              return;
+            }
+            console.log("");
+            console.log("⚠️ model zapowiedział i zamilkł — proszę o dostarczenie odpowiedzi");
+            nudgeContinuation();
+          }, 7000);
+        }
+
         // AI pożegnało się i wywołało end_call — teraz można rozłączyć
         if (hangupArmed) {
           scheduleHangup();
@@ -1022,6 +1265,47 @@ wss.on("connection", (twilioWs) => {
   // END_CALL HANDLER
   // ----------------------------------------------------------
 
+  // Ask the model to deliver the content it merely announced ("sure, I'll
+  // explain in a moment") — the announcement alone leaves the caller waiting.
+  function nudgeContinuation() {
+    if (openaiWs.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    openaiWs.send(
+      JSON.stringify({
+        type: "response.create",
+        response: {
+          output_modalities: ["audio"],
+          instructions:
+            "Dokończ teraz to, co zapowiedziałeś: powiedz pełną, konkretną odpowiedź na ostatnie " +
+            "pytanie rozmówcy, wyłącznie na podstawie informacji o lekach, którymi dysponujesz. " +
+            "Nie zapowiadaj — powiedz wszystko teraz, w całości, a gdy to domknie rozmowę, " +
+            "zakończ ją według zasad zakończenia (podziękowanie i pożegnanie)."
+        }
+      })
+    );
+  }
+
+  // Ask the model to say the closing farewell now; the caller arms the hangup.
+  function nudgeFarewell() {
+    if (openaiWs.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    openaiWs.send(
+      JSON.stringify({
+        type: "response.create",
+        response: {
+          output_modalities: ["audio"],
+          instructions:
+            "Jeszcze się nie pożegnałeś z rozmówcą. Powiedz teraz krótkie pożegnanie: że masz już " +
+            "wszystkie potrzebne informacje, podziękuj bardzo za rozmowę, dodaj życzenie dopasowane " +
+            "do pory dnia (rano i do popołudnia: „miłego dnia”, wieczorem i nocą: „dobrej nocy”, " +
+            "„dobranoc”) i skończ słowami „Do widzenia!”. Nic więcej nie mów i nie wywołuj żadnych narzędzi."
+        }
+      })
+    );
+  }
+
   async function handleEndCall(callId, rawArguments) {
     if (!callId || handledFunctionCalls.has(callId)) {
       return;
@@ -1043,14 +1327,14 @@ wss.on("connection", (twilioWs) => {
     console.log("========== AI KONCZY ROZMOWE ==========");
     console.log("Imię:", wynik.imie || "(nie podano)");
     for (const lek of LEKI) {
-      console.log(`  ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY" : "NIEPRZYJĘTY"}`);
+      const uwaga = wynik.uwagi && wynik.uwagi[lek];
+      console.log(`  ${lek}: ${wynik.leki[lek] === 1 ? "PRZYJĘTY" : "NIEPRZYJĘTY"}${uwaga ? ` — ${uwaga}` : ""}`);
     }
     console.log("Podsumowanie:", wynik.podsumowanie || "(brak)");
     console.log("=======================================");
     console.log("");
 
-    // potwierdzenie wywołania narzędzia — bez response.create, żeby AI
-    // nie odezwało się już po pożegnaniu
+    // potwierdzenie wywołania narzędzia
     if (openaiWs.readyState === WebSocket.OPEN) {
       openaiWs.send(
         JSON.stringify({
@@ -1062,6 +1346,65 @@ wss.on("connection", (twilioWs) => {
           }
         })
       );
+    }
+
+    // The model tends to jump straight to end_call once the medication
+    // checklist is complete — skipping the recap and the "any questions?"
+    // step, and sometimes leaving the caller's own question unanswered.
+    // If no closing question was spoken recently, reject this ending: nudge
+    // the model through the closing sequence and keep the call open. Hangup
+    // is NOT armed here; the next end_call goes through the farewell guard.
+    if (
+      !aiUtterances.some(isRecapUtterance) &&
+      closingNudges < 1 &&
+      openaiWs.readyState === WebSocket.OPEN
+    ) {
+      closingNudges++;
+      console.log("");
+      console.log("⚠️ end_call bez podsumowania — wstrzykuję zakończenie");
+      openaiWs.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            output_modalities: ["audio"],
+            instructions:
+              "Jeszcze nie zakańczaj rozmowy. Zanim pożegnasz rozmówcę: po pierwsze, jeśli w jego " +
+              "ostatniej wypowiedzi padło pytanie albo prośba (np. o poradę dotyczącą leku) — " +
+              "najpierw krótko na nie odpowiedz, wyłącznie na podstawie informacji o lekach, " +
+              "którymi dysponujesz. Po drugie, podsumuj krótko na głos stan każdego leku: przyjęty, " +
+              "nieprzyjęty albo planowany na później. Po trzecie, podziękuj bardzo za rozmowę, " +
+              "dodaj życzenie dopasowane do pory dnia i pożegnaj się słowami „Do widzenia!”. " +
+              "Podsumowanie i pożegnanie powiedz w jednym oddechu i dopiero na samym końcu " +
+              "wywołaj narzędzie end_call."
+          }
+        })
+      );
+      return;
+    }
+
+    // The model also tends to call end_call right after merely ANNOUNCING an
+    // answer ("sure, I'll explain in a moment"). Make it deliver first —
+    // the caller must hear the answer before anything gets closed.
+    if (announcementRe.test(lastAiText) && continuationNudges < 2) {
+      continuationNudges++;
+      console.log("");
+      console.log("⚠️ end_call na samej zapowiedzi — proszę o dostarczenie odpowiedzi");
+      nudgeContinuation();
+      return;
+    }
+
+    // The model sometimes calls end_call without speaking the goodbye first.
+    // Nudge the farewell and wait for its transcript (farewellPending) to arm
+    // the hangup — arming here cut the farewell off mid-word. The 30 s timer
+    // is only a hard fallback if the nudged farewell never arrives.
+    if (!farewellRe.test(lastAiText) && farewellNudges < 1) {
+      farewellNudges++;
+      farewellPending = true;
+      console.log("");
+      console.log("⚠️ end_call bez pożegnania — proszę AI, żeby się pożegnało przed rozłączeniem");
+      nudgeFarewell();
+      hangupTimer = setTimeout(scheduleHangup, 30000);
+      return;
     }
 
     // pożegnalna wypowiedź zwykle płynie w tej samej odpowiedzi — rozłączamy
@@ -1121,7 +1464,9 @@ wss.on("connection", (twilioWs) => {
       heldFrames.push(payload);
       heldSpeechMs += frameMs;
 
-      if (BARGE_IN_MS > 0 && heldSpeechMs >= BARGE_IN_MS) {
+      // During the closing farewell (hangup armed) the caller's own "goodbye"
+      // must not barge in and wipe the queued farewell audio.
+      if (BARGE_IN_MS > 0 && !hangupArmed && heldSpeechMs >= BARGE_IN_MS) {
         doBargeIn();
       }
       return;
@@ -1199,15 +1544,75 @@ wss.on("connection", (twilioWs) => {
     hangupDone = true;
     clearTimeout(hangupTimer);
 
-    // krótki zapas, żeby audio pożegnania zdążyło dojść do rozmówcy
-    setTimeout(() => {
-      hangupCall(callSid, "AI zakończyło rozmowę");
-
-      if (openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.close();
+    // "response done" means OpenAI finished GENERATING audio, but Twilio is
+    // still playing the queued farewell in real time — a fixed grace period
+    // cuts the goodbye mid-sentence. Disconnect only once the playback queue
+    // has drained (capped, in case the tracking fails to converge).
+    const deadline = Date.now() + 10000;
+    const hangupWhenPlayed = () => {
+      if (drainQueue() > PLAYBACK_MARGIN_MS && Date.now() < deadline) {
+        setTimeout(hangupWhenPlayed, 200);
+        return;
       }
-    }, 2000);
+
+      setTimeout(() => {
+        hangupCall(callSid, "AI zakończyło rozmowę");
+
+        if (openaiWs.readyState === WebSocket.OPEN) {
+          openaiWs.close();
+        }
+      }, 500);
+    };
+
+    hangupWhenPlayed();
   }
+
+  // Safety net for the closing phase: once the closing question was spoken,
+  // the call must end even if the model never re-calls end_call. If nothing
+  // happens for 20 s (no farewell spoken, no user speech), nudge the farewell
+  // and hang up.
+  const closingWatchdog = setInterval(() => {
+    if (hangupDone) {
+      return;
+    }
+
+    // Safety net: ANY spoken farewell with nothing after it (no new AI
+    // utterance, no user speech) must still end the call — covers paraphrased
+    // farewells and recaps that dodged both closing markers.
+    if (
+      lastFarewellAt !== null &&
+      lastFarewellAt === lastAiUtteranceAt &&
+      (lastUserSpeechAt === null || lastUserSpeechAt < lastFarewellAt) &&
+      Date.now() - lastFarewellAt > 15000
+    ) {
+      console.log("");
+      console.log("⚠️ pożegnanie bez rozłączenia — kończę rozmowę");
+      lastFarewellAt = null;
+      farewellPending = false;
+      hangupArmed = true;
+      scheduleHangup();
+      return;
+    }
+
+    if (!closingStartedAt) {
+      return;
+    }
+    const lastActivity = Math.max(closingStartedAt, lastUserSpeechAt || 0);
+    if (Date.now() - lastActivity < CLOSING_WAIT_SEC * 1000) {
+      return;
+    }
+    closingStartedAt = null;
+    console.log("");
+    console.log("⚠️ brak dokończenia po podsumowaniu — kończę rozmowę");
+    // The model may have merged the farewell into the closing question —
+    // in that case just hang up, no second farewell needed.
+    if (!farewellRe.test(lastAiText) && farewellNudges < 2) {
+      farewellNudges++;
+      farewellPending = true;
+      nudgeFarewell();
+    }
+    hangupTimer = setTimeout(scheduleHangup, 30000);
+  }, 2000);
 
   // ----------------------------------------------------------
   // OPENAI ERROR / CLOSED
@@ -1304,6 +1709,8 @@ wss.on("connection", (twilioWs) => {
 
     finalized = true;
     clearTimeout(hangupTimer);
+    clearTimeout(continuationTimer);
+    clearInterval(closingWatchdog);
 
     // rozmówca rozłączył się przed end_call? podsumujemy z transkrypcji
     if (callSid && transcriptFile) {
