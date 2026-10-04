@@ -786,6 +786,16 @@ wss.on("connection", (twilioWs) => {
   let aiUtterances = [];
   let closingNudges = 0;
 
+  // Closing-sequence tracking: whether the model already asked "any more
+  // questions?", when, and when the user last spoke. The watchdog uses these
+  // to end the call even if the model never re-calls end_call.
+  const farewellRe = /do\s?widzenia|dobranoc/i;
+  const closingQuestionRe =
+    /(o coś zapytać|jakieś pytani|coś jeszcze|jeszcze coś|coś doda)/i;
+  let closingAsked = false;
+  let closingQuestionSpokenAt = null;
+  let lastUserSpeechAt = null;
+
   // ----------------------------------------------------------
   // OPENAI REALTIME
   // ----------------------------------------------------------
@@ -906,6 +916,7 @@ wss.on("connection", (twilioWs) => {
       // ------------------------------------------------------
 
       else if (event.type === "input_audio_buffer.speech_started") {
+        lastUserSpeechAt = Date.now();
         console.log("");
         console.log("🎤 USER SPEAKING...");
       }
@@ -965,6 +976,18 @@ wss.on("connection", (twilioWs) => {
         aiUtterances.push(transcript);
         if (aiUtterances.length > 3) {
           aiUtterances.shift();
+        }
+
+        if (closingQuestionRe.test(transcript)) {
+          closingAsked = true;
+          closingQuestionSpokenAt = Date.now();
+        }
+
+        // Once the closing sequence was spoken, a farewell utterance ends the
+        // call even if the model never re-calls end_call (it often doesn't).
+        if (closingAsked && farewellRe.test(transcript)) {
+          hangupArmed = true;
+          scheduleHangup();
         }
       }
 
@@ -1073,6 +1096,26 @@ wss.on("connection", (twilioWs) => {
   // END_CALL HANDLER
   // ----------------------------------------------------------
 
+  // Ask the model to say the closing farewell now; the caller arms the hangup.
+  function nudgeFarewell() {
+    if (openaiWs.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    openaiWs.send(
+      JSON.stringify({
+        type: "response.create",
+        response: {
+          output_modalities: ["audio"],
+          instructions:
+            "Jeszcze się nie pożegnałeś z rozmówcą. Powiedz teraz krótkie pożegnanie: że masz już " +
+            "wszystkie potrzebne informacje, podziękuj bardzo za rozmowę, dodaj życzenie dopasowane " +
+            "do pory dnia (rano i do popołudnia: „miłego dnia”, wieczorem i nocą: „dobrej nocy”, " +
+            "„dobranoc”) i skończ słowami „Do widzenia!”. Nic więcej nie mów i nie wywołuj żadnych narzędzi."
+        }
+      })
+    );
+  }
+
   function handleEndCall(callId, rawArguments) {
     if (!callId || handledFunctionCalls.has(callId)) {
       return;
@@ -1121,8 +1164,6 @@ wss.on("connection", (twilioWs) => {
     // If no closing question was spoken recently, reject this ending: nudge
     // the model through the closing sequence and keep the call open. Hangup
     // is NOT armed here; the next end_call goes through the farewell guard.
-    const closingQuestionRe =
-      /(o coś zapytać|jakieś pytani|coś jeszcze|jeszcze coś|coś doda)/i;
     if (
       !closingQuestionRe.test(aiUtterances.join(" ")) &&
       closingNudges < 1 &&
@@ -1154,26 +1195,11 @@ wss.on("connection", (twilioWs) => {
     // that hangs up mid-call. If the last spoken utterance holds no farewell,
     // ask the model to say it now; disconnect only once that response is done.
     // One nudge max — if the model still refuses, we hang up gracefully.
-    const farewellRe = /do\s?widzenia|dobranoc/i;
     if (!farewellRe.test(lastAiText) && farewellNudges < 1) {
       farewellNudges++;
       console.log("");
       console.log("⚠️ end_call bez pożegnania — proszę AI, żeby się pożegnało przed rozłączeniem");
-      if (openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.send(
-          JSON.stringify({
-            type: "response.create",
-            response: {
-              output_modalities: ["audio"],
-              instructions:
-                "Jeszcze się nie pożegnałeś z rozmówcą. Powiedz teraz krótkie pożegnanie: że masz już " +
-                "wszystkie potrzebne informacje, podziękuj bardzo za rozmowę, dodaj życzenie dopasowane " +
-                "do pory dnia (rano i do popołudnia: „miłego dnia”, wieczorem i nocą: „dobrej nocy”, " +
-                "„dobranoc”) i skończ słowami „Do widzenia!”. Nic więcej nie mów i nie wywołuj żadnych narzędzi."
-            }
-          })
-        );
-      }
+      nudgeFarewell();
       hangupArmed = true;
       hangupTimer = setTimeout(scheduleHangup, 30000);
       return;
@@ -1339,6 +1365,29 @@ wss.on("connection", (twilioWs) => {
     hangupWhenPlayed();
   }
 
+  // Safety net for the closing phase: once the closing question was spoken,
+  // the call must end even if the model never re-calls end_call. If nothing
+  // happens for 20 s (no farewell spoken, no user speech), nudge the farewell
+  // and hang up.
+  const closingWatchdog = setInterval(() => {
+    if (hangupDone || !closingQuestionSpokenAt) {
+      return;
+    }
+    const lastActivity = Math.max(closingQuestionSpokenAt, lastUserSpeechAt || 0);
+    if (Date.now() - lastActivity < 20000) {
+      return;
+    }
+    closingQuestionSpokenAt = null;
+    console.log("");
+    console.log("⚠️ brak zakończenia po pytaniu zamykającym — wstrzykuję pożegnanie");
+    if (farewellNudges < 2) {
+      farewellNudges++;
+      nudgeFarewell();
+    }
+    hangupArmed = true;
+    hangupTimer = setTimeout(scheduleHangup, 30000);
+  }, 2000);
+
   // ----------------------------------------------------------
   // OPENAI ERROR / CLOSED
   // ----------------------------------------------------------
@@ -1434,6 +1483,7 @@ wss.on("connection", (twilioWs) => {
 
     finalized = true;
     clearTimeout(hangupTimer);
+    clearInterval(closingWatchdog);
 
     // rozmówca rozłączył się przed end_call? podsumujemy z transkrypcji
     if (callSid && transcriptFile) {
