@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router"
-import { PhoneCall } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
@@ -13,7 +12,7 @@ interface LogoProps {
 }
 
 // Single brand lockup used across the app (sidebar, auth pages, tab-adjacent
-// headers): phone handset chip + wordmark. The icon-only variant keeps a
+// headers): pill mascot + wordmark. The icon-only variant keeps a
 // square aspect so it fits the collapsed sidebar; text collapses away via
 // the sidebar group-data selector in the responsive variant.
 export function Logo({
@@ -26,17 +25,17 @@ export function Logo({
   const { t } = useTranslation("common")
   const content = (
     <span className={cn("flex items-center gap-2 font-extrabold", className)}>
-      <span
+      <img
+        src="/logo.png"
+        alt={variant === "icon" ? t("logo.brand") : ""}
+        width={256}
+        height={256}
+        draggable={false}
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
-          size === "lg" ? "size-11 rounded-xl" : "size-9",
+          "shrink-0 select-none object-contain",
+          size === "lg" ? "size-14" : "size-9",
         )}
-      >
-        <PhoneCall
-          aria-hidden="true"
-          className={size === "lg" ? "size-5" : "size-4"}
-        />
-      </span>
+      />
       {variant !== "icon" && (
         <span
           className={cn(
