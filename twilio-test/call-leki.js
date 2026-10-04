@@ -805,9 +805,19 @@ wss.on("connection", (twilioWs) => {
   const farewellRe = /do\s?widzenia|dobranoc/i;
   const closingQuestionRe =
     /(o coś zapytać|jakieś pytani|coś jeszcze|jeszcze coś|coś doda)/i;
+  // Announcement-only utterances ("sure, I'll explain in a moment") that the
+  // model tends to emit and then stall on without ever delivering the answer.
+  const announcementRe =
+    /(już wyjaśniam|już wyjaśnię|już przypomnę|już to krótko|zaraz wyjaśnię|zaraz przypomnę|wyjaśnię to|przypomnę to|powiem krótko|krótko wyjaśnię|krótko przypomnę)/i;
   let closingAsked = false;
   let closingQuestionSpokenAt = null;
   let lastUserSpeechAt = null;
+  // Set when the server nudged the farewell; the hangup is armed when the
+  // farewell transcript actually arrives (never at nudge time — that cut the
+  // farewell off mid-word).
+  let farewellPending = false;
+  let continuationNudges = 0;
+  let continuationTimer = null;
 
   // ----------------------------------------------------------
   // OPENAI REALTIME
@@ -922,6 +932,10 @@ wss.on("connection", (twilioWs) => {
 
       else if (event.type === "response.created") {
         suppressAudio = false;
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
       }
 
       // ------------------------------------------------------
@@ -930,6 +944,10 @@ wss.on("connection", (twilioWs) => {
 
       else if (event.type === "input_audio_buffer.speech_started") {
         lastUserSpeechAt = Date.now();
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
         console.log("");
         console.log("🎤 USER SPEAKING...");
       }
@@ -996,15 +1014,17 @@ wss.on("connection", (twilioWs) => {
           closingQuestionSpokenAt = Date.now();
         }
 
-        // Once the caller actually ANSWERED the closing question (spoke after
-        // it), a farewell utterance ends the call even if the model never
-        // re-calls end_call. A farewell merged into the closing question
-        // itself does not count — the caller still gets their turn.
+        // A spoken farewell after the closing sequence ends the call even if
+        // the model never re-calls end_call. Two gates: the closing question
+        // was asked AND the caller answered it (spoke after it) — or the
+        // server itself nudged this farewell (farewellPending), which already
+        // means the closing flow was in its final step.
         const closingAnswered =
           closingQuestionSpokenAt !== null &&
           lastUserSpeechAt !== null &&
           lastUserSpeechAt > closingQuestionSpokenAt;
-        if (closingAnswered && farewellRe.test(transcript)) {
+        if (farewellRe.test(transcript) && (closingAnswered || farewellPending)) {
+          farewellPending = false;
           hangupArmed = true;
           scheduleHangup();
         }
@@ -1090,6 +1110,25 @@ wss.on("connection", (twilioWs) => {
 
         suppressAudio = false;
 
+        // Announcement-stall net: if the response ended on a bare promise
+        // ("sure, I'll explain in a moment"), give the model a short window
+        // to continue on its own, then nudge it to deliver the content.
+        if (continuationTimer) {
+          clearTimeout(continuationTimer);
+          continuationTimer = null;
+        }
+        if (!hangupArmed && !hangupDone && announcementRe.test(lastAiText)) {
+          continuationTimer = setTimeout(() => {
+            continuationTimer = null;
+            if (hangupDone || finalized || hangupArmed) {
+              return;
+            }
+            console.log("");
+            console.log("⚠️ model zapowiedział i zamilkł — proszę o dostarczenie odpowiedzi");
+            nudgeContinuation();
+          }, 7000);
+        }
+
         // AI pożegnało się i wywołało end_call — teraz można rozłączyć
         if (hangupArmed) {
           scheduleHangup();
@@ -1114,6 +1153,27 @@ wss.on("connection", (twilioWs) => {
   // ----------------------------------------------------------
   // END_CALL HANDLER
   // ----------------------------------------------------------
+
+  // Ask the model to deliver the content it merely announced ("sure, I'll
+  // explain in a moment") — the announcement alone leaves the caller waiting.
+  function nudgeContinuation() {
+    if (openaiWs.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    openaiWs.send(
+      JSON.stringify({
+        type: "response.create",
+        response: {
+          output_modalities: ["audio"],
+          instructions:
+            "Dokończ teraz to, co zapowiedziałeś: powiedz pełną, konkretną odpowiedź na ostatnie " +
+            "pytanie rozmówcy, wyłącznie na podstawie informacji o lekach, którymi dysponujesz. " +
+            "Nie zapowiadaj — powiedz wszystko teraz, w całości, a gdy to domknie rozmowę, " +
+            "zakończ ją według zasad zakończenia (podziękowanie i pożegnanie)."
+        }
+      })
+    );
+  }
 
   // Ask the model to say the closing farewell now; the caller arms the hangup.
   function nudgeFarewell() {
@@ -1210,16 +1270,27 @@ wss.on("connection", (twilioWs) => {
       return;
     }
 
-    // The model sometimes calls end_call without speaking the goodbye first —
-    // that hangs up mid-call. If the last spoken utterance holds no farewell,
-    // ask the model to say it now; disconnect only once that response is done.
-    // One nudge max — if the model still refuses, we hang up gracefully.
+    // The model also tends to call end_call right after merely ANNOUNCING an
+    // answer ("sure, I'll explain in a moment"). Make it deliver first —
+    // the caller must hear the answer before anything gets closed.
+    if (announcementRe.test(lastAiText) && continuationNudges < 2) {
+      continuationNudges++;
+      console.log("");
+      console.log("⚠️ end_call na samej zapowiedzi — proszę o dostarczenie odpowiedzi");
+      nudgeContinuation();
+      return;
+    }
+
+    // The model sometimes calls end_call without speaking the goodbye first.
+    // Nudge the farewell and wait for its transcript (farewellPending) to arm
+    // the hangup — arming here cut the farewell off mid-word. The 30 s timer
+    // is only a hard fallback if the nudged farewell never arrives.
     if (!farewellRe.test(lastAiText) && farewellNudges < 1) {
       farewellNudges++;
+      farewellPending = true;
       console.log("");
       console.log("⚠️ end_call bez pożegnania — proszę AI, żeby się pożegnało przed rozłączeniem");
       nudgeFarewell();
-      hangupArmed = true;
       hangupTimer = setTimeout(scheduleHangup, 30000);
       return;
     }
@@ -1403,9 +1474,9 @@ wss.on("connection", (twilioWs) => {
     // in that case just hang up, no second farewell needed.
     if (!farewellRe.test(lastAiText) && farewellNudges < 2) {
       farewellNudges++;
+      farewellPending = true;
       nudgeFarewell();
     }
-    hangupArmed = true;
     hangupTimer = setTimeout(scheduleHangup, 30000);
   }, 2000);
 
@@ -1504,6 +1575,7 @@ wss.on("connection", (twilioWs) => {
 
     finalized = true;
     clearTimeout(hangupTimer);
+    clearTimeout(continuationTimer);
     clearInterval(closingWatchdog);
 
     // rozmówca rozłączył się przed end_call? podsumujemy z transkrypcji
