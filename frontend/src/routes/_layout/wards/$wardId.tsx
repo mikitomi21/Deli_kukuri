@@ -415,7 +415,7 @@ function WardMedicationsSection({ wardId }: { wardId: string }) {
                       </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
+                  <div className="ml-auto flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
                     {targetId ? (
                       <Button variant="outline" size="sm" asChild>
                         <Link
@@ -505,7 +505,7 @@ function RoutinesSection({
           <CardContent>
             <ul className="space-y-2">
               {upcoming.map((task) => (
-                <ListRow key={task.id}>
+                <ListRow key={task.id} className="flex-wrap sm:flex-nowrap">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {task.routine_name}
@@ -514,7 +514,7 @@ function RoutinesSection({
                       {t("wardDetail.attemptNo", { number: task.attempt_no })}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="ml-auto flex max-w-full min-w-0 flex-wrap items-center justify-end gap-2">
                     <Clock
                       aria-hidden
                       className="size-3.5 text-muted-foreground"
@@ -572,7 +572,7 @@ function RoutinesSection({
           ) : (
             <ul className="space-y-2">
               {routines.map((routine) => (
-                <ListRow key={routine.id}>
+                <ListRow key={routine.id} className="flex-wrap sm:flex-nowrap">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {routine.name}
@@ -586,7 +586,7 @@ function RoutinesSection({
                         .join(", ")}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="ml-auto flex max-w-full min-w-0 flex-wrap items-center justify-end gap-2">
                     <span className="font-mono text-xs text-muted-foreground">
                       {routine.time_of_day}
                     </span>
