@@ -300,9 +300,11 @@ function Dashboard() {
             !!today && today.total > 0 && today.took === today.total
           return (
             <li key={ward.id}>
+              {/* The name link stretches over the whole card (after:inset-0),
+                  so the entire tile is clickable and shares one hover state. */}
               <Card
                 className={cn(
-                  "flex h-full flex-col",
+                  "relative flex h-full flex-col gap-3 transition-colors hover:border-ring",
                   needsAttention
                     ? "border-destructive/50"
                     : allDone
@@ -317,12 +319,12 @@ function Dashboard() {
                         <Link
                           to="/wards/$wardId"
                           params={{ wardId: ward.id }}
-                          className="hover:underline"
+                          className="hover:underline after:absolute after:inset-0"
                         >
                           {ward.full_name}
                         </Link>
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-1.5">
+                      <CardDescription className="mt-3 flex items-center gap-1.5">
                         <Phone aria-hidden className="size-3" />
                         {ward.phone_e164}
                       </CardDescription>
@@ -345,7 +347,7 @@ function Dashboard() {
                     </div>
                   ) : routineList.length === 0 ? (
                     // Guide to the ward page — routine management lives there
-                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                    <div className="relative z-10 flex flex-col gap-2 text-sm text-muted-foreground">
                       <p>{t("dashboard.noRoutinesYet")}</p>
                       <Button
                         asChild
@@ -367,25 +369,27 @@ function Dashboard() {
                     // Overview, not management: the ward page owns the full
                     // routine list — here only the next call and counts
                     <div className="flex flex-col gap-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarClock
-                          aria-hidden
-                          className="size-4 shrink-0 text-muted-foreground"
-                        />
-                        {nextCall ? (
-                          <span className="min-w-0 truncate">
-                            {t("dashboard.nextCall", {
-                              name: nextCall.routine_name,
-                              time: formatDashboardDateTime(
-                                nextCall.scheduled_at,
-                              ),
-                            })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {t("dashboard.noUpcoming")}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <CalendarClock aria-hidden className="size-4.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">
+                            {nextCall
+                              ? t("dashboard.nextCallLabel")
+                              : t("dashboard.noUpcoming")}
+                          </p>
+                          {nextCall && (
+                            <p className="truncate text-sm font-medium">
+                              {t("dashboard.nextCall", {
+                                name: nextCall.routine_name,
+                                time: formatDashboardDateTime(
+                                  nextCall.scheduled_at,
+                                ),
+                              })}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="success">

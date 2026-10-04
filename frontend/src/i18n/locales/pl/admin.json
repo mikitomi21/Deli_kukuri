@@ -103,7 +103,8 @@
     "demoDataBadge": "Dane demonstracyjne",
     "noRoutinesYet": "Ten podopieczny nie ma jeszcze rutyn.",
     "addFirstRoutine": "Dodaj pierwszą rutynę",
-    "nextCall": "Najbliższe połączenie: {{name}} · {{time}}",
+    "nextCallLabel": "Najbliższe połączenie",
+    "nextCall": "{{name}} · {{time}}",
     "noUpcoming": "Brak zaplanowanych połączeń",
     "approvedCount": "Zatwierdzone: {{approved}}",
     "draftsCount": "Szkice: {{drafts}}"
