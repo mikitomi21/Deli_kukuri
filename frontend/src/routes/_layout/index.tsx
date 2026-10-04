@@ -60,12 +60,10 @@ function formatDashboardDateTime(iso: string): string {
 function TodaySummary({
   took,
   total,
-  scheduled,
   needsAttention,
 }: {
   took: number
   total: number
-  scheduled: boolean
   needsAttention: boolean
 }) {
   const { t } = useTranslation("admin")
@@ -84,16 +82,20 @@ function TodaySummary({
       </Badge>
     )
   }
-  if (scheduled) {
-    // Real calls have not reported yet — neutral info, not an alarm
+  if (took > 0) {
+    // Partial progress: some taken, nothing failed — keep it visible.
     return (
-      <Badge variant="outline">
-        {t("dashboard.scheduledBadge", { total })}
+      <Badge variant="secondary">
+        {took}/{total}
       </Badge>
     )
   }
-  // Pending without failures: stay silent instead of crying wolf
-  return null
+  // Nothing taken yet — the day's plan is still ahead.
+  return (
+    <Badge variant="outline">
+      {t("dashboard.summaryPlanned", { total })}
+    </Badge>
+  )
 }
 
 function AdminPhoneReminder() {
@@ -155,8 +157,13 @@ function Dashboard() {
       queryFn: () => fetchCallTasks(ward.id),
     })),
   })
+  // Enriched routines come with the wards query (both modes attach
+  // today_status there); the per-ward queries are only a fallback.
   const routinesByWard = new Map<string, RoutineWithOutcome[] | undefined>(
-    (wards ?? []).map((ward, index) => [ward.id, routinesQueries[index]?.data]),
+    (wards ?? []).map((ward, index) => [
+      ward.id,
+      ward.routines ?? routinesQueries[index]?.data,
+    ]),
   )
   const nextCallByWard = new Map<string, CallTask | undefined>(
     (wards ?? []).map((ward, index) => [
@@ -369,7 +376,6 @@ function Dashboard() {
                       <TodaySummary
                         took={today.took}
                         total={today.total}
-                        scheduled={!ward.today}
                         needsAttention={routineList.some(routineNeedsAttention)}
                       />
                     )}
