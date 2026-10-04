@@ -1180,7 +1180,9 @@ wss.on("connection", (twilioWs) => {
       heldFrames.push(payload);
       heldSpeechMs += frameMs;
 
-      if (BARGE_IN_MS > 0 && heldSpeechMs >= BARGE_IN_MS) {
+      // During the closing farewell (hangup armed) the caller's own "goodbye"
+      // must not barge in and wipe the queued farewell audio.
+      if (BARGE_IN_MS > 0 && !hangupArmed && heldSpeechMs >= BARGE_IN_MS) {
         doBargeIn();
       }
       return;
@@ -1258,14 +1260,27 @@ wss.on("connection", (twilioWs) => {
     hangupDone = true;
     clearTimeout(hangupTimer);
 
-    // krótki zapas, żeby audio pożegnania zdążyło dojść do rozmówcy
-    setTimeout(() => {
-      hangupCall(callSid, "AI zakończyło rozmowę");
-
-      if (openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.close();
+    // "response done" means OpenAI finished GENERATING audio, but Twilio is
+    // still playing the queued farewell in real time — a fixed grace period
+    // cuts the goodbye mid-sentence. Disconnect only once the playback queue
+    // has drained (capped, in case the tracking fails to converge).
+    const deadline = Date.now() + 10000;
+    const hangupWhenPlayed = () => {
+      if (drainQueue() > PLAYBACK_MARGIN_MS && Date.now() < deadline) {
+        setTimeout(hangupWhenPlayed, 200);
+        return;
       }
-    }, 2000);
+
+      setTimeout(() => {
+        hangupCall(callSid, "AI zakończyło rozmowę");
+
+        if (openaiWs.readyState === WebSocket.OPEN) {
+          openaiWs.close();
+        }
+      }, 500);
+    };
+
+    hangupWhenPlayed();
   }
 
   // ----------------------------------------------------------
