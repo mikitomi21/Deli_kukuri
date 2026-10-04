@@ -21,14 +21,23 @@ export type Language = (typeof SUPPORTED_LANGUAGES)[number]
 
 const LANG_STORAGE_KEY = "vite-ui-language"
 
+// Guard browser APIs so the module can be imported in non-DOM test
+// environments (vitest node) without crashing.
 export function getInitialLanguage(): Language {
-  const stored = localStorage.getItem(LANG_STORAGE_KEY)
-  if (stored === "pl" || stored === "en") return stored
-  return navigator.language.toLowerCase().startsWith("pl") ? "pl" : "en"
+  if (typeof localStorage !== "undefined") {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY)
+    if (stored === "pl" || stored === "en") return stored
+  }
+  if (typeof navigator !== "undefined" && navigator.language) {
+    return navigator.language.toLowerCase().startsWith("pl") ? "pl" : "en"
+  }
+  return "pl"
 }
 
 export function setLanguage(lang: Language) {
-  localStorage.setItem(LANG_STORAGE_KEY, lang)
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(LANG_STORAGE_KEY, lang)
+  }
   return i18n.changeLanguage(lang)
 }
 
