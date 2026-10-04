@@ -57,8 +57,9 @@ const LEKI_SZCZEGOLY = (() => {
 const BARGE_IN_MS = Number(process.env.BARGE_IN_MS ?? 600);
 
 // Próg VAD 0-1 — im wyżej, tym głośniejszy/czyściej musi zabrzmieć głos,
-// żeby uznać mowę (odporność na szum pomieszczenia).
-const VAD_THRESHOLD = Number(process.env.VAD_THRESHOLD ?? 0.75);
+// żeby uznać mowę (odporność na szum pomieszczenia). Niższy próg łapie też
+// cichy, wahający się głos seniora; kosztem większej wrażliwości na szum.
+const VAD_THRESHOLD = Number(process.env.VAD_THRESHOLD ?? 0.6);
 
 // Głośność (RMS po dekodowaniu µ-law) od której dźwięk z mikrofonu podczas
 // grania AI traktujemy jako mowę rozmówcy (kandydat na przerwanie). Za nisko —
@@ -67,6 +68,11 @@ const BARGE_IN_RMS = Number(process.env.BARGE_IN_RMS ?? 1500);
 
 // Ile ms audio w kolejce Twilio uznajemy za "AI jeszcze gra" (zapas na jitter)
 const PLAYBACK_MARGIN_MS = 20;
+
+// Ile sekund ciszy po pytaniu zamykającym ("czy chce Pan jeszcze o coś
+// zapytać?") może minąć, zanim watchdog się pożegna i rozłączy. Długie okno,
+// żeby senior zdążył pomyśleć i odpowiedzieć.
+const CLOSING_WAIT_SEC = Number(process.env.CLOSING_WAIT_SEC ?? 45);
 
 // Tabela dekodowania G.711 µ-law → PCM (własny VAD na surowych ramkach)
 const MULAW_TABLE = (() => {
@@ -853,8 +859,8 @@ wss.on("connection", (twilioWs) => {
             turn_detection: {
               type: "server_vad",
               threshold: VAD_THRESHOLD,
-              prefix_padding_ms: 500,
-              silence_duration_ms: 800,
+              prefix_padding_ms: 700,
+              silence_duration_ms: 1500,
               create_response: true,
               interrupt_response: false
             }
@@ -1382,7 +1388,7 @@ wss.on("connection", (twilioWs) => {
       return;
     }
     const lastActivity = Math.max(closingQuestionSpokenAt, lastUserSpeechAt || 0);
-    if (Date.now() - lastActivity < 20000) {
+    if (Date.now() - lastActivity < CLOSING_WAIT_SEC * 1000) {
       return;
     }
     closingQuestionSpokenAt = null;
