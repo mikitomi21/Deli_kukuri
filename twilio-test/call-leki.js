@@ -765,6 +765,10 @@ wss.on("connection", (twilioWs) => {
 
   const handledFunctionCalls = new Set();
 
+  // Last spoken AI utterance — used to detect a missing farewell before hangup.
+  let lastAiText = "";
+  let farewellNudges = 0;
+
   // ----------------------------------------------------------
   // OPENAI REALTIME
   // ----------------------------------------------------------
@@ -939,6 +943,8 @@ wss.on("connection", (twilioWs) => {
         console.log(transcript);
 
         saveTranscript(transcriptFile, "AI", transcript);
+
+        lastAiText = transcript;
       }
 
       // ------------------------------------------------------
@@ -1074,8 +1080,7 @@ wss.on("connection", (twilioWs) => {
     console.log("=======================================");
     console.log("");
 
-    // potwierdzenie wywołania narzędzia — bez response.create, żeby AI
-    // nie odezwało się już po pożegnaniu
+    // potwierdzenie wywołania narzędzia
     if (openaiWs.readyState === WebSocket.OPEN) {
       openaiWs.send(
         JSON.stringify({
@@ -1087,6 +1092,35 @@ wss.on("connection", (twilioWs) => {
           }
         })
       );
+    }
+
+    // The model sometimes calls end_call without speaking the goodbye first —
+    // that hangs up mid-call. If the last spoken utterance holds no farewell,
+    // ask the model to say it now; disconnect only once that response is done.
+    // One nudge max — if the model still refuses, we hang up gracefully.
+    const farewellRe = /do\s?widzenia|dobranoc/i;
+    if (!farewellRe.test(lastAiText) && farewellNudges < 1) {
+      farewellNudges++;
+      console.log("");
+      console.log("⚠️ end_call bez pożegnania — proszę AI, żeby się pożegnało przed rozłączeniem");
+      if (openaiWs.readyState === WebSocket.OPEN) {
+        openaiWs.send(
+          JSON.stringify({
+            type: "response.create",
+            response: {
+              output_modalities: ["audio"],
+              instructions:
+                "Jeszcze się nie pożegnałeś z rozmówcą. Powiedz teraz krótkie pożegnanie: że masz już " +
+                "wszystkie potrzebne informacje, podziękuj bardzo za rozmowę, dodaj życzenie dopasowane " +
+                "do pory dnia (rano i do popołudnia: „miłego dnia”, wieczorem i nocą: „dobrej nocy”, " +
+                "„dobranoc”) i skończ słowami „Do widzenia!”. Nic więcej nie mów i nie wywołuj żadnych narzędzi."
+            }
+          })
+        );
+      }
+      hangupArmed = true;
+      hangupTimer = setTimeout(scheduleHangup, 30000);
+      return;
     }
 
     // pożegnalna wypowiedź zwykle płynie w tej samej odpowiedzi — rozłączamy
