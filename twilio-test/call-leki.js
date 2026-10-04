@@ -40,6 +40,17 @@ const IMIE_PACJENTA = (process.env.PACJENT_IMIE || "").trim();
 // fakt dla promptu, żeby AI pytało potwierdzająco, a nie "o której godzinie?"
 const PLAN_GODZINA = (process.env.PLAN_GODZINA || "").trim();
 
+// Szczegóły leków z katalogu (env LEKI_SZCZEGOLY_JSON, opcjonalne) — źródło
+// odpowiedzi, gdy pacjent pyta czym jest lek albo ma wątpliwości.
+const LEKI_SZCZEGOLY = (() => {
+  try {
+    const parsed = JSON.parse(process.env.LEKI_SZCZEGOLY_JSON || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+})();
+
 // Barge-in (przerywanie AI jak w asystentach głosowych): po ilu ms CIĄGŁEGO
 // głosu rozmówcy podczas wypowiedzi AI uciąć AI. Krótkie dźwięki tła (szum,
 // kaszlnięcie) nie przerywają. 0 wyłącza barge-in.
@@ -293,6 +304,32 @@ function buildInstructions() {
     ? `Planowa pora przyjęcia dzisiejszych dawek: ${PLAN_GODZINA}.`
     : `Planowa pora przyjęcia nie jest podana — pytaj o dzisiejszą dawkę bez podawania godziny.`;
 
+  const szczegolyLinie = LEKI.flatMap((lek) => {
+    const info = LEKI_SZCZEGOLY.find((d) => d && d.label === lek);
+    if (!info) {
+      return [];
+    }
+    const parts = [];
+    if (info.what_it_is) parts.push(`co to za lek: ${info.what_it_is}`);
+    if (info.generic_name) parts.push(`substancja czynna: ${info.generic_name}`);
+    if (info.form) parts.push(`postać: ${info.form}`);
+    if (info.how_to_take) parts.push(`jak przyjmować: ${info.how_to_take}`);
+    if (info.when_to_take) parts.push(`kiedy przyjmować: ${info.when_to_take}`);
+    if (info.warnings) parts.push(`na co uważać: ${info.warnings}`);
+    return parts.length > 0 ? [`- ${lek} — ${parts.join("; ")}`] : [];
+  }).join("\n");
+
+  const szczegolyBlok = szczegolyLinie
+    ? `INFORMACJE O LEKACH (z systemu — korzystaj z nich, gdy rozmówca pyta albo ma wątpliwości):
+${szczegolyLinie}
+
+Gdy rozmówca zapyta, czym jest lek, po co go przyjmuje albo jak go zażywać, odpowiedz
+krótko (1-2 zdania), własnymi słowami, wyłącznie na podstawie powyższych informacji.
+Gdy czegoś tam nie ma albo pytanie idzie dalej (zmiana dawkowania, łączenie z innymi
+lekami, możliwe skutki uboczne) — powiedz szczerze, że tego nie podasz, i odeślij
+go do lekarza lub ulotki.`
+    : "";
+
   return `
 Jesteś polskojęzycznym asystentem telefonicznym AI. Dzwonisz do pacjenta o planowanej
 porze przyjmowania leków, żeby potwierdzić, czy przyjął dzisiejszą dawkę. Twoim celem
@@ -310,7 +347,7 @@ wystarczyła krótka odpowiedź, ale NIGDY nie mów rozmówcy, jak ma odpowiedzi
 nie mów „proszę odpowiedzieć tak lub nie" ani podobnie — to brzmi jak formularz,
 a nie rozmowa.
 
-${pacjent}
+${szczegolyBlok ? `${szczegolyBlok}\n\n` : ""}${pacjent}
 
 Rozmowa odbywa się: ${teraz} (czas polski).
 

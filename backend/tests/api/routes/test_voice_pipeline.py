@@ -79,6 +79,10 @@ def test_manual_call_provider_result_and_history(
     assert voice_pipeline[0]["ward_name"] == "Pipeline ward"
     assert voice_pipeline[0]["scheduled_time"] == "12:00"
     assert voice_pipeline[0]["medications"]
+    details = voice_pipeline[0]["medication_details"]
+    assert details[0]["label"] == voice_pipeline[0]["medications"][0]
+    # The random test medication has no ai_summary — only catalog fields pass through.
+    assert "what_it_is" not in details[0]
     placing.place_task_call(task_id)
     assert len(voice_pipeline) == 1  # Worker replays must not dial twice.
     db.expire_all()

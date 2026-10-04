@@ -68,12 +68,20 @@ function createGateway({ env = process.env, spawn = fork, deliver = fetch } = {}
         !env.OPENAI_API_KEY || !env.PUBLIC_URL) {
       return res.status(503).json({ detail: "Voice provider is not configured" });
     }
-    const { task_id, to, ward_name, medications, tz, scheduled_time } = req.body;
+    const { task_id, to, ward_name, medications, tz, scheduled_time, medication_details } = req.body;
+    // Medication details are optional; every entry must be a flat string map
+    // with a non-empty label matching one of the medications entries.
+    const detailsValid = (value) => value === undefined || value === null ||
+      (Array.isArray(value) && value.every((item) => item !== null &&
+        typeof item === "object" && !Array.isArray(item) &&
+        typeof item.label === "string" && item.label.length > 0 &&
+        Object.values(item).every((field) => typeof field === "string")));
     if (!/^[0-9a-f-]{36}$/i.test(task_id || "") || !/^\+[1-9]\d{6,14}$/.test(to || "") ||
         !Array.isArray(medications) || !medications.length ||
         !medications.every((item) => typeof item === "string" && item.length > 0) ||
         (scheduled_time !== undefined && scheduled_time !== null &&
-         !/^([01]\d|2[0-3]):[0-5]\d$/.test(scheduled_time))) {
+         !/^([01]\d|2[0-3]):[0-5]\d$/.test(scheduled_time)) ||
+        !detailsValid(medication_details)) {
       return res.status(422).json({ detail: "Invalid call context" });
     }
     if (!calls.has(task_id)) {
@@ -81,6 +89,8 @@ function createGateway({ env = process.env, spawn = fork, deliver = fetch } = {}
       const child = spawn(path.join(__dirname, "call-leki.js"), ["--no-call"], {
         env: { ...env, PORT: "0", LEKI_JSON: JSON.stringify(medications),
           PLAN_GODZINA: scheduled_time || "",
+          LEKI_SZCZEGOLY_JSON: medication_details
+            ? JSON.stringify(medication_details) : "",
           PACJENT_IMIE: ward_name || "", PACJENT_TZ: tz || "Europe/Warsaw",
           PUBLIC_URL: `${env.PUBLIC_URL.replace(/\/$/, "")}/calls/${streamKey}`,
           SMS_TO: "", TRANSCRIPTS_DIR: env.TRANSCRIPTS_DIR || "/tmp/voice-transcripts",

@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import httpx
@@ -14,6 +15,7 @@ from app.models import (
     CallTask,
     CallTaskStatus,
     Routine,
+    RoutineItem,
     Ward,
 )
 
@@ -28,6 +30,38 @@ def voice_provider_ready() -> bool:
         return response.is_success and response.json().get("ready") is True
     except (httpx.HTTPError, ValueError):
         return False
+
+
+def _medication_details(item: RoutineItem) -> dict[str, str]:
+    """Medication details keyed to the question list label, for AI answers.
+
+    Prefers the generated ai_summary JSON (what_it_is / how_to_take /
+    when_to_take / warnings) and falls back to plain catalog fields.
+    """
+    medication = item.medication
+    details: dict[str, str] = {
+        "label": f"{medication.name} {medication.dosage}, dawka: {item.amount_label}",
+        "name": medication.name,
+    }
+    summary = None
+    if medication.ai_summary:
+        try:
+            summary = json.loads(medication.ai_summary)
+        except ValueError:
+            summary = None
+    if isinstance(summary, dict):
+        for key in ("what_it_is", "how_to_take", "when_to_take", "warnings"):
+            value = summary.get(key)
+            if isinstance(value, str) and value.strip():
+                details[key] = value.strip()
+    for key, value in (
+        ("generic_name", medication.generic_name),
+        ("form", medication.form),
+        ("how_to_take", medication.instructions),
+    ):
+        if value and value.strip() and key not in details:
+            details[key] = value.strip()
+    return details
 
 
 def place_task_call(task_id: str) -> None:
@@ -62,6 +96,11 @@ def place_task_call(task_id: str) -> None:
             session.add(task)
             session.commit()
             return
+        # Details from the medication catalog let the consultant answer
+        # "what is this medication?" questions without inventing anything.
+        medication_details = [
+            _medication_details(item) for item in routine.items if item.medication
+        ]
         call = Call(call_task_id=task.id, status=CallStatus.QUEUED)
         session.add(call)
         task.status = CallTaskStatus.IN_PROGRESS
@@ -85,6 +124,7 @@ def place_task_call(task_id: str) -> None:
                     # AI can ask closed "did you take it at HH:MM" questions.
                     "scheduled_time": routine.time_of_day.strftime("%H:%M"),
                     "medications": medications,
+                    "medication_details": medication_details,
                 },
                 timeout=30,
             )

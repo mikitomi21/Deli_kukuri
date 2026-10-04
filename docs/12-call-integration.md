@@ -7,8 +7,10 @@ editing/deletion, routine payload mapping and API mode as the default. The share
 API client is regenerated from the combined backend schema. Local frontend `.env`
 overrides remain ignored; use `frontend/.env.example` for configuration.
 Each call uses a separate child process with the ward's name, timezone,
-medications from the approved routine and its planned administration hour
-(`time_of_day`, forwarded as `scheduled_time`). The gateway authenticates backend
+medications from the approved routine, its planned administration hour
+(`time_of_day`, forwarded as `scheduled_time`) and medication details from
+the catalog (`medication_details`, parsed from `ai_summary` plus catalog
+fields). The gateway authenticates backend
 requests and Twilio WebSocket upgrades, and persists summaries and final
 statuses through authenticated backend callbacks.
 
