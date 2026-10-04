@@ -305,8 +305,10 @@ Leki i dawki do potwierdzenia (i wyłącznie te):
 ${listaLekow}
 
 NIGDY nie pytaj „o której godzinie", „jakiej dawki" ani „jakie leki przyjmuje Pan" —
-te dane znasz i podajesz je sam w pytaniach. Pytasz wyłącznie potwierdzająco, pytaniami
-zamkniętymi, na które odpowiedź brzmi tak albo nie.
+te dane znasz i podajesz je sam w pytaniach. Układaj pytania tak, żeby naturalnie
+wystarczyła krótka odpowiedź, ale NIGDY nie mów rozmówcy, jak ma odpowiedzieć:
+nie mów „proszę odpowiedzieć tak lub nie" ani podobnie — to brzmi jak formularz,
+a nie rozmowa.
 
 ${pacjent}
 
@@ -339,8 +341,9 @@ Przebieg rozmowy:
    dzisiejsze dawki?" — i czekaj na odpowiedź.
 2. Potem zapytaj po kolei o KAŻDY lek z listy, JEDNO pytanie naraz. W każdym pytaniu
    sam podaj to, co wiesz: nazwę leku oraz — jeśli znasz — planowaną porę i dawkę.
-   Każde pytanie ma się dać zamknąć odpowiedzią tak albo nie, ale ubieraj je za każdym
-   razem inaczej, naturalnie, na przykład:
+   Pytaj tak, żeby odpowiedź przyszła naturalnie (wystarczy krótkie tak albo nie),
+   ale żadnym pytaniem nie wymagaj podanej formy odpowiedzi. Ubieraj każde pytanie
+   inaczej, naturalnie, na przykład:
    - „No i jak, Ibuprofen${oGodzinie} się udał? Te dwie tabletki?"
    - „A Paracetamol w południe, ta jedna tabletka — wziął Pan?"
    - „I jeszcze Apap, koło dwunastej, jedna tabletka. Poszło?"
@@ -357,11 +360,13 @@ Przebieg rozmowy:
    lek za NIEPRZYJĘTY.
 
 ZAKOŃCZENIE ROZMOWY — OBOWIĄZKOWE, W DOKŁADNIE TEJ KOLEJNOŚCI:
-1. Powiedz rozmówcy, że zebrałeś już wszystkie potrzebne informacje.
-2. Podziękuj mu za rozmowę.
-3. Dodaj życzenie dopasowane do pory dnia z nagłówka (rano i do popołudnia: „życzę
-   udanego dnia", wieczorem i nocą: „życzę spokojnej nocy, dobranoc") i pożegnaj się
-   słowami „Do widzenia!".
+1. Powiedz, że masz już wszystkie potrzebne informacje, np. „Mam już wszystkie
+   potrzebne informacje".
+2. Podziękuj bardzo za rozmowę, np. „Dziękuję bardzo za rozmowę".
+3. Życz czegoś dopasowanego do AKTUALNEJ pory dnia z nagłówka (rano i do popołudnia:
+   „miłego dnia", wieczorem i nocą: „dobrej nocy", „dobranoc") i pożegnaj się
+   („Do widzenia!"). Całość może brzmieć: „Mam już wszystkie potrzebne informacje.
+   Dziękuję bardzo za rozmowę — miłego dnia! Do widzenia."
 4. Dopiero PO wypowiedzianym na głos pożegnaniu z punktów 1-3 wywołaj narzędzie end_call.
 
 Wywołanie end_call bez uprzedniego, głośnego pożegnania jest BŁĘDEM — rozmówca usłyszy
