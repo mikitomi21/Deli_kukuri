@@ -201,11 +201,12 @@
     "systemLabel": "System:",
     "wardLabel": "Podopieczny:",
     "turnNo": "Tura {{number}}",
-    "confidence": "pewność rozpoznania: {{pct}}%",
-    "interpreted": "zinterpretowano: {{value}}",
-    "parsedYes": "tak",
-    "parsedNo": "nie",
-    "parsedUnclear": "niejasne",
+    "noAnswer": "Brak odpowiedzi",
+    "confidenceShort": "pewność {{pct}}%",
+    "interpretedLabel": "Zinterpretowano jako:",
+    "answerYes": "Tak",
+    "answerNo": "Nie",
+    "answerUnclear": "Niejasne",
     "transcriptTitle": "Pełny transkrypt"
   },
   "medicationDetail": {
