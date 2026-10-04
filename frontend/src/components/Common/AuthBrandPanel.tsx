@@ -29,7 +29,7 @@ export function AuthBrandPanel() {
 
   return (
     <div className="w-full max-w-md space-y-8 px-8 py-12">
-      <Logo variant="full" size="lg" asLink={false} />
+      <Logo variant="full" size="lg" to="/welcome" />
 
       <h2 className="text-3xl leading-tight font-semibold tracking-tight text-balance">
         {t("brandPanel.title")}
