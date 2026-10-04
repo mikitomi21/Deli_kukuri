@@ -21,6 +21,14 @@
 - **Infrastruktura i jakość** — Docker Compose (FastAPI + Postgres + Redis + Traefik + frontend), testy backend/frontend (pytest, Playwright, vitest), tryb demo z danymi
 - **Zero barier dla seniora** — brak aplikacji, konta i internetu; działa na zwykłej komórce i na stacjonarnym
 
+## 🎬 Filmy
+
+- **Landing page** — [docs/videos/landing_page_full_size.mp4](docs/videos/landing_page_full_size.mp4)
+- **Aplikacja (panel opiekuna, rutyny, połączenia)** — [docs/videos/application_full_size.mp4](docs/videos/application_full_size.mp4)
+- **Short na YouTube** — [youtube.com/shorts/zzDhnLR7hIo](https://youtube.com/shorts/zzDhnLR7hIo)
+
+[![DzwoniLek — short](https://img.youtube.com/vi/zzDhnLR7hIo/0.jpg)](https://youtube.com/shorts/zzDhnLR7hIo)
+
 ## 🏆 Demo — przetestuj aplikację w 8 krokach
 
 Aplikacja działa na żywo pod adresem **https://dzwonilek.pl/welcome**
