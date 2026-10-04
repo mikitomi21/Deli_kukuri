@@ -244,21 +244,22 @@ def send_call_summary_sms(
         raise HTTPException(status_code=503, detail="SMS service is not configured")
 
     summary = result.notes.strip() if result.notes else ""
-    lines = ["Podsumowanie rozmowy", f"Podopieczny: {ward.full_name}"]
-    if summary:
+    lines = ["DzwoniLek — raport z połączenia", f"Podopieczny: {ward.full_name}"]
+    if result.outcome == CallOutcome.TOOK:
+        lines.extend(["", "Wszystkie leki zostały przyjęte. Wszystko jest w porządku."])
+    elif summary:
         lines.extend(["", summary[:500]])
-    problem_messages = {
-        CallOutcome.TOOK: [],
-        CallOutcome.NOT_TAKEN: ["Niepotwierdzone przyjęcie co najmniej jednego leku."],
-        CallOutcome.UNCLEAR: ["Nie uzyskano jasnego potwierdzenia przyjęcia leków."],
-        CallOutcome.NO_ANSWER: ["Nie uzyskano odpowiedzi w rozmowie."],
-    }
-    problems = problem_messages.get(result.outcome, ["Brak wyniku rozmowy."])
-    lines.extend(["", "Wykryte problemy:"])
-    lines.extend(f"• {problem}" for problem in problems)
-    if not problems:
-        lines.append("• Brak wykrytych problemów.")
-    lines.extend(["", "DzwoniLek"])
+    else:
+        outcome_messages = {
+            CallOutcome.TOOK: "Wszystkie leki zostały przyjęte. Wszystko jest w porządku.",
+            CallOutcome.NOT_TAKEN: "Niepotwierdzone przyjęcie co najmniej jednego leku.",
+            CallOutcome.UNCLEAR: "Nie uzyskano jasnego potwierdzenia przyjęcia leków.",
+            CallOutcome.NO_ANSWER: "Nie uzyskano odpowiedzi w rozmowie.",
+        }
+        lines.extend([
+            "",
+            outcome_messages.get(result.outcome, "Nie udało się ustalić wyniku rozmowy."),
+        ])
     message = "\n".join(lines)
     notification = EscalationEvent(
         call_result_id=result.id,
