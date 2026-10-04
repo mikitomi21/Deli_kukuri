@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import {
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   CircleHelp,
   Clock,
@@ -7,10 +9,12 @@ import {
   PhoneOff,
   X,
 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -66,9 +70,15 @@ const statusMeta: Record<
   },
 }
 
-const weekdayFormat = (date: Date) =>
+const dayFormat = (date: Date) =>
   new Intl.DateTimeFormat(i18n.language, {
     weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date)
+
+const rangeFormat = (date: Date) =>
+  new Intl.DateTimeFormat(i18n.language, {
     day: "2-digit",
     month: "2-digit",
   }).format(date)
@@ -85,10 +95,11 @@ function statusLabel(status: HistoryCellStatus, t: (key: string) => string) {
 }
 
 /**
- * Ward detail calendar: a week back and a week ahead as day columns, the
- * ward's approved routines as rows; every cell tinted with that day's call
- * outcome (taken / missed / unclear / planned). Read-only summary — the
- * full transcript lives in the calls tab.
+ * Ward detail calendar: the Monday–Sunday week as seven full-width columns,
+ * the ward's approved routines as rows; every cell tinted with that day's
+ * call outcome (taken / missed / unclear / planned). Arrow buttons move
+ * between weeks. Read-only summary — the full transcript lives in the
+ * calls tab.
  */
 export function RoutineHistoryCalendar({
   wardId,
@@ -98,6 +109,7 @@ export function RoutineHistoryCalendar({
   tz: string
 }) {
   const { t } = useTranslation("wards")
+  const [weekOffset, setWeekOffset] = useState(0)
   const { isPending: wardPending, data: ward } = useQuery({
     queryKey: ["ward", wardId],
     queryFn: () => fetchWard(wardId),
@@ -107,16 +119,6 @@ export function RoutineHistoryCalendar({
     queryFn: () => fetchCalls(wardId),
     refetchInterval: 5000,
   })
-
-  // Center today's column: outcomes to the left, the plan ahead to the right.
-  const scrollerRef = useRef<HTMLDivElement>(null)
-  const ready = !wardPending && !callsPending
-  useEffect(() => {
-    if (!ready) return
-    scrollerRef.current
-      ?.querySelector<HTMLElement>("[data-today='true']")
-      ?.scrollIntoView({ inline: "center", block: "nearest" })
-  }, [ready])
 
   if (wardPending || callsPending) {
     return (
@@ -133,7 +135,7 @@ export function RoutineHistoryCalendar({
   }
 
   const routines = ward?.routines ?? []
-  const history = buildRoutineHistory({ routines, calls, tz, futureDays: 7 })
+  const history = buildRoutineHistory({ routines, calls, tz, weekOffset })
   const todaySuffix = ` · ${t("wardDetail.historyToday")}`
 
   return (
@@ -145,6 +147,31 @@ export function RoutineHistoryCalendar({
         <CardDescription>
           {t("wardDetail.historyDescription")}
         </CardDescription>
+        <CardAction className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => setWeekOffset((offset) => offset - 1)}
+            aria-label={t("wardDetail.historyPrevWeek")}
+          >
+            <ChevronLeft aria-hidden />
+          </Button>
+          <span className="px-2 text-sm font-medium tabular-nums">
+            {rangeFormat(new Date(`${history.days[0].key}T12:00:00`))}
+            {" – "}
+            {rangeFormat(new Date(`${history.days[6].key}T12:00:00`))}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => setWeekOffset((offset) => offset + 1)}
+            aria-label={t("wardDetail.historyNextWeek")}
+          >
+            <ChevronRight aria-hidden />
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {history.rows.length === 0 ? (
@@ -152,52 +179,49 @@ export function RoutineHistoryCalendar({
             {t("wardDetail.historyNoRoutines")}
           </p>
         ) : (
-          <div ref={scrollerRef} className="overflow-x-auto">
-            <div className="flex w-max gap-2">
-              {history.days.map((day, dayIndex) => (
+          <div className="grid grid-cols-7 gap-2">
+            {history.days.map((day, dayIndex) => (
+              <div
+                key={day.key}
+                className={cn(
+                  "flex flex-col gap-1 rounded-lg border p-2",
+                  day.isToday && "border-primary/50",
+                )}
+              >
                 <div
-                  key={day.key}
-                  data-today={day.isToday || undefined}
                   className={cn(
-                    "flex w-36 shrink-0 flex-col gap-1 rounded-lg border p-2",
-                    day.isToday && "border-primary/50",
+                    "px-1 pb-1 text-xs font-medium text-muted-foreground",
+                    day.isToday && "text-primary",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "px-1 pb-1 text-xs font-medium text-muted-foreground",
-                      day.isToday && "text-primary",
-                    )}
-                  >
-                    {weekdayFormat(new Date(`${day.key}T12:00:00`))}
-                    {day.isToday && todaySuffix}
-                  </div>
-                  <ul className="flex flex-col gap-1">
-                    {history.rows.map(({ routine, statuses }) => {
-                      const status = statuses[dayIndex]
-                      return (
-                        <li
-                          key={routine.id}
-                          title={`${routine.name} · ${statusLabel(status, t)}`}
-                          className={cn(
-                            "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs",
-                            statusMeta[status].cellClassName,
-                          )}
-                        >
-                          <HistoryStatusIcon status={status} />
-                          <span className="min-w-0 truncate font-medium">
-                            {routine.name}
-                          </span>
-                          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
-                            {routine.time_of_day}
-                          </span>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                  {dayFormat(new Date(`${day.key}T12:00:00`))}
+                  {day.isToday && todaySuffix}
                 </div>
-              ))}
-            </div>
+                <ul className="flex flex-col gap-1">
+                  {history.rows.map(({ routine, statuses }) => {
+                    const status = statuses[dayIndex]
+                    return (
+                      <li
+                        key={routine.id}
+                        title={`${routine.name} · ${statusLabel(status, t)}`}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs",
+                          statusMeta[status].cellClassName,
+                        )}
+                      >
+                        <HistoryStatusIcon status={status} />
+                        <span className="min-w-0 truncate font-medium">
+                          {routine.name}
+                        </span>
+                        <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
+                          {routine.time_of_day}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

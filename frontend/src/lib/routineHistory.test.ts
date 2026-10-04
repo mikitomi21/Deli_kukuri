@@ -66,10 +66,12 @@ describe("buildRoutineHistory", () => {
     now: NOW,
   })
 
-  it("builds exactly 7 days ending with today in the ward timezone", () => {
+  it("builds the Monday–Sunday week containing today in the ward timezone", () => {
     expect(history.days).toHaveLength(7)
+    // NOW is Sunday 2026-10-04 → the week runs Mon 28.09 – Sun 04.10.
     expect(history.days[0].key).toBe("2026-09-28")
     expect(history.days[6].key).toBe("2026-10-04")
+    expect(history.todayIndex).toBe(6)
     expect(history.days.map((day) => day.isToday)).toEqual([
       false,
       false,
@@ -126,35 +128,39 @@ describe("buildRoutineHistory", () => {
     ])
   })
 
-  it("extends ahead as planned days for approved routines only", () => {
-    const history = buildRoutineHistory({
-      routines: [makeRoutine("r-1"), makeRoutine("r-paused", "paused")],
+  it("navigates weeks: next week is fully planned, previous fully past", () => {
+    const approved = makeRoutine("r-1")
+    const paused = makeRoutine("r-paused", "paused")
+    const nextWeek = buildRoutineHistory({
+      routines: [approved, paused],
       calls: [],
       tz: TZ,
       now: NOW,
-      futureDays: 7,
+      weekOffset: 1,
     })
-    expect(history.days).toHaveLength(14)
-    expect(history.todayIndex).toBe(6)
-    const [approved, paused] = history.rows
-    expect(approved.statuses).toEqual([
-      "none",
-      "none",
-      "none",
-      "none",
-      "none",
-      "none",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-    ])
-    // Paused routines are not scheduled — no plan today or ahead.
-    expect(paused.statuses[6]).toBe("none")
-    expect(paused.statuses[13]).toBe("none")
+    expect(nextWeek.days[0].key).toBe("2026-10-05")
+    expect(nextWeek.days[6].key).toBe("2026-10-11")
+    expect(nextWeek.todayIndex).toBe(-1)
+    // Approved routines stay planned on every day of the coming week…
+    expect(
+      nextWeek.rows[0].statuses.every((status) => status === "pending"),
+    ).toBe(true)
+    // …while paused routines are not scheduled at all.
+    expect(
+      nextWeek.rows[1].statuses.every((status) => status === "none"),
+    ).toBe(true)
+
+    const prevWeek = buildRoutineHistory({
+      routines: [approved],
+      calls: [],
+      tz: TZ,
+      now: NOW,
+      weekOffset: -1,
+    })
+    expect(prevWeek.days[0].key).toBe("2026-09-21")
+    expect(prevWeek.days[6].key).toBe("2026-09-27")
+    expect(
+      prevWeek.rows[0].statuses.every((status) => status === "none"),
+    ).toBe(true)
   })
 })

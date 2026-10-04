@@ -160,8 +160,8 @@
     },
     "tabMedications": "Medications",
     "tabHistory": "History (7 days)",
-    "historyTitle": "Medication intake — 7 days back and ahead",
-    "historyDescription": "The background color shows the call outcome for each routine. Hover for details.",
+    "historyTitle": "Medication intake calendar",
+    "historyDescription": "The background color shows the call outcome for each routine. Use the arrows to switch weeks.",
     "historyToday": "Today",
     "historyNoCall": "No call",
     "historyNoRoutines": "No approved routines — history will appear once you approve the first routine.",
@@ -172,7 +172,9 @@
     "viewMedicationDetails": "Medication details",
     "aiTip": "AI Tip",
     "attemptLower": "attempt {{number}}",
-    "durationSec": "{{number}} s"
+    "durationSec": "{{number}} s",
+    "historyPrevWeek": "Previous week",
+    "historyNextWeek": "Next week"
   },
   "callDetail": {
     "summaryTitle": "Conversation summary",
