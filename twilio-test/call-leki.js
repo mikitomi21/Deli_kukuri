@@ -85,18 +85,74 @@ const smsClient = twilio(
 function buildSummarySms(wynik) {
   const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
   const problemy = niepotwierdzone.length
-    ? [`- Brak potwierdzenia przyjęcia: ${niepotwierdzone.join(", ")}.`]
+    ? [`• Nie potwierdzono przyjęcia: ${niepotwierdzone.join(", ")}.`]
     : ["- Brak wykrytych problemów."];
   const podsumowanie = String(wynik.podsumowanie || "").trim();
 
   return [
-    "DzwoniLek — podsumowanie rozmowy",
+    "Podsumowanie rozmowy:",
     podsumowanie || "Nie udało się przygotować podsumowania rozmowy.",
     "",
     "Wykryte problemy:",
-    ...problemy
+    ...problemy,
+    "",
+    "DzwoniLek"
   ]
     .join("\n");
+}
+
+async function generateSmsSummaryFromTranscript(transcriptFile) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || !transcriptFile || !fs.existsSync(transcriptFile)) {
+    return "Nie udało się wygenerować podsumowania z transkryptu.";
+  }
+
+  const turns = fs
+    .readFileSync(transcriptFile, "utf8")
+    .split("\n")
+    .filter((line) => /^\[[^\]]+\] (AI|USER): /.test(line));
+  if (turns.length === 0) {
+    return "Nie udało się wygenerować podsumowania z transkryptu.";
+  }
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_FALLBACK_MODEL || "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Na podstawie pełnego transkryptu napisz krótkie, naturalne podsumowanie " +
+              "po polsku, poprawnie odmieniając wyrazy. Opisz przebieg rozmowy i ważny " +
+              "kontekst. Nie wymieniaj leków ani nie opisuj, które przyjęto — te informacje " +
+              "zostaną podane osobno w sekcji problemów. Nie dopowiadaj faktów. Zwróć wyłącznie " +
+              "JSON: {\"podsumowanie\": \"1-2 naturalne zdania\"}."
+          },
+          {
+            role: "user",
+            content: `Pełny transkrypt rozmowy:\n${turns.join("\n")}`
+          }
+        ]
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || `HTTP ${response.status}`);
+    }
+    const result = JSON.parse(data.choices[0].message.content);
+    return String(result.podsumowanie || "").trim() ||
+      "Nie udało się wygenerować podsumowania z transkryptu.";
+  } catch (error) {
+    console.log("❌ Nie udało się wygenerować podsumowania SMS:", error.message);
+    return "Nie udało się wygenerować podsumowania z transkryptu.";
+  }
 }
 
 const SMS_HINTS = {
@@ -108,14 +164,23 @@ const SMS_HINTS = {
   63016: "szablon nie istnieje na tym koncie lub nie jest przeznaczony na SMS"
 };
 
-async function sendSummarySms(smsTo, wynik) {
+async function sendSummarySms(
+  smsTo,
+  wynik,
+  transcriptFile = null,
+  summaryFromTranscript = false
+) {
   console.log(`📨 Wysyłam SMS z podsumowaniem na ${smsTo}...`);
+  const smsWynik = { ...wynik };
+  if (transcriptFile && !summaryFromTranscript) {
+    smsWynik.podsumowanie = await generateSmsSummaryFromTranscript(transcriptFile);
+  }
 
   try {
     const msg = await smsClient.messages.create({
       to: smsTo,
       from: smsFrom,
-      body: buildSummarySms(wynik)
+      body: buildSummarySms(smsWynik)
     });
     console.log(`✅ SMS z podsumowaniem wysłany: SID ${msg.sid}, status ${msg.status}`);
     return;
@@ -420,7 +485,13 @@ function summarizeFromAi(args) {
   };
 }
 
-function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
+function savePodsumowanie(
+  transcriptFile,
+  callSid,
+  wynik,
+  zrodlo,
+  summaryFromTranscript = false
+) {
   const state = activeCalls.get(callSid);
 
   if (!transcriptFile || !fs.existsSync(transcriptFile)) {
@@ -478,7 +549,7 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
     return podsumowanieFile;
   }
 
-  sendSummarySms(smsTo, wynik).catch((error) => {
+  sendSummarySms(smsTo, wynik, transcriptFile, summaryFromTranscript).catch((error) => {
     console.log("❌ Błąd wysyłki SMS:", error.message);
   });
 
@@ -593,7 +664,8 @@ async function runFallbackSummarize(callSid, transcriptFile) {
           przyjety: przyjety === 1 || przyjety === true
         }))
       }),
-      "GPT (fallback po rozłączeniu)"
+      "GPT (fallback po rozłączeniu)",
+      true
     );
   } catch (error) {
     console.log("❌ Podsumowanie awaryjne nie powiodło się:", error.message);

@@ -57,8 +57,9 @@ node call-leki.js --test-sms     # test wysyłki SMS z fałszywym podsumowaniem
 ### SMS z podsumowaniem rozmowy
 
 Gdy podsumowanie jest gotowe (po `end_call` AI albo z fallbacku), skrypt wysyła SMS
-na `SMS_TO` z `.env`: imię, status każdego leku (przyjęty/NIEPRZYJĘTY) i streszczenie
-rozmowy. SMS jest pomijany, jeśli `SMS_TO` nie jest ustawione.
+na `SMS_TO` z `.env`: markę DzwoniLek, krótkie podsumowanie przebiegu rozmowy i
+końcową listę wykrytych problemów, bez powtarzania statusów leków w podsumowaniu.
+SMS jest pomijany, jeśli `SMS_TO` nie jest ustawione.
 
 - **Własna treść** (pełne podsumowanie) wymaga pełnego konta Twilio — wpisz
   `SMS_ACCOUNT_SID`, `SMS_AUTH_TOKEN` i `SMS_FROM` w `.env`.
