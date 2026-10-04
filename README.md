@@ -1,88 +1,37 @@
-# Full Stack FastAPI Template
+# DzwoniLek 📞💊
 
-[![Test Docker Compose](../../actions/workflows/test-docker-compose.yml/badge.svg)](../../actions/workflows/test-docker-compose.yml)
-[![Test Backend](../../actions/workflows/test-backend.yml/badge.svg)](../../actions/workflows/test-backend.yml)
+**Automatyczny głosowy agent, który dzwoni do seniora i sprawdza, czy przyjął leki.** Opiekun raz ustawia harmonogram w panelu webowym — o wyznaczonych porach agent dzwoni na zwykły telefon seniora (komórkowy lub stacjonarny), pyta po polsku o przyjęcie leków, a wynik zapisuje jako zweryfikowany raport z transkrypcją. Senior nie potrzebuje smartfona, internetu ani żadnej aplikacji.
 
-## Technology Stack and Features
+## Problem, który rozwiązujemy
 
-- ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.
-  - 🧰 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
-  - 🔍 [Pydantic](https://docs.pydantic.dev), used by FastAPI, for the data validation and settings management.
-  - 💾 [PostgreSQL](https://www.postgresql.org) as the SQL database.
-- 🚀 [React](https://react.dev) for the frontend.
-  - 🧩 Built into the backend application and served by FastAPI on the same domain as the API.
-  - 💃 Using TypeScript, hooks, [Vite](https://vitejs.dev), and other parts of a modern frontend stack.
-  - 🎨 [Tailwind CSS](https://tailwindcss.com) and [shadcn/ui](https://ui.shadcn.com) for the frontend components.
-  - 🤖 An automatically generated frontend client.
-  - 🧪 [Playwright](https://playwright.dev) for end-to-end testing.
-  - 🦇 Dark mode support.
-- ☁️ [FastAPI Cloud](https://fastapicloud.com) for deployment.
-- 🐋 [Docker Compose](https://www.docker.com) for local services and self-hosted deployment.
-  - 📞 [Traefik](https://traefik.io) as a reverse proxy with automatic HTTPS.
-- 🔒 Secure password hashing by default.
-- 🔑 JWT (JSON Web Token) authentication.
-- 📫 Email-based password recovery.
-- ✉️ [React Email](https://react.email) for email templates.
-- 📬 [Mailpit](https://mailpit.axllent.org) for local email testing during development.
-- ✅ Tests with [Pytest](https://pytest.org).
-- 🏭 CI (continuous integration) and CD (continuous deployment) based on GitHub Actions.
+- Polska się starzeje — osób 60+ jest już **9,9 mln**, a **co trzeci Polak 65+ przyjmuje 5+ leków dziennie** (polifarmacja).
+- **~50% pacjentów przewlekle chorych nie przyjmuje leków zgodnie z zaleceniami** — skutki to powikłania, unikające hospitalizacje i straty sięgające **6 mld PLN rocznie**.
+- Opiekun musiałby dzwonić ręcznie **3–4 razy dziennie**; aplikacje z powiadomieniami na smartfona zawodzą u seniorów przez wykluczenie cyfrowe.
+- **Telefon zostaje najpewniejszym kanałem** — i dokładnie ten kanał automatyzujemy.
 
-### Dashboard Login
+## Co zrobiliśmy
 
-![Dashboard login screenshot](img/login.png)
+- **Panel webowy dla opiekuna** — podopieczni, rutyny lekowe, katalog leków (React, TanStack Router/Query, shadcn/Tailwind)
+- **Rutyny z harmonogramem** — tworzenie, zatwierdzanie, wstrzymywanie, zależności między rutynami, wersje PL/EN
+- **Automatyczny planer połączeń** — Celery + Redis, wywołania o porach rutyn, polityka ponowień (brak odbioru / pominięta dawka → kolejna próba)
+- **Głosowy agent AI** — rozmowa przez zwykłą telefonię (Twilio), naturalny polski, rozpoznawanie mowy (STT) i interpretacja odpowiedzi (GPT)
+- **Pełna przejrzystość** — historia połączeń z transkrypcjami, 7-dniowy kalendarz przyjmowania leków (zielony = przyjęte, czerwony = pominięte), statystyki regularności
+- **Alerty bez „call fatigue"** — opiekun dostaje powiadomienie (SMS/e-mail) tylko gdy coś pójdzie nie tak
+- **Bezpieczeństwo** — JWT, role opiekun/admin, dedykowany token serwisu głosowego
+- **Infrastruktura i jakość** — Docker Compose (FastAPI + Postgres + Redis + Traefik + frontend), testy backend/frontend (pytest, Playwright, vitest), tryb demo z danymi
+- **Zero barier dla seniora** — brak aplikacji, konta i internetu; działa na zwykłej komórce i na stacjonarnym
 
-### Dashboard - Admin
+## 🏆 Demo — przetestuj aplikację w 8 krokach
 
-![Admin dashboard screenshot](img/dashboard.png)
+Aplikacja działa na żywo pod adresem **https://dzwonilek.pl/welcome**
 
-### Dashboard - Items
+1. Wejdź na **https://dzwonilek.pl/welcome**
+2. **Zaloguj się** — login i hasło podajemy w formularzu zgłoszeniowym
+3. Na pulpicie kliknij **„Dodaj podopiecznego"**
+4. Wpisz **imię i nazwisko** oraz **numer telefonu**, na który ma być wykonywane połączenie
+5. Kliknij **nazwę dodanego podopiecznego** — tutaj zarządzasz jego rutynami
+6. Kliknij **„Dodaj rutynę"**, wprowadź dane (nazwa, godzina, leki) i zapisz
+7. Rozwiń **trzy kropki (⋮)** obok rutyny i kliknij **„Zatwierdź"**
+8. Kliknij **„Zadzwoń teraz"** — agent zadzwoni na podany numer i zapyta o leki
 
-![Items dashboard screenshot](img/dashboard-items.png)
-
-### Dashboard - Dark Mode
-
-![Dark mode dashboard screenshot](img/dashboard-dark.png)
-
-### React Email Templates
-
-![Email templates screenshot](img/react-email.png)
-
-### Mailpit - Local Email Testing
-
-![Mailpit screenshot](img/mailpit.png)
-
-### Interactive API Documentation
-
-![API docs](img/docs.png)
-
-## How to Use It
-
-Click the **Use this template** button at the top of this page to create a new repository.
-
-## Backend Development
-
-Backend docs: [backend/README.md](./backend/README.md).
-
-## Frontend Development
-
-Frontend docs: [frontend/README.md](./frontend/README.md).
-
-## Deployment
-
-FastAPI Cloud deployment: [deployment.md](./deployment.md).
-
-Self-hosted deployment with Docker Compose: [deployment-docker-compose.md](./deployment-docker-compose.md).
-
-## Development
-
-General development docs: [development.md](./development.md).
-
-This includes the local FastAPI and Vite workflow, Docker Compose services, `.env` configuration, and more.
-
-## Release Notes
-
-Check the file [release-notes.md](./release-notes.md).
-
-## License
-
-The Full Stack FastAPI Template is licensed under the terms of the MIT license.
+Po rozmowie wynik i transkrypcję zobaczysz w zakładce **Połączenia**, a przyjmowanie leków dzień po dniu — w kalendarzu na dole zakładki **Rutyny**.
