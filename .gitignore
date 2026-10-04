@@ -8,3 +8,7 @@ backend/app/frontend/
 /playwright/.cache/
 .env
 /.env.prod
+
+# Wyniki skryptow testowych Twilio (dane z telefonow, nie commitowac)
+backend/scripts/leki_wynik.json
+backend/scripts/transkrypcja.txt
