@@ -82,7 +82,12 @@ const rangeFormat = (date: Date) =>
 
 function HistoryStatusIcon({ status }: { status: CalendarCellStatus }) {
   const { icon: Icon, iconClassName } = statusMeta[status]
-  return <Icon aria-hidden className={cn("size-3.5 shrink-0", iconClassName)} />
+  return (
+    <Icon
+      aria-hidden
+      className={cn("mt-px size-3.5 shrink-0", iconClassName)}
+    />
+  )
 }
 
 function statusLabel(status: HistoryCellStatus, t: (key: string) => string) {
@@ -203,15 +208,15 @@ export function RoutineHistoryCalendar({
                         key={routine.id}
                         title={`${routine.name} · ${statusLabel(status, t)}`}
                         className={cn(
-                          "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs",
+                          "flex items-start gap-1.5 rounded-md px-1.5 py-1 text-xs",
                           statusMeta[shown].cellClassName,
                         )}
                       >
                         <HistoryStatusIcon status={shown} />
-                        <span className="min-w-0 truncate font-medium">
+                        <span className="min-w-0 flex-1 break-words font-medium leading-tight">
                           {routine.name}
                         </span>
-                        <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground">
+                        <span className="shrink-0 font-mono text-[10px] text-muted-foreground leading-tight">
                           {routine.time_of_day}
                         </span>
                       </li>
