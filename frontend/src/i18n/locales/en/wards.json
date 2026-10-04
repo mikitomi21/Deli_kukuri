@@ -159,7 +159,6 @@
       "canceled": "Call canceled"
     },
     "tabMedications": "Medications",
-    "tabHistory": "History (7 days)",
     "historyTitle": "Medication intake calendar",
     "historyDescription": "The background color shows the call outcome for each routine. Use the arrows to switch weeks.",
     "historyToday": "Today",

@@ -260,7 +260,6 @@ function WardTabs({
         <TabsTrigger value="medications">
           {t("wardDetail.tabMedications")}
         </TabsTrigger>
-        <TabsTrigger value="history">{t("wardDetail.tabHistory")}</TabsTrigger>
         <TabsTrigger value="calls">{t("wardDetail.tabCalls")}</TabsTrigger>
       </TabsList>
       <TabsContent value="routines" className="mt-4">
@@ -273,9 +272,6 @@ function WardTabs({
       </TabsContent>
       <TabsContent value="medications" className="mt-4">
         <WardMedicationsSection wardId={wardId} />
-      </TabsContent>
-      <TabsContent value="history" className="mt-4">
-        <RoutineHistoryCalendar wardId={wardId} tz={tz} />
       </TabsContent>
       <TabsContent value="calls" className="mt-4">
         <CallsSection wardId={wardId} />
