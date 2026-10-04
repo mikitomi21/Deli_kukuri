@@ -109,6 +109,13 @@
     "save": "Zapisz zmiany",
     "successToast": "Dane podopiecznego zaktualizowane"
   },
+  "smsNotifications": {
+    "label": "Powiadomienia SMS dla tej osoby",
+    "description": "Podsumowanie zawiera wynik dla leków i informację o problemie, np. braku odpowiedzi lub nieudanego połączenia.",
+    "always": "Zawsze wysyłaj podsumowanie",
+    "issuesOnly": "Tylko przy nieprzyjętym leku lub braku odpowiedzi",
+    "never": "Nie wysyłaj SMS-ów"
+  },
   "wardDetail": {
     "pageTitle": "DzwoniLek — Podopieczny",
     "backToList": "Wróć do listy",
@@ -176,6 +183,9 @@
     "historyNextWeek": "Następny tydzień"
   },
   "callDetail": {
+    "sendSms": "Wyślij podsumowanie SMS",
+    "smsSentButton": "SMS wysłany",
+    "smsSent": "Podsumowanie rozmowy wysłano SMS-em.",
     "summaryTitle": "Podsumowanie rozmowy",
     "summaryUnavailable": "Podsumowanie nie jest jeszcze dostępne.",
     "pageTitle": "DzwoniLek — Połączenie",

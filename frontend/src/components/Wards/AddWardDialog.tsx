@@ -27,6 +27,13 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { addWard } from "@/hooks/useWards"
 import { isValidE164, normalizePhoneToE164 } from "@/lib/phone"
@@ -37,6 +44,7 @@ const DEFAULT_TZ = "Europe/Warsaw"
 type FormData = {
   full_name: string
   phone: string
+  sms_notification_preference: "always" | "issues_only" | "never"
 }
 
 interface AddWardDialogProps {
@@ -68,6 +76,7 @@ export function AddWardDialog({ children }: AddWardDialogProps) {
           .refine((value) => isValidE164(normalizePhoneToE164(value)), {
             message: t("addWard.validation.phoneInvalid"),
           }),
+        sms_notification_preference: z.enum(["always", "issues_only", "never"]),
       }),
     [t],
   )
@@ -79,6 +88,7 @@ export function AddWardDialog({ children }: AddWardDialogProps) {
     defaultValues: {
       full_name: "",
       phone: "",
+      sms_notification_preference: "issues_only",
     },
   })
 
@@ -88,6 +98,7 @@ export function AddWardDialog({ children }: AddWardDialogProps) {
         full_name: data.full_name,
         phone_e164: normalizePhoneToE164(data.phone),
         tz: DEFAULT_TZ,
+        sms_notification_preference: data.sms_notification_preference,
       }),
     onSuccess: () => {
       showSuccessToast(t("addWard.successToast"))
@@ -152,6 +163,41 @@ export function AddWardDialog({ children }: AddWardDialogProps) {
                       />
                     </FormControl>
                     <FormDescription>{t("addWard.phoneHint")}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sms_notification_preference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("smsNotifications.label")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="always">
+                          {t("smsNotifications.always")}
+                        </SelectItem>
+                        <SelectItem value="issues_only">
+                          {t("smsNotifications.issuesOnly")}
+                        </SelectItem>
+                        <SelectItem value="never">
+                          {t("smsNotifications.never")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t("smsNotifications.description")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

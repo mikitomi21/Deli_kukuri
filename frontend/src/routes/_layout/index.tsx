@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CircleAlert,
   CircleCheck,
+  Info,
   Phone,
   Pill,
   Plus,
@@ -12,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { StatCard } from "@/components/Common/StatCard"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +28,7 @@ import { AddWardDialog } from "@/components/Wards/AddWardDialog"
 import { fetchCallTasks } from "@/hooks/useCalls"
 import { fetchRoutines } from "@/hooks/useRoutines"
 import { fetchWards, getWardsMode } from "@/hooks/useWards"
+import useAuth from "@/hooks/useAuth"
 import i18n from "@/i18n"
 import { cn } from "@/lib/utils"
 import type {
@@ -91,6 +94,26 @@ function TodaySummary({
   }
   // Pending without failures: stay silent instead of crying wolf
   return null
+}
+
+function AdminPhoneReminder() {
+  const { user } = useAuth()
+  const { t } = useTranslation("admin")
+
+  if (!user?.is_superuser || user.admin_phone_number) return null
+
+  return (
+    <Alert role="status">
+      <Info aria-hidden="true" />
+      <AlertTitle>{t("dashboard.adminPhoneReminderTitle")}</AlertTitle>
+      <AlertDescription>
+        <p>{t("dashboard.adminPhoneReminderDescription")}</p>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/settings">{t("dashboard.setAdminPhone")}</Link>
+        </Button>
+      </AlertDescription>
+    </Alert>
+  )
 }
 
 // A routine needs attention only when a call actually went wrong (not
@@ -182,57 +205,68 @@ function Dashboard() {
 
   if (isPending) {
     return (
-      <div
-        className="grid gap-4 md:grid-cols-2"
-        role="status"
-        aria-busy="true"
-        aria-label={t("dashboard.loadingWards")}
-      >
-        {[0, 1].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-28" />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <div
+          className="grid gap-4 md:grid-cols-2"
+          role="status"
+          aria-busy="true"
+          aria-label={t("dashboard.loadingWards")}
+        >
+          {[0, 1].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-28" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("dashboard.loadFailedTitle")}</CardTitle>
-          <CardDescription role="alert">{error.message}</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("dashboard.loadFailedTitle")}</CardTitle>
+            <CardDescription role="alert">{error.message}</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     )
   }
 
   if (!wards || wards.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-          <div>
-            <p className="text-lg font-semibold">{t("dashboard.emptyTitle")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("dashboard.emptyDescription")}
-            </p>
-          </div>
-          <AddWardDialog>
-            <Button size="lg">
-              <Plus aria-hidden />
-              {t("dashboard.addWard")}
-            </Button>
-          </AddWardDialog>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <Card className="border-dashed">
+          <CardContent
+            className="flex flex-col items-center gap-4 py-16 text-center"
+          >
+            <div>
+              <p className="text-lg font-semibold">{t("dashboard.emptyTitle")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("dashboard.emptyDescription")}
+              </p>
+            </div>
+            <AddWardDialog>
+              <Button size="lg">
+                <Plus aria-hidden />
+                {t("dashboard.addWard")}
+              </Button>
+            </AddWardDialog>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
@@ -257,6 +291,8 @@ function Dashboard() {
           </>
         }
       />
+
+      <AdminPhoneReminder />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

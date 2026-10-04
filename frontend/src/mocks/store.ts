@@ -687,6 +687,7 @@ export interface CreateWardPayload {
   full_name: string
   phone_e164: string
   tz: string
+  sms_notification_preference?: "always" | "issues_only" | "never"
 }
 
 export async function createWard(
@@ -694,7 +695,13 @@ export async function createWard(
 ): Promise<WardWithToday> {
   await delay()
   const mock: MockWard = {
-    ward: { id: uid(), active: true, ...payload },
+    ward: {
+      id: uid(),
+      active: true,
+      ...payload,
+      sms_notification_preference:
+        payload.sms_notification_preference ?? "issues_only",
+    },
     routines: [],
     callTasks: [],
     calls: [],
@@ -707,6 +714,7 @@ export interface UpdateWardPayload {
   full_name?: string
   phone_e164?: string
   tz?: string
+  sms_notification_preference?: "always" | "issues_only" | "never"
 }
 
 export async function updateWard(

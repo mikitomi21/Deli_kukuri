@@ -86,6 +86,9 @@
   },
   "dashboard": {
     "metaTitle": "DzwoniLek — Today",
+    "adminPhoneReminderTitle": "Set a phone number for alerts",
+    "adminPhoneReminderDescription": "You will not receive an SMS when a ward misses a medication. Add the administrator phone number to enable alerts.",
+    "setAdminPhone": "Set phone number",
     "summaryAllGood": "All good",
     "summaryNeedsAttention": "Needs attention",
     "loadingWards": "Loading wards",

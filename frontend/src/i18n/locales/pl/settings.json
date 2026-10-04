@@ -15,6 +15,10 @@
     "email": "E-mail",
     "notAvailable": "Brak danych",
     "emailInvalid": "Nieprawidłowy adres e-mail",
+    "adminPhoneNumber": "Numer telefonu administratora",
+    "adminPhonePlaceholder": "+48 600 100 200",
+    "adminPhoneHint": "Na ten numer wyślemy SMS, gdy podopieczny nie przyjmie któregoś leku. Możesz wpisać numer z kierunkowym kraju.",
+    "phoneInvalid": "Wpisz prawidłowy numer telefonu.",
     "updated": "Dane użytkownika zostały zaktualizowane"
   },
   "changePassword": {
