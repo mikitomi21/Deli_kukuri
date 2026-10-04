@@ -83,17 +83,19 @@ const smsClient = twilio(
 );
 
 function buildSummarySms(wynik) {
-  const lekiLine = LEKI.map(
-    (lek) => `${lek}: ${wynik.leki[lek] === 1 ? "przyjęty" : "NIEPRZYJĘTY"}`
-  ).join(", ");
-  const kto = wynik.imie ? `${wynik.imie} — ` : "";
+  const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
+  const problemy = niepotwierdzone.length
+    ? [`- Brak potwierdzenia przyjęcia: ${niepotwierdzone.join(", ")}.`]
+    : ["- Brak wykrytych problemów."];
+  const podsumowanie = String(wynik.podsumowanie || "").trim();
 
   return [
-    "Podsumowanie rozmowy o lekach:",
-    `${kto}${lekiLine}`,
-    wynik.podsumowanie
+    "DzwoniLek — podsumowanie rozmowy",
+    podsumowanie || "Nie udało się przygotować podsumowania rozmowy.",
+    "",
+    "Wykryte problemy:",
+    ...problemy
   ]
-    .filter((part) => part && part.trim())
     .join("\n");
 }
 
@@ -328,8 +330,9 @@ Zakończenie rozmowy:
 - Narzędzie end_call wywołaj DOKŁNIE RAZ, zawsze na samym końcu rozmowy, po pożegnaniu.
 - W parametrach end_call przekaż: leki (wynik dla każdego leku z listy: przyjety
   true/false), imie (imię rozmówcy, jeśli go podać, inaczej pusty string) oraz
-  podsumowanie (2-4 zdania po polsku: kto odebrał, które leki przyjął, które nie,
-  jak przebiegała rozmowa).
+  podsumowanie (1-2 zdania naturalną, poprawną polszczyzną o przebiegu rozmowy
+  i istotnym kontekście. Nie wymieniaj leków ani ich statusów — zostaną pokazane
+  osobno na końcu SMS-a. Nie dodawaj informacji, których nie ma w rozmowie).
 `.trim();
 }
 
@@ -546,7 +549,7 @@ async function runFallbackSummarize(callSid, transcriptFile) {
               "leków. Zwróć WYŁĄCZNIE obiekt JSON postaci: {\"imie\": \"<imię rozmówcy — tylko " +
               "jeśli rozmówca je WYPOWIEDZIAŁ w rozmowie; NIGDY etykiety USER/AI z transkrypcji; " +
               "pusty string gdy brak>\", \"leki\": {\"<lek>\": 0 lub 1 dla każdego leku z listy, 0 gdy " +
-              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<2-4 zdania po polsku>\"}."
+              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<1-2 naturalne zdania poprawną polszczyzną, bez nazw leków i ich statusów>\"}."
           },
           {
             role: "user",
