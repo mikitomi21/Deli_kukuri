@@ -3,10 +3,8 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleCheck,
-  CircleHelp,
   Clock,
   Minus,
-  PhoneOff,
   X,
 } from "lucide-react"
 import { useState } from "react"
@@ -34,8 +32,10 @@ import {
 // wardDetail.historyNoCall), same split as RoutineStatusBadge. The tinted
 // background is the main signal: within one day each routine reads on its
 // own (morning taken = green, evening missed = red), not just whole days.
+type CalendarCellStatus = Exclude<HistoryCellStatus, "unclear" | "no_answer">
+
 const statusMeta: Record<
-  HistoryCellStatus,
+  CalendarCellStatus,
   { icon: typeof CircleCheck; iconClassName: string; cellClassName: string }
 > = {
   took: {
@@ -48,16 +48,6 @@ const statusMeta: Record<
     iconClassName: "text-destructive",
     cellClassName: "bg-destructive/10",
   },
-  unclear: {
-    icon: CircleHelp,
-    iconClassName: "text-amber-600 dark:text-amber-400",
-    cellClassName: "bg-warning/15",
-  },
-  no_answer: {
-    icon: PhoneOff,
-    iconClassName: "text-muted-foreground",
-    cellClassName: "bg-muted",
-  },
   pending: {
     icon: Clock,
     iconClassName: "text-muted-foreground",
@@ -68,6 +58,13 @@ const statusMeta: Record<
     iconClassName: "text-muted-foreground/50",
     cellClassName: "",
   },
+}
+
+// The calendar deliberately shows only green / red / planned: unclear
+// answers and no-answer calls read as missed (red); the exact outcome
+// stays in the tooltip.
+function displayStatus(status: HistoryCellStatus): CalendarCellStatus {
+  return status === "unclear" || status === "no_answer" ? "not_taken" : status
 }
 
 const dayFormat = (date: Date) =>
@@ -83,7 +80,7 @@ const rangeFormat = (date: Date) =>
     month: "2-digit",
   }).format(date)
 
-function HistoryStatusIcon({ status }: { status: HistoryCellStatus }) {
+function HistoryStatusIcon({ status }: { status: CalendarCellStatus }) {
   const { icon: Icon, iconClassName } = statusMeta[status]
   return <Icon aria-hidden className={cn("size-3.5 shrink-0", iconClassName)} />
 }
@@ -200,16 +197,17 @@ export function RoutineHistoryCalendar({
                 <ul className="flex flex-col gap-1">
                   {history.rows.map(({ routine, statuses }) => {
                     const status = statuses[dayIndex]
+                    const shown = displayStatus(status)
                     return (
                       <li
                         key={routine.id}
                         title={`${routine.name} · ${statusLabel(status, t)}`}
                         className={cn(
                           "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs",
-                          statusMeta[status].cellClassName,
+                          statusMeta[shown].cellClassName,
                         )}
                       >
-                        <HistoryStatusIcon status={status} />
+                        <HistoryStatusIcon status={shown} />
                         <span className="min-w-0 truncate font-medium">
                           {routine.name}
                         </span>
