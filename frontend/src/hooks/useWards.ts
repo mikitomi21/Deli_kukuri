@@ -29,6 +29,7 @@ function toWardWithToday(ward: WardPublic): WardWithToday {
     id: ward.id,
     full_name: ward.full_name,
     phone_e164: ward.phone_e164,
+    sms_notification_preference: ward.sms_notification_preference ?? "issues_only",
     tz: ward.tz ?? "Europe/Warsaw",
     active: ward.active,
   }

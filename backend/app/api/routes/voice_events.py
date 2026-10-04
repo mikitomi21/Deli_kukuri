@@ -1,17 +1,32 @@
+import logging
 import re
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
+import httpx
 from fastapi import APIRouter, Header, HTTPException
-from sqlmodel import SQLModel, select
+from sqlmodel import Session, SQLModel, select
 
 from app.api.deps import SessionDep
 from app.core.config import settings
-from app.models import Call, CallOutcome, CallResult, CallTask, CallTaskStatus, CallTurn
+from app.models import (
+    Call,
+    CallOutcome,
+    CallResult,
+    CallTask,
+    CallTaskStatus,
+    CallTurn,
+    EscalationEvent,
+    Routine,
+    User,
+    Ward,
+)
+from app.twilio.sms import send_admin_sms
 
 router = APIRouter(tags=["voice"])
+logger = logging.getLogger(__name__)
 
 
 class VoiceEvent(SQLModel):
@@ -24,6 +39,107 @@ class VoiceEvent(SQLModel):
         None
     )
     duration_sec: int = 0
+
+
+def _prepare_sms_notification(
+    session: Session,
+    task: CallTask,
+    result: CallResult,
+    event: VoiceEvent,
+) -> EscalationEvent | None:
+    # Give the scheduled retry a chance before notifying about an unanswered call.
+    if (
+        event.event == "terminal"
+        and event.status == "no-answer"
+        and task.attempt_no < 2
+    ):
+        return None
+
+    admin = session.exec(
+        select(User).where(
+            User.is_superuser.is_(True),
+            User.admin_phone_number.is_not(None),
+        )
+    ).first()
+    if admin is None or admin.admin_phone_number is None:
+        return None
+
+    if session.exec(
+        select(EscalationEvent).where(
+            EscalationEvent.call_result_id == result.id,
+            EscalationEvent.channel == "sms",
+        )
+    ).first():
+        return None
+
+    routine = session.get(Routine, task.routine_id)
+    ward = session.get(Ward, routine.ward_id) if routine else None
+    if ward is None:
+        return None
+    preference = ward.sms_notification_preference
+    if preference == "never":
+        return None
+
+    expected_medications = len(routine.items) if routine else 0
+    taken = [name for name, value in event.medications.items() if value == 1]
+    missed = [name for name, value in event.medications.items() if value == 0]
+    missing_response = result.outcome == CallOutcome.UNCLEAR or (
+        event.event == "summary"
+        and (
+            not event.medications
+            or (
+                expected_medications > 0
+                and len(event.medications) < expected_medications
+            )
+        )
+    )
+    call_failed = event.event == "terminal" and event.status != "completed"
+    has_issue = (
+        result.outcome != CallOutcome.TOOK or missing_response or call_failed
+    )
+    if preference == "issues_only" and not has_issue:
+        return None
+
+    if not all(
+        (
+            settings.TWILIO_ACCOUNT_SID,
+            settings.TWILIO_AUTH_TOKEN,
+            settings.SMS_FROM,
+        )
+    ):
+        logger.warning("Medication SMS skipped because Twilio SMS settings are missing")
+        return None
+
+    lines = [f"OpiekunAI — podsumowanie rozmowy z {ward.full_name}."]
+    if event.notes.strip():
+        lines.append(f"Podsumowanie: {event.notes.strip()[:300]}")
+    if event.medications:
+        if taken:
+            lines.append(f"Przyjęte: {', '.join(taken)}.")
+        if missed:
+            lines.append(f"Nieprzyjęte: {', '.join(missed)}.")
+    if event.status and event.status != "completed":
+        status_messages = {
+            "no-answer": "Nie uzyskano odpowiedzi na połączenie.",
+            "busy": "Linia była zajęta.",
+            "failed": "Połączenie nie powiodło się.",
+            "canceled": "Połączenie zostało przerwane.",
+        }
+        lines.append(f"Problem: {status_messages.get(event.status, event.status)}")
+    elif missing_response:
+        lines.append("Problem: Nie uzyskano potwierdzenia przyjęcia wszystkich leków.")
+    elif missed:
+        lines.append(f"Problem: Nie przyjęto leków: {', '.join(missed)}.")
+    else:
+        lines.append("Nie zgłoszono problemów z przyjęciem leków.")
+
+    return EscalationEvent(
+        call_result_id=result.id,
+        caregiver_id=ward.caregiver_id,
+        channel="sms",
+        payload={"message": "\n".join(lines), "to": admin.admin_phone_number},
+        status="pending",
+    )
 
 
 @router.post("/internal/calls/{task_id}/events")
@@ -50,6 +166,7 @@ def persist_voice_event(
     result = session.exec(
         select(CallResult).where(CallResult.call_id == call.id)
     ).first()
+    sms_notification = None
     if event.event == "summary":
         outcome = CallOutcome.UNCLEAR
         if event.medications:
@@ -67,6 +184,11 @@ def persist_voice_event(
             0.0  # The Realtime summary does not expose a calibrated confidence.
         )
         session.add(result)
+        sms_notification = _prepare_sms_notification(
+            session, task, result, event
+        )
+        if sms_notification is not None:
+            session.add(sms_notification)
         if not session.exec(
             select(CallTurn.id).where(CallTurn.call_id == call.id)
         ).first():
@@ -132,6 +254,23 @@ def persist_voice_event(
                 )
             )
         session.add(task)
+        sms_notification = _prepare_sms_notification(
+            session, task, result, event
+        )
+        if sms_notification is not None:
+            session.add(sms_notification)
     session.add(call)
     session.commit()
+    if sms_notification is not None:
+        try:
+            send_admin_sms(
+                sms_notification.payload["to"], sms_notification.payload["message"]
+            )
+        except (httpx.HTTPError, RuntimeError):
+            logger.exception("Failed to send medication follow-up SMS")
+            sms_notification.status = "failed"
+        else:
+            sms_notification.status = "sent"
+        session.add(sms_notification)
+        session.commit()
     return {"accepted": True}

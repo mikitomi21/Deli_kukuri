@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowLeft, Clock, Hash } from "lucide-react"
+import { ArrowLeft, Clock, Hash, Send } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { LoadingButton } from "@/components/ui/loading-button"
 import {
   Card,
   CardContent,
@@ -12,8 +13,11 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TodayOutcomeBadge } from "@/components/Wards/RoutineStatusBadge"
-import { fetchCall } from "@/hooks/useCalls"
+import { fetchCall, sendCallSummarySms } from "@/hooks/useCalls"
+import { getWardsMode } from "@/hooks/apiMode"
+import useCustomToast from "@/hooks/useCustomToast"
 import i18n from "@/i18n"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/wards/$wardId/calls/$callId")({
   component: CallDetail,
@@ -30,6 +34,12 @@ export const Route = createFileRoute("/_layout/wards/$wardId/calls/$callId")({
 function CallDetail() {
   const { callId, wardId } = Route.useParams()
   const { t } = useTranslation("wards")
+  const { showSuccessToast, showErrorToast } = useCustomToast()
+  const smsMutation = useMutation({
+    mutationFn: sendCallSummarySms,
+    onSuccess: () => showSuccessToast(t("callDetail.smsSent")),
+    onError: handleError.bind(showErrorToast),
+  })
   const {
     isPending,
     error,
@@ -86,7 +96,25 @@ function CallDetail() {
               {new Date(call.started_at).toLocaleString(i18n.language)}
             </p>
           </div>
-          {call.result && <TodayOutcomeBadge status={call.result.outcome} />}
+          {call.result && (
+            <div className="flex flex-wrap items-center gap-2">
+              <TodayOutcomeBadge status={call.result.outcome} />
+              {getWardsMode() === "api" && (
+                <LoadingButton
+                  size="sm"
+                  variant="outline"
+                  loading={smsMutation.isPending}
+                  disabled={smsMutation.isSuccess}
+                  onClick={() => smsMutation.mutate(call.id)}
+                >
+                  <Send aria-hidden className="size-4" />
+                  {smsMutation.isSuccess
+                    ? t("callDetail.smsSentButton")
+                    : t("callDetail.sendSms")}
+                </LoadingButton>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">

@@ -74,6 +74,11 @@ export async function fetchCall(callId: string): Promise<Call> {
   return mockGetCall(callId)
 }
 
+/** Manually send this call's summary to the configured administrator. */
+export async function sendCallSummarySms(callId: string): Promise<void> {
+  await CallsService.sendCallSummarySms({ path: { id: callId } })
+}
+
 /** docs/05: POST /wards/{ward_id}/test-call — immediate test call. */
 export async function startTestCall(wardId: string): Promise<{ id: string }> {
   if (getWardsMode() === "api") {

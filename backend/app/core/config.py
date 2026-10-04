@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # Seed demo data (2 wards, 4 routines, call history) at startup; set to 0
     # to keep production-like environments empty.
     SEED_DEMO_DATA: bool = True
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""
+    SMS_FROM: str = ""
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

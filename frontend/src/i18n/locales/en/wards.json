@@ -109,6 +109,13 @@
     "save": "Save changes",
     "successToast": "Ward details have been updated"
   },
+  "smsNotifications": {
+    "label": "SMS notifications for this person",
+    "description": "The summary includes medication outcomes and any issue, such as no response or a failed call.",
+    "always": "Always send a summary",
+    "issuesOnly": "Only for a missed medication or no response",
+    "never": "Do not send SMS messages"
+  },
   "wardDetail": {
     "pageTitle": "DzwoniLek — Ward",
     "backToList": "Back to list",
@@ -169,6 +176,9 @@
     "durationSec": "{{number}} s"
   },
   "callDetail": {
+    "sendSms": "Send summary by SMS",
+    "smsSentButton": "SMS sent",
+    "smsSent": "The call summary was sent by SMS.",
     "summaryTitle": "Conversation summary",
     "summaryUnavailable": "The summary is not available yet.",
     "pageTitle": "DzwoniLek — Call",

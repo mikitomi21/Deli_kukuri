@@ -12,6 +12,7 @@ export interface Ward {
   id: string
   full_name: string
   phone_e164: string
+  sms_notification_preference?: "always" | "issues_only" | "never"
   tz: string
   active: boolean
 }

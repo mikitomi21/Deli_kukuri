@@ -86,6 +86,9 @@
   },
   "dashboard": {
     "metaTitle": "DzwoniLek — Dzisiaj",
+    "adminPhoneReminderTitle": "Ustaw numer telefonu do powiadomień",
+    "adminPhoneReminderDescription": "Nie otrzymasz SMS-a, gdy podopieczny nie przyjmie leku. Dodaj numer administratora, aby włączyć powiadomienia.",
+    "setAdminPhone": "Ustaw numer telefonu",
     "summaryAllGood": "Wszystko OK",
     "summaryNeedsAttention": "Wymaga uwagi",
     "loadingWards": "Ładowanie podopiecznych",

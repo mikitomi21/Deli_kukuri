@@ -20,12 +20,20 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import i18n from "@/i18n"
+import { isValidE164, normalizePhoneToE164 } from "@/lib/phone"
 import { cn } from "@/lib/utils"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
   full_name: z.string().max(30).optional(),
   email: z.email({ message: i18n.t("settings:userInformation.emailInvalid") }),
+  admin_phone_number: z
+    .string()
+    .refine(
+      (value) =>
+        value === "" || isValidE164(normalizePhoneToE164(value)),
+      { message: i18n.t("settings:userInformation.phoneInvalid") },
+    ),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -44,6 +52,7 @@ const UserInformation = () => {
     defaultValues: {
       full_name: currentUser?.full_name ?? undefined,
       email: currentUser?.email,
+      admin_phone_number: currentUser?.admin_phone_number ?? "",
     },
   })
 
@@ -73,6 +82,14 @@ const UserInformation = () => {
     }
     if (data.email !== currentUser?.email) {
       updateData.email = data.email
+    }
+    if (
+      currentUser?.is_superuser &&
+      data.admin_phone_number !== (currentUser.admin_phone_number ?? "")
+    ) {
+      updateData.admin_phone_number = data.admin_phone_number
+        ? normalizePhoneToE164(data.admin_phone_number)
+        : null
     }
 
     mutation.mutate(updateData)
@@ -141,6 +158,48 @@ const UserInformation = () => {
               )
             }
           />
+
+          {currentUser?.is_superuser && (
+            <FormField
+              control={form.control}
+              name="admin_phone_number"
+              render={({ field }) =>
+                editMode ? (
+                  <FormItem>
+                    <FormLabel>{t("userInformation.adminPhoneNumber")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        autoComplete="tel"
+                        placeholder={t("userInformation.adminPhonePlaceholder")}
+                        aria-describedby="admin-phone-hint"
+                        {...field}
+                      />
+                    </FormControl>
+                    <p
+                      id="admin-phone-hint"
+                      className="text-xs text-muted-foreground"
+                    >
+                      {t("userInformation.adminPhoneHint")}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                ) : (
+                  <FormItem>
+                    <FormLabel>{t("userInformation.adminPhoneNumber")}</FormLabel>
+                    <p
+                      className={cn(
+                        "py-2 truncate max-w-sm",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      {field.value || t("userInformation.notAvailable")}
+                    </p>
+                  </FormItem>
+                )
+              }
+            />
+          )}
 
           <div className="flex gap-3">
             {editMode ? (

@@ -15,9 +15,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { editWard } from "@/hooks/useWards"
 import { isValidE164, normalizePhoneToE164 } from "@/lib/phone"
+import type { WardUpdate } from "@/client"
 import type { WardWithToday } from "@/types/dashboard"
 import { handleError } from "@/utils"
 
@@ -27,7 +35,9 @@ interface WardEditDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-/** PATCH /wards/{id} per docs/05: name, phone (E.164), timezone. */
+type SmsPreference = NonNullable<WardUpdate["sms_notification_preference"]>
+
+/** PATCH /wards/{id} per docs/05: profile details and SMS preference. */
 export function WardEditDialog({
   ward,
   open,
@@ -35,6 +45,9 @@ export function WardEditDialog({
 }: WardEditDialogProps) {
   const [fullName, setFullName] = useState(ward.full_name)
   const [phone, setPhone] = useState(ward.phone_e164)
+  const [smsPreference, setSmsPreference] = useState<SmsPreference>(
+    ward.sms_notification_preference ?? "issues_only",
+  )
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const { t } = useTranslation("wards")
@@ -44,6 +57,7 @@ export function WardEditDialog({
     if (open) {
       setFullName(ward.full_name)
       setPhone(ward.phone_e164)
+      setSmsPreference(ward.sms_notification_preference ?? "issues_only")
       setError(null)
     }
   }, [open, ward])
@@ -53,6 +67,7 @@ export function WardEditDialog({
       editWard(ward.id, {
         full_name: fullName.trim(),
         phone_e164: normalizePhoneToE164(phone),
+        sms_notification_preference: smsPreference,
       }),
     onSuccess: () => {
       showSuccessToast(t("wardEdit.successToast"))
@@ -119,6 +134,35 @@ export function WardEditDialog({
           <div className="grid gap-2">
             <Label htmlFor="ward-tz">{t("wardEdit.tzLabel")}</Label>
             <Input id="ward-tz" value={ward.tz} readOnly aria-readonly />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="ward-sms-preference">
+              {t("smsNotifications.label")}
+            </Label>
+            <Select
+              value={smsPreference}
+              onValueChange={(value) =>
+                setSmsPreference(value as SmsPreference)
+              }
+            >
+              <SelectTrigger id="ward-sms-preference">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="always">
+                  {t("smsNotifications.always")}
+                </SelectItem>
+                <SelectItem value="issues_only">
+                  {t("smsNotifications.issuesOnly")}
+                </SelectItem>
+                <SelectItem value="never">
+                  {t("smsNotifications.never")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {t("smsNotifications.description")}
+            </p>
           </div>
           {error && (
             <p className="text-sm text-destructive" role="alert">
