@@ -86,7 +86,7 @@ function buildSummarySms(wynik) {
   const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
   const problemy = niepotwierdzone.length
     ? [`• Nie potwierdzono przyjęcia: ${niepotwierdzone.join(", ")}.`]
-    : ["- Brak wykrytych problemów."];
+    : ["• Brak wykrytych problemów."];
   const podsumowanie = String(wynik.podsumowanie || "").trim();
 
   return [
@@ -101,7 +101,12 @@ function buildSummarySms(wynik) {
     .join("\n");
 }
 
-async function generateSmsSummaryFromTranscript(transcriptFile) {
+async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
+  const niepotwierdzone = LEKI.filter((lek) => wynik.leki[lek] !== 1);
+  if (niepotwierdzone.length === 0) {
+    return "Wszystkie leki zostały przyjęte. Wszystko jest w porządku.";
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || !transcriptFile || !fs.existsSync(transcriptFile)) {
     return "Nie udało się wygenerować podsumowania z transkryptu.";
@@ -129,15 +134,19 @@ async function generateSmsSummaryFromTranscript(transcriptFile) {
           {
             role: "system",
             content:
-              "Na podstawie pełnego transkryptu napisz krótkie, naturalne podsumowanie " +
-              "po polsku, poprawnie odmieniając wyrazy. Opisz przebieg rozmowy i ważny " +
-              "kontekst. Nie wymieniaj leków ani nie opisuj, które przyjęto — te informacje " +
-              "zostaną podane osobno w sekcji problemów. Nie dopowiadaj faktów. Zwróć wyłącznie " +
-              "JSON: {\"podsumowanie\": \"1-2 naturalne zdania\"}."
+              "Napisz krótkie, naturalne podsumowanie po polsku na podstawie pełnego " +
+              "transkryptu. Skup się na niepotwierdzonych lekach i podanym przez rozmówcę " +
+              "powodzie, jeśli taki podał. Nazwy leków znajdą się osobno w końcowej liście, " +
+              "więc nie powtarzaj ich. Jeśli powodu nie podano, napisz to wprost. Nie " +
+              "wymyślaj powodów ani nie uznawaj braku odpowiedzi za odmowę. Używaj naturalnej " +
+              "polszczyzny, poprawnej odmiany i polskich znaków. Zwróć wyłącznie JSON: " +
+              "{\"podsumowanie\": \"1-2 zdania\"}."
           },
           {
             role: "user",
-            content: `Pełny transkrypt rozmowy:\n${turns.join("\n")}`
+            content:
+              `Niepotwierdzone leki: ${niepotwierdzone.join(", ")}.\n\n` +
+              `Pełny transkrypt rozmowy:\n${turns.join("\n")}`
           }
         ]
       })
@@ -164,23 +173,14 @@ const SMS_HINTS = {
   63016: "szablon nie istnieje na tym koncie lub nie jest przeznaczony na SMS"
 };
 
-async function sendSummarySms(
-  smsTo,
-  wynik,
-  transcriptFile = null,
-  summaryFromTranscript = false
-) {
+async function sendSummarySms(smsTo, wynik) {
   console.log(`📨 Wysyłam SMS z podsumowaniem na ${smsTo}...`);
-  const smsWynik = { ...wynik };
-  if (transcriptFile && !summaryFromTranscript) {
-    smsWynik.podsumowanie = await generateSmsSummaryFromTranscript(transcriptFile);
-  }
 
   try {
     const msg = await smsClient.messages.create({
       to: smsTo,
       from: smsFrom,
-      body: buildSummarySms(smsWynik)
+      body: buildSummarySms(wynik)
     });
     console.log(`✅ SMS z podsumowaniem wysłany: SID ${msg.sid}, status ${msg.status}`);
     return;
@@ -485,12 +485,11 @@ function summarizeFromAi(args) {
   };
 }
 
-function savePodsumowanie(
+async function savePodsumowanie(
   transcriptFile,
   callSid,
   wynik,
-  zrodlo,
-  summaryFromTranscript = false
+  zrodlo
 ) {
   const state = activeCalls.get(callSid);
 
@@ -502,6 +501,11 @@ function savePodsumowanie(
     console.log("(podsumowanie tej rozmowy już zapisane — pomijam duplikat)");
     return null;
   }
+
+  wynik = {
+    ...wynik,
+    podsumowanie: await generateSmsSummaryFromTranscript(transcriptFile, wynik)
+  };
 
   const podsumowanieFile = transcriptFile.replace(/\.txt$/, "_podsumowanie.json");
 
@@ -549,7 +553,7 @@ function savePodsumowanie(
     return podsumowanieFile;
   }
 
-  sendSummarySms(smsTo, wynik, transcriptFile, summaryFromTranscript).catch((error) => {
+  sendSummarySms(smsTo, wynik).catch((error) => {
     console.log("❌ Błąd wysyłki SMS:", error.message);
   });
 
@@ -653,7 +657,7 @@ async function runFallbackSummarize(callSid, transcriptFile) {
       wynik = JSON.parse(match[0]);
     }
 
-    savePodsumowanie(
+    await savePodsumowanie(
       transcriptFile,
       callSid,
       summarizeFromAi({
@@ -664,8 +668,7 @@ async function runFallbackSummarize(callSid, transcriptFile) {
           przyjety: przyjety === 1 || przyjety === true
         }))
       }),
-      "GPT (fallback po rozłączeniu)",
-      true
+      "GPT (fallback po rozłączeniu)"
     );
   } catch (error) {
     console.log("❌ Podsumowanie awaryjne nie powiodło się:", error.message);
@@ -809,7 +812,7 @@ wss.on("connection", (twilioWs) => {
   // OPENAI MESSAGES
   // ----------------------------------------------------------
 
-  openaiWs.on("message", (message) => {
+  openaiWs.on("message", async (message) => {
     try {
       const event = JSON.parse(message.toString());
 
@@ -940,7 +943,7 @@ wss.on("connection", (twilioWs) => {
 
       else if (event.type === "response.function_call_arguments.done") {
         if (event.name === "end_call") {
-          handleEndCall(event.call_id, event.arguments);
+          await handleEndCall(event.call_id, event.arguments);
         }
       }
 
@@ -951,7 +954,7 @@ wss.on("connection", (twilioWs) => {
         event.item.type === "function_call" &&
         event.item.name === "end_call"
       ) {
-        handleEndCall(event.item.call_id, event.item.arguments);
+        await handleEndCall(event.item.call_id, event.item.arguments);
       }
 
       // ------------------------------------------------------
@@ -1007,7 +1010,7 @@ wss.on("connection", (twilioWs) => {
   // END_CALL HANDLER
   // ----------------------------------------------------------
 
-  function handleEndCall(callId, rawArguments) {
+  async function handleEndCall(callId, rawArguments) {
     if (!callId || handledFunctionCalls.has(callId)) {
       return;
     }
@@ -1022,7 +1025,7 @@ wss.on("connection", (twilioWs) => {
     }
 
     const wynik = summarizeFromAi(args);
-    savePodsumowanie(transcriptFile, callSid, wynik, "AI (end_call)");
+    await savePodsumowanie(transcriptFile, callSid, wynik, "AI (end_call)");
 
     console.log("");
     console.log("========== AI KONCZY ROZMOWE ==========");

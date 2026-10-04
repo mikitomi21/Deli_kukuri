@@ -81,7 +81,6 @@ def _prepare_sms_notification(
         return None
 
     expected_medications = len(routine.items) if routine else 0
-    taken = [name for name, value in event.medications.items() if value == 1]
     missed = [name for name, value in event.medications.items() if value == 0]
     missing_response = result.outcome == CallOutcome.UNCLEAR or (
         event.event == "summary"
@@ -110,14 +109,10 @@ def _prepare_sms_notification(
         logger.warning("Medication SMS skipped because Twilio SMS settings are missing")
         return None
 
-    lines = [f"OpiekunAI — podsumowanie rozmowy z {ward.full_name}."]
+    lines = ["Podsumowanie rozmowy", f"Podopieczny: {ward.full_name}"]
     if event.notes.strip():
-        lines.append(f"Podsumowanie: {event.notes.strip()[:300]}")
-    if event.medications:
-        if taken:
-            lines.append(f"Przyjęte: {', '.join(taken)}.")
-        if missed:
-            lines.append(f"Nieprzyjęte: {', '.join(missed)}.")
+        lines.extend(["", event.notes.strip()[:500]])
+    problems = []
     if event.status and event.status != "completed":
         status_messages = {
             "no-answer": "Nie uzyskano odpowiedzi na połączenie.",
@@ -125,13 +120,16 @@ def _prepare_sms_notification(
             "failed": "Połączenie nie powiodło się.",
             "canceled": "Połączenie zostało przerwane.",
         }
-        lines.append(f"Problem: {status_messages.get(event.status, event.status)}")
-    elif missing_response:
-        lines.append("Problem: Nie uzyskano potwierdzenia przyjęcia wszystkich leków.")
-    elif missed:
-        lines.append(f"Problem: Nie przyjęto leków: {', '.join(missed)}.")
-    else:
-        lines.append("Nie zgłoszono problemów z przyjęciem leków.")
+        problems.append(status_messages.get(event.status, "Połączenie nie powiodło się."))
+    if missed:
+        problems.append(f"Niepotwierdzone przyjęcie: {', '.join(missed)}.")
+    if missing_response and not missed:
+        problems.append("Nie uzyskano potwierdzenia przyjęcia wszystkich leków.")
+    if not problems:
+        problems.append("Brak wykrytych problemów.")
+    lines.extend(["", "Wykryte problemy:"])
+    lines.extend(f"• {problem}" for problem in problems)
+    lines.extend(["", "DzwoniLek"])
 
     return EscalationEvent(
         call_result_id=result.id,
