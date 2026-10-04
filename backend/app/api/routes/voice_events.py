@@ -29,6 +29,37 @@ router = APIRouter(tags=["voice"])
 logger = logging.getLogger(__name__)
 
 
+# The gateway transcript carries raw answers only — no per-turn ASR
+# confidence and no interpretation. Classify each patient answer with a
+# simple Polish yes/no heuristic so turns read correctly; the confidence
+# is an interpretation-certainty display heuristic (cf. seed.py), since
+# the Realtime pipeline does not expose a calibrated one.
+_ANSWER_UNCLEAR_RE = re.compile(
+    r"\b(nie\s+wiem|nie\s+pami[ęe]tam|trudno\s+powiedzie[ćc]|mo[żz]e|chyba)\b",
+    re.IGNORECASE,
+)
+_ANSWER_NO_RE = re.compile(
+    r"\b(nie|zapomnia[lł]\w*|odmówi[lł]\w*)\b",
+    re.IGNORECASE,
+)
+_ANSWER_YES_RE = re.compile(
+    r"\b(tak|oczywi[śs]cie|bra[lł]\w*|przyjmow[aąe][lł]\w*|przyj[ąe][lł]\w*"
+    r"|wzi[ąe][lł]\w*|zrobion[eey]|wszystko)\b",
+    re.IGNORECASE,
+)
+
+
+def interpret_answer(text: str) -> tuple[str, float]:
+    """Classify a patient's answer into (parsed, display confidence)."""
+    if _ANSWER_UNCLEAR_RE.search(text):
+        return "unclear", 0.4
+    if _ANSWER_NO_RE.search(text):
+        return "no", 0.9
+    if _ANSWER_YES_RE.search(text):
+        return "yes", 0.9
+    return "unclear", 0.4
+
+
 class VoiceEvent(SQLModel):
     event: Literal["summary", "terminal"]
     sid: str
@@ -201,14 +232,15 @@ def persist_voice_event(
                     question = text
                 else:
                     turn_no += 1
+                    parsed, confidence = interpret_answer(text)
                     session.add(
                         CallTurn(
                             call_id=call.id,
                             turn_no=turn_no,
                             question=question,
                             speech_result=text,
-                            confidence=0.0,
-                            parsed="unclear",
+                            confidence=confidence,
+                            parsed=parsed,
                         )
                     )
     else:
