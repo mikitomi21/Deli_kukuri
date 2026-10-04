@@ -244,17 +244,21 @@ def send_call_summary_sms(
         raise HTTPException(status_code=503, detail="SMS service is not configured")
 
     summary = result.notes.strip() if result.notes else ""
-    lines = [f"OpiekunAI — podsumowanie rozmowy z {ward.full_name}."]
-    lines.append(f"Rutyna: {routine.name}.")
+    lines = ["Podsumowanie rozmowy", f"Podopieczny: {ward.full_name}"]
     if summary:
-        lines.append(f"Podsumowanie: {summary[:300]}")
-    outcome_messages = {
-        CallOutcome.TOOK: "Wynik: potwierdzono przyjęcie wszystkich leków.",
-        CallOutcome.NOT_TAKEN: "Problem: nie przyjęto co najmniej jednego leku.",
-        CallOutcome.UNCLEAR: "Problem: nie uzyskano jasnego potwierdzenia przyjęcia leków.",
-        CallOutcome.NO_ANSWER: "Problem: nie uzyskano odpowiedzi w rozmowie.",
+        lines.extend(["", summary[:500]])
+    problem_messages = {
+        CallOutcome.TOOK: [],
+        CallOutcome.NOT_TAKEN: ["Niepotwierdzone przyjęcie co najmniej jednego leku."],
+        CallOutcome.UNCLEAR: ["Nie uzyskano jasnego potwierdzenia przyjęcia leków."],
+        CallOutcome.NO_ANSWER: ["Nie uzyskano odpowiedzi w rozmowie."],
     }
-    lines.append(outcome_messages.get(result.outcome, "Problem: brak wyniku rozmowy."))
+    problems = problem_messages.get(result.outcome, ["Brak wyniku rozmowy."])
+    lines.extend(["", "Wykryte problemy:"])
+    lines.extend(f"• {problem}" for problem in problems)
+    if not problems:
+        lines.append("• Brak wykrytych problemów.")
+    lines.extend(["", "DzwoniLek"])
     message = "\n".join(lines)
     notification = EscalationEvent(
         call_result_id=result.id,
