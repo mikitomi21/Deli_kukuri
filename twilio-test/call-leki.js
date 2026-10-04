@@ -408,7 +408,9 @@ Przebieg zakończenia, w tej kolejności:
    Pan przyjął, a Apap jeszcze nie — planuje Pan go wziąć za chwilę."
 2. Powiedz, że masz już wszystko, co potrzebne, i zapytaj o ewentualne pytania, np.
    „Mam już wszystko, co potrzebne. Czy chce Pan jeszcze o coś zapytać?" — i CZEKAJ
-   na odpowiedź.
+   na odpowiedź. Skończ wypowiedź na tym pytaniu — NIE dodawaj „jeśli nie, to
+   dziękuję...", nie odpowiadaj za rozmówcę i nie żegnaj się w tym samym oddechu;
+   pożegnanie przychodzi dopiero po odpowiedzi rozmówcy.
 3. Jeśli pytanie padło — odpowiedz krótko, wyłącznie na podstawie informacji o lekach
    (pytania wykraczające poza nie odsyłaj do lekarza lub ulotki), po czym ponownie
    zapytaj, czy coś jeszcze — punkt 2 można powtórzyć jeden raz.
@@ -983,9 +985,15 @@ wss.on("connection", (twilioWs) => {
           closingQuestionSpokenAt = Date.now();
         }
 
-        // Once the closing sequence was spoken, a farewell utterance ends the
-        // call even if the model never re-calls end_call (it often doesn't).
-        if (closingAsked && farewellRe.test(transcript)) {
+        // Once the caller actually ANSWERED the closing question (spoke after
+        // it), a farewell utterance ends the call even if the model never
+        // re-calls end_call. A farewell merged into the closing question
+        // itself does not count — the caller still gets their turn.
+        const closingAnswered =
+          closingQuestionSpokenAt !== null &&
+          lastUserSpeechAt !== null &&
+          lastUserSpeechAt > closingQuestionSpokenAt;
+        if (closingAnswered && farewellRe.test(transcript)) {
           hangupArmed = true;
           scheduleHangup();
         }
@@ -1379,8 +1387,10 @@ wss.on("connection", (twilioWs) => {
     }
     closingQuestionSpokenAt = null;
     console.log("");
-    console.log("⚠️ brak zakończenia po pytaniu zamykającym — wstrzykuję pożegnanie");
-    if (farewellNudges < 2) {
+    console.log("⚠️ brak odpowiedzi po pytaniu zamykającym — kończę rozmowę");
+    // The model may have merged the farewell into the closing question —
+    // in that case just hang up, no second farewell needed.
+    if (!farewellRe.test(lastAiText) && farewellNudges < 2) {
       farewellNudges++;
       nudgeFarewell();
     }
