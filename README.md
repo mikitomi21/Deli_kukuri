@@ -27,11 +27,12 @@ Aplikacja działa na żywo pod adresem **https://dzwonilek.pl/welcome**
 
 1. Wejdź na **https://dzwonilek.pl/welcome**
 2. **Zaloguj się** — login i hasło podajemy w formularzu zgłoszeniowym
-3. Na pulpicie kliknij **„Dodaj podopiecznego"**
-4. Wpisz **imię i nazwisko** oraz **numer telefonu**, na który ma być wykonywane połączenie
-5. Kliknij **nazwę dodanego podopiecznego** — tutaj zarządzasz jego rutynami
-6. Kliknij **„Dodaj rutynę"**, wprowadź dane (nazwa, godzina, leki) i zapisz
-7. Rozwiń **trzy kropki (⋮)** obok rutyny i kliknij **„Zatwierdź"**
-8. Kliknij **„Zadzwoń teraz"** — agent zadzwoni na podany numer i zapyta o leki
+3. W **Ustawieniach → „Dane użytkownika"** wpisz swój numer w polu **„Numer telefonu administratora"** — na ten numer przyjdzie SMS z podsumowaniem rozmowy
+4. Na pulpicie kliknij **„Dodaj podopiecznego"**
+5. Wpisz **imię i nazwisko** oraz **numer telefonu**, na który ma być wykonywane połączenie
+6. Kliknij **nazwę dodanego podopiecznego** — tutaj zarządzasz jego rutynami
+7. Kliknij **„Dodaj rutynę"**, wprowadź dane (nazwa, godzina, leki) i zapisz
+8. Rozwiń **trzy kropki (⋮)** obok rutyny i kliknij **„Zatwierdź"**
+9. Kliknij **„Zadzwoń teraz"** — agent zadzwoni na podany numer i zapyta o leki
 
-Po rozmowie wynik i transkrypcję zobaczysz w zakładce **Połączenia**, a przyjmowanie leków dzień po dniu — w kalendarzu na dole zakładki **Rutyny**.
+Po rozmowie wynik i transkrypcję zobaczysz w zakładce **Połączenia**, a przyjmowanie leków dzień po dniu — w kalendarzu na dole zakładki **Rutyny**. Sposób wysyłki SMS-ów z podsumowaniem ustawisz per podopieczny w oknie **„Edytuj"** (zawsze / tylko przy problemie / nigdy).
