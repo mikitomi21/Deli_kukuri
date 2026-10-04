@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -22,11 +21,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { fetchCalls } from "@/hooks/useCalls"
 import { fetchWard } from "@/hooks/useWards"
 import i18n from "@/i18n"
-import { cn } from "@/lib/utils"
 import {
   buildRoutineHistory,
   type HistoryCellStatus,
 } from "@/lib/routineHistory"
+import { cn } from "@/lib/utils"
 
 // Presentation only — labels come from the wards namespace (outcome.* /
 // wardDetail.historyNoCall), same split as RoutineStatusBadge. The tinted
@@ -143,37 +142,43 @@ export function RoutineHistoryCalendar({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
-          {t("wardDetail.historyTitle")}
-        </CardTitle>
-        <CardDescription>
-          {t("wardDetail.historyDescription")}
-        </CardDescription>
-        <CardAction className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => setWeekOffset((offset) => offset - 1)}
-            aria-label={t("wardDetail.historyPrevWeek")}
-          >
-            <ChevronLeft aria-hidden />
-          </Button>
-          <span className="px-2 text-sm font-medium tabular-nums">
-            {rangeFormat(new Date(`${history.days[0].key}T12:00:00`))}
-            {" – "}
-            {rangeFormat(new Date(`${history.days[6].key}T12:00:00`))}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => setWeekOffset((offset) => offset + 1)}
-            aria-label={t("wardDetail.historyNextWeek")}
-          >
-            <ChevronRight aria-hidden />
-          </Button>
-        </CardAction>
+        {/* Flex instead of CardAction's grid: the description keeps the full
+            card width, and on narrow screens the week nav wraps below it. */}
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+          <div className="min-w-0 flex-1 basis-52">
+            <CardTitle className="text-base">
+              {t("wardDetail.historyTitle")}
+            </CardTitle>
+            <CardDescription>
+              {t("wardDetail.historyDescription")}
+            </CardDescription>
+          </div>
+          <div className="ml-auto flex items-center gap-1 pt-0.5">
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-7"
+              onClick={() => setWeekOffset((offset) => offset - 1)}
+              aria-label={t("wardDetail.historyPrevWeek")}
+            >
+              <ChevronLeft aria-hidden />
+            </Button>
+            <span className="px-2 text-sm font-medium tabular-nums">
+              {rangeFormat(new Date(`${history.days[0].key}T12:00:00`))}
+              {" – "}
+              {rangeFormat(new Date(`${history.days[6].key}T12:00:00`))}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-7"
+              onClick={() => setWeekOffset((offset) => offset + 1)}
+              aria-label={t("wardDetail.historyNextWeek")}
+            >
+              <ChevronRight aria-hidden />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {history.rows.length === 0 ? (
@@ -181,7 +186,10 @@ export function RoutineHistoryCalendar({
             {t("wardDetail.historyNoRoutines")}
           </p>
         ) : (
-          <div className="grid grid-cols-7 gap-2">
+          <div className="flex flex-col gap-2 xl:grid xl:grid-cols-7 xl:gap-2">
+            {/* Narrow screens (phones and tablets): days stacked full-width
+                with wrapping chips. From xl up the content pane is wide
+                enough for the Monday–Sunday matrix, one column per day. */}
             {history.days.map((day, dayIndex) => (
               <div
                 key={day.key}
@@ -199,7 +207,7 @@ export function RoutineHistoryCalendar({
                   {dayFormat(new Date(`${day.key}T12:00:00`))}
                   {day.isToday && todaySuffix}
                 </div>
-                <ul className="flex flex-col gap-1">
+                <ul className="flex flex-row flex-wrap gap-1 xl:flex-col">
                   {history.rows.map(({ routine, statuses }) => {
                     const status = statuses[dayIndex]
                     const shown = displayStatus(status)
@@ -208,12 +216,12 @@ export function RoutineHistoryCalendar({
                         key={routine.id}
                         title={`${routine.name} · ${statusLabel(status, t)}`}
                         className={cn(
-                          "flex items-start gap-1.5 rounded-md px-1.5 py-1 text-xs",
+                          "flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs xl:items-start",
                           statusMeta[shown].cellClassName,
                         )}
                       >
                         <HistoryStatusIcon status={shown} />
-                        <span className="min-w-0 flex-1 break-words font-medium leading-tight">
+                        <span className="min-w-0 flex-1 truncate font-medium leading-tight xl:whitespace-normal xl:break-words">
                           {routine.name}
                         </span>
                         <span className="shrink-0 font-mono text-[10px] text-muted-foreground leading-tight">
