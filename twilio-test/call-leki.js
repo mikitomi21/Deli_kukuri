@@ -398,8 +398,9 @@ Przebieg rozmowy:
 
 ZAKOŃCZENIE ROZMOWY — zacznij je dopiero, gdy spełnione są OBA warunki:
 - masz wynik dla KAŻDEGO leku z listy (przyjęty, nieprzyjęty albo „przyjmie później"),
-- właśnie nie odpowiadasz na pytanie rozmówcy — jeśli coś wyjaśniasz, dokończ najpierw
-  swoją wypowiedź do końca.
+- niczego nie jesteś winien rozmówcy: jeśli w jego ostatniej wypowiedzi padło pytanie
+  albo prośba (np. o poradę dotyczącą leku) — najpierw krótko na nią odpowiedz
+  i dopiero potem zaczynaj zakończenie.
 
 Przebieg zakończenia, w tej kolejności:
 1. Podsumuj krótko na głos, co ustaliłeś, własnymi słowami, obejmując stan każdego
@@ -780,6 +781,10 @@ wss.on("connection", (twilioWs) => {
   // Last spoken AI utterance — used to detect a missing farewell before hangup.
   let lastAiText = "";
   let farewellNudges = 0;
+  // Recent AI utterances (last few) — used to detect the closing sequence
+  // (recap + "any questions?") even a turn or two before end_call.
+  let aiUtterances = [];
+  let closingNudges = 0;
 
   // ----------------------------------------------------------
   // OPENAI REALTIME
@@ -957,6 +962,10 @@ wss.on("connection", (twilioWs) => {
         saveTranscript(transcriptFile, "AI", transcript);
 
         lastAiText = transcript;
+        aiUtterances.push(transcript);
+        if (aiUtterances.length > 3) {
+          aiUtterances.shift();
+        }
       }
 
       // ------------------------------------------------------
@@ -1104,6 +1113,41 @@ wss.on("connection", (twilioWs) => {
           }
         })
       );
+    }
+
+    // The model tends to jump straight to end_call once the medication
+    // checklist is complete — skipping the recap and the "any questions?"
+    // step, and sometimes leaving the caller's own question unanswered.
+    // If no closing question was spoken recently, reject this ending: nudge
+    // the model through the closing sequence and keep the call open. Hangup
+    // is NOT armed here; the next end_call goes through the farewell guard.
+    const closingQuestionRe =
+      /(o coś zapytać|jakieś pytani|coś jeszcze|jeszcze coś|coś doda)/i;
+    if (
+      !closingQuestionRe.test(aiUtterances.join(" ")) &&
+      closingNudges < 1 &&
+      openaiWs.readyState === WebSocket.OPEN
+    ) {
+      closingNudges++;
+      console.log("");
+      console.log("⚠️ end_call bez podsumowania i pytania zamykającego — wstrzykuję zakończenie");
+      openaiWs.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            output_modalities: ["audio"],
+            instructions:
+              "Jeszcze nie zakańczaj rozmowy. Zanim pożegnasz rozmówcę: po pierwsze, jeśli w jego " +
+              "ostatniej wypowiedzi padło pytanie albo prośba (np. o poradę dotyczącą leku) — " +
+              "najpierw krótko na nie odpowiedz, wyłącznie na podstawie informacji o lekach, " +
+              "którymi dysponujesz. Po drugie, podsumuj krótko na głos stan każdego leku: " +
+              "przyjęty, nieprzyjęty albo planowany na później. Po trzecie, zapytaj: „Czy chce " +
+              "Pan jeszcze o coś zapytać?” — i czekaj na odpowiedź. Nie wywołuj teraz narzędzia " +
+              "end_call; wywołasz je dopiero, gdy rozmówca odpowie, a Ty się pożegnasz."
+          }
+        })
+      );
+      return;
     }
 
     // The model sometimes calls end_call without speaking the goodbye first —
