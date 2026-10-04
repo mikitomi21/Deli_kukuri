@@ -16,7 +16,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </div>
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex items-center justify-between gap-2">
-          <Logo variant="responsive" className="lg:hidden" />
+          <Logo variant="responsive" className="lg:hidden" to="/welcome" />
           <div className="ml-auto flex items-center gap-2">
             <LanguageSelect />
             <Appearance />

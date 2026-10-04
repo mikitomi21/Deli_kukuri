@@ -9,6 +9,7 @@ interface LogoProps {
   size?: "sm" | "lg"
   className?: string
   asLink?: boolean
+  to?: "/" | "/welcome"
 }
 
 // Single brand lockup used across the app (sidebar, auth pages, tab-adjacent
@@ -20,6 +21,7 @@ export function Logo({
   size = "sm",
   className,
   asLink = true,
+  to = "/",
 }: LogoProps) {
   const { t } = useTranslation("common")
   const content = (
@@ -52,5 +54,12 @@ export function Logo({
     return content
   }
 
-  return <Link to="/">{content}</Link>
+  return (
+    <Link
+      to={to}
+      className="rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+    >
+      {content}
+    </Link>
+  )
 }
