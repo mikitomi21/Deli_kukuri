@@ -159,6 +159,11 @@
       "canceled": "Połączenie anulowane"
     },
     "tabMedications": "Leki",
+    "historyTitle": "Kalendarz przyjmowania leków",
+    "historyDescription": "Kolor tła pokazuje wynik rozmowy dla danej rutyny. Przyciskami zmieniasz tydzień.",
+    "historyToday": "Dziś",
+    "historyNoCall": "Brak połączenia",
+    "historyNoRoutines": "Brak zatwierdzonych rutyn — historia pojawi się, gdy zatwierdzisz pierwszą rutynę.",
     "medicationsTitle": "Leki podopiecznego",
     "medicationsDescription": "Wszystkie leki przyjmowane w ramach zaplanowanych rutyn podopiecznego",
     "medicationsEmpty": "Ten podopieczny nie ma jeszcze leków w swoich rutynach. Dodaj lek do rutyny, aby pojawił się w tym zestawieniu.",
@@ -166,7 +171,9 @@
     "viewMedicationDetails": "Szczegóły leku",
     "aiTip": "Wskazówka AI",
     "attemptLower": "próba {{number}}",
-    "durationSec": "{{number}} s"
+    "durationSec": "{{number}} s",
+    "historyPrevWeek": "Poprzedni tydzień",
+    "historyNextWeek": "Następny tydzień"
   },
   "callDetail": {
     "summaryTitle": "Podsumowanie rozmowy",

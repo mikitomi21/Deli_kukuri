@@ -27,6 +27,7 @@ import { fetchCallTasks } from "@/hooks/useCalls"
 import { fetchRoutines } from "@/hooks/useRoutines"
 import { fetchWards, getWardsMode } from "@/hooks/useWards"
 import i18n from "@/i18n"
+import { cn } from "@/lib/utils"
 import type {
   CallTask,
   RoutineWithOutcome,
@@ -75,7 +76,7 @@ function TodaySummary({
   }
   if (took === total) {
     return (
-      <Badge variant="default">
+      <Badge variant="success">
         {t("dashboard.summaryAllGood")} · {took}/{total}
       </Badge>
     )
@@ -277,7 +278,9 @@ function Dashboard() {
         />
         <StatCard
           icon={CircleAlert}
-          tone={wardsNeedingAttention > 0 ? "destructive" : "muted"}
+          // Alert tile keeps its red identity even at 0 — the dashboard
+          // reads by color first (teal=info, green=done, gray=left, red=alert).
+          tone="destructive"
           label={t("dashboard.statNeedsAttention")}
           value={wardsNeedingAttention}
         />
@@ -292,11 +295,23 @@ function Dashboard() {
             (r) => r.status === "approved",
           ).length
           const drafts = routineList.filter((r) => r.status === "draft").length
+          const needsAttention = routineList.some(routineNeedsAttention)
+          const allDone =
+            !!today && today.total > 0 && today.took === today.total
           return (
             <li key={ward.id}>
               {/* The name link stretches over the whole card (after:inset-0),
                   so the entire tile is clickable and shares one hover state. */}
-              <Card className="relative flex h-full flex-col gap-3 transition-colors hover:border-ring">
+              <Card
+                className={cn(
+                  "relative flex h-full flex-col gap-3 transition-colors hover:border-ring",
+                  needsAttention
+                    ? "border-destructive/50"
+                    : allDone
+                      ? "border-success/40"
+                      : undefined,
+                )}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -377,7 +392,7 @@ function Dashboard() {
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="font-normal">
+                        <Badge variant="success">
                           {t("dashboard.approvedCount", { approved })}
                         </Badge>
                         {drafts > 0 && (
