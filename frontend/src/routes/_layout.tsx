@@ -13,10 +13,10 @@ import { isLoggedIn } from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     if (!isLoggedIn()) {
       throw redirect({
-        to: "/login",
+        to: location.pathname === "/" ? "/welcome" : "/login",
       })
     }
   },
@@ -26,7 +26,9 @@ function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      {/* min-w-0: let wide children (e.g. the 7-day history calendar) scroll
+          inside their own overflow container instead of stretching the page. */}
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <Separator

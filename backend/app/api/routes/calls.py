@@ -3,12 +3,15 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.config import settings
 from app.models import (
     Call,
+    CallOutcome,
     CallPublic,
     CallResult,
     CallResultPublic,
@@ -19,11 +22,15 @@ from app.models import (
     CallTurn,
     CallTurnPublic,
     DailyStats,
+    EscalationEvent,
+    Message,
     Routine,
     RoutineItem,
     Ward,
     WardStatsPublic,
+    User,
 )
+from app.twilio.sms import send_admin_sms
 from app.worker.placing import voice_provider_ready
 from app.worker.tasks import place_call
 
@@ -204,6 +211,78 @@ def read_call(
     routine = session.get(Routine, task.routine_id)
     _get_owned_ward(session, current_user, routine.ward_id)
     return _call_to_public(session, call)
+
+
+@router.post("/calls/{id}/sms", response_model=Message)
+def send_call_summary_sms(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Message:
+    """Manually send a call summary to the configured administrator."""
+    call = session.get(Call, id)
+    if call is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    task = session.get(CallTask, call.call_task_id)
+    routine = session.get(Routine, task.routine_id)
+    ward = _get_owned_ward(session, current_user, routine.ward_id)
+    result = session.exec(
+        select(CallResult).where(CallResult.call_id == call.id)
+    ).first()
+    if result is None:
+        raise HTTPException(status_code=409, detail="Call summary is not available")
+
+    admin = session.exec(
+        select(User).where(
+            User.is_superuser.is_(True),
+            User.admin_phone_number.is_not(None),
+        )
+    ).first()
+    if admin is None or admin.admin_phone_number is None:
+        raise HTTPException(status_code=409, detail="Admin phone number is not set")
+    if not all(
+        (settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, settings.SMS_FROM)
+    ):
+        raise HTTPException(status_code=503, detail="SMS service is not configured")
+
+    summary = result.notes.strip() if result.notes else ""
+    lines = ["DzwoniLek — raport z połączenia", f"Podopieczny: {ward.full_name}"]
+    if result.outcome == CallOutcome.TOOK:
+        lines.extend(["", "Wszystkie leki zostały przyjęte. Wszystko jest w porządku."])
+    elif summary:
+        lines.extend(["", summary[:500]])
+    else:
+        outcome_messages = {
+            CallOutcome.TOOK: "Wszystkie leki zostały przyjęte. Wszystko jest w porządku.",
+            CallOutcome.NOT_TAKEN: "Niepotwierdzone przyjęcie co najmniej jednego leku.",
+            CallOutcome.UNCLEAR: "Nie uzyskano jasnego potwierdzenia przyjęcia leków.",
+            CallOutcome.NO_ANSWER: "Nie uzyskano odpowiedzi w rozmowie.",
+        }
+        lines.extend([
+            "",
+            outcome_messages.get(result.outcome, "Nie udało się ustalić wyniku rozmowy."),
+        ])
+    message = "\n".join(lines)
+    notification = EscalationEvent(
+        call_result_id=result.id,
+        caregiver_id=ward.caregiver_id,
+        channel="sms",
+        payload={"to": admin.admin_phone_number, "message": message, "manual": True},
+        status="pending",
+    )
+    session.add(notification)
+    session.commit()
+
+    try:
+        send_admin_sms(admin.admin_phone_number, message)
+    except (httpx.HTTPError, RuntimeError) as exc:
+        notification.status = "failed"
+        session.add(notification)
+        session.commit()
+        raise HTTPException(status_code=502, detail="Failed to send SMS") from exc
+
+    notification.status = "sent"
+    session.add(notification)
+    session.commit()
+    return Message(message="SMS sent")
 
 
 @router.get("/wards/{ward_id}/stats", response_model=WardStatsPublic)

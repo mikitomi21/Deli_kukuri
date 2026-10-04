@@ -1,7 +1,7 @@
 import re
 import uuid
 from datetime import UTC, datetime, time
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import AliasChoices, EmailStr, StringConstraints, field_validator
@@ -10,10 +10,15 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     Index,
+    String,
     UniqueConstraint,
     func,
 )
 from sqlmodel import Field, Relationship, SQLModel
+
+PHONE_E164_PATTERN = r"^\+[1-9]\d{6,14}$"
+E164Phone = Annotated[str, StringConstraints(pattern=PHONE_E164_PATTERN, max_length=16)]
+SmsNotificationPreference = Literal["always", "issues_only", "never"]
 
 
 def get_datetime_utc() -> datetime:
@@ -70,6 +75,7 @@ class UserUpdate(SQLModel):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    admin_phone_number: E164Phone | None = None
 
 
 class UpdatePassword(SQLModel):
@@ -81,6 +87,7 @@ class UpdatePassword(SQLModel):
 class User(UserBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    admin_phone_number: E164Phone | None = Field(default=None, nullable=True)
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
     wards: list[Ward] = Relationship(back_populates="caregiver", cascade_delete=True)
 
@@ -89,6 +96,7 @@ class User(UserBase, TimestampedModel, table=True):
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
+    admin_phone_number: E164Phone | None = None
 
 
 class UsersPublic(SQLModel):
@@ -192,17 +200,14 @@ class MedicationsPublic(SQLModel):
     count: int
 
 
-# E.164: "+" + country code + number, np. +48600100200 (docs/03-data-model.md, Ward)
-# (Annotated zamiast Field(regex=) — regex= w SQLModel 0.0.39 jest ignorowany)
-PHONE_E164_PATTERN = r"^\+[1-9]\d{6,14}$"
-E164Phone = Annotated[str, StringConstraints(pattern=PHONE_E164_PATTERN, max_length=16)]
-
-
 # Shared properties
 class WardBase(SQLModel):
     full_name: str = Field(min_length=1, max_length=255)
     phone_e164: E164Phone
     tz: str = Field(default="Europe/Warsaw", max_length=64)
+    sms_notification_preference: SmsNotificationPreference = Field(
+        default="issues_only", sa_type=String(20), nullable=False
+    )
 
     @field_validator("full_name")
     @classmethod
@@ -234,6 +239,7 @@ class WardUpdate(SQLModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
     phone_e164: E164Phone | None = None
     tz: str | None = Field(default=None, max_length=64)
+    sms_notification_preference: SmsNotificationPreference | None = None
 
     @field_validator("full_name")
     @classmethod

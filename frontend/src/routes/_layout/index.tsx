@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CircleAlert,
   CircleCheck,
+  Info,
   Phone,
   Pill,
   Plus,
@@ -12,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { PageHeader } from "@/components/Common/PageHeader"
 import { StatCard } from "@/components/Common/StatCard"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +28,9 @@ import { AddWardDialog } from "@/components/Wards/AddWardDialog"
 import { fetchCallTasks } from "@/hooks/useCalls"
 import { fetchRoutines } from "@/hooks/useRoutines"
 import { fetchWards, getWardsMode } from "@/hooks/useWards"
+import useAuth from "@/hooks/useAuth"
 import i18n from "@/i18n"
+import { cn } from "@/lib/utils"
 import type {
   CallTask,
   RoutineWithOutcome,
@@ -56,12 +60,10 @@ function formatDashboardDateTime(iso: string): string {
 function TodaySummary({
   took,
   total,
-  scheduled,
   needsAttention,
 }: {
   took: number
   total: number
-  scheduled: boolean
   needsAttention: boolean
 }) {
   const { t } = useTranslation("admin")
@@ -75,21 +77,45 @@ function TodaySummary({
   }
   if (took === total) {
     return (
-      <Badge variant="default">
+      <Badge variant="success">
         {t("dashboard.summaryAllGood")} · {took}/{total}
       </Badge>
     )
   }
-  if (scheduled) {
-    // Real calls have not reported yet — neutral info, not an alarm
+  if (took > 0) {
+    // Partial progress: some taken, nothing failed — keep it visible.
     return (
-      <Badge variant="outline">
-        {t("dashboard.scheduledBadge", { total })}
+      <Badge variant="secondary">
+        {took}/{total}
       </Badge>
     )
   }
-  // Pending without failures: stay silent instead of crying wolf
-  return null
+  // Nothing taken yet — the day's plan is still ahead.
+  return (
+    <Badge variant="outline">
+      {t("dashboard.summaryPlanned", { total })}
+    </Badge>
+  )
+}
+
+function AdminPhoneReminder() {
+  const { user } = useAuth()
+  const { t } = useTranslation("admin")
+
+  if (!user?.is_superuser || user.admin_phone_number) return null
+
+  return (
+    <Alert role="status">
+      <Info aria-hidden="true" />
+      <AlertTitle>{t("dashboard.adminPhoneReminderTitle")}</AlertTitle>
+      <AlertDescription>
+        <p>{t("dashboard.adminPhoneReminderDescription")}</p>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/settings">{t("dashboard.setAdminPhone")}</Link>
+        </Button>
+      </AlertDescription>
+    </Alert>
+  )
 }
 
 // A routine needs attention only when a call actually went wrong (not
@@ -131,8 +157,13 @@ function Dashboard() {
       queryFn: () => fetchCallTasks(ward.id),
     })),
   })
+  // Enriched routines come with the wards query (both modes attach
+  // today_status there); the per-ward queries are only a fallback.
   const routinesByWard = new Map<string, RoutineWithOutcome[] | undefined>(
-    (wards ?? []).map((ward, index) => [ward.id, routinesQueries[index]?.data]),
+    (wards ?? []).map((ward, index) => [
+      ward.id,
+      ward.routines ?? routinesQueries[index]?.data,
+    ]),
   )
   const nextCallByWard = new Map<string, CallTask | undefined>(
     (wards ?? []).map((ward, index) => [
@@ -181,57 +212,68 @@ function Dashboard() {
 
   if (isPending) {
     return (
-      <div
-        className="grid gap-4 md:grid-cols-2"
-        role="status"
-        aria-busy="true"
-        aria-label={t("dashboard.loadingWards")}
-      >
-        {[0, 1].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-28" />
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <div
+          className="grid gap-4 md:grid-cols-2"
+          role="status"
+          aria-busy="true"
+          aria-label={t("dashboard.loadingWards")}
+        >
+          {[0, 1].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-28" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("dashboard.loadFailedTitle")}</CardTitle>
-          <CardDescription role="alert">{error.message}</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("dashboard.loadFailedTitle")}</CardTitle>
+            <CardDescription role="alert">{error.message}</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     )
   }
 
   if (!wards || wards.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-          <div>
-            <p className="text-lg font-semibold">{t("dashboard.emptyTitle")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("dashboard.emptyDescription")}
-            </p>
-          </div>
-          <AddWardDialog>
-            <Button size="lg">
-              <Plus aria-hidden />
-              {t("dashboard.addWard")}
-            </Button>
-          </AddWardDialog>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <AdminPhoneReminder />
+        <Card className="border-dashed">
+          <CardContent
+            className="flex flex-col items-center gap-4 py-16 text-center"
+          >
+            <div>
+              <p className="text-lg font-semibold">{t("dashboard.emptyTitle")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("dashboard.emptyDescription")}
+              </p>
+            </div>
+            <AddWardDialog>
+              <Button size="lg">
+                <Plus aria-hidden />
+                {t("dashboard.addWard")}
+              </Button>
+            </AddWardDialog>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
@@ -257,6 +299,8 @@ function Dashboard() {
         }
       />
 
+      <AdminPhoneReminder />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={Users}
@@ -277,7 +321,9 @@ function Dashboard() {
         />
         <StatCard
           icon={CircleAlert}
-          tone={wardsNeedingAttention > 0 ? "destructive" : "muted"}
+          // Alert tile keeps its red identity even at 0 — the dashboard
+          // reads by color first (teal=info, green=done, gray=left, red=alert).
+          tone="destructive"
           label={t("dashboard.statNeedsAttention")}
           value={wardsNeedingAttention}
         />
@@ -292,9 +338,23 @@ function Dashboard() {
             (r) => r.status === "approved",
           ).length
           const drafts = routineList.filter((r) => r.status === "draft").length
+          const needsAttention = routineList.some(routineNeedsAttention)
+          const allDone =
+            !!today && today.total > 0 && today.took === today.total
           return (
             <li key={ward.id}>
-              <Card className="flex h-full flex-col">
+              {/* The name link stretches over the whole card (after:inset-0),
+                  so the entire tile is clickable and shares one hover state. */}
+              <Card
+                className={cn(
+                  "relative flex h-full flex-col gap-3 transition-colors hover:border-ring",
+                  needsAttention
+                    ? "border-destructive/50"
+                    : allDone
+                      ? "border-success/40"
+                      : undefined,
+                )}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -302,12 +362,12 @@ function Dashboard() {
                         <Link
                           to="/wards/$wardId"
                           params={{ wardId: ward.id }}
-                          className="hover:underline"
+                          className="hover:underline after:absolute after:inset-0"
                         >
                           {ward.full_name}
                         </Link>
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-1.5">
+                      <CardDescription className="mt-3 flex items-center gap-1.5">
                         <Phone aria-hidden className="size-3" />
                         {ward.phone_e164}
                       </CardDescription>
@@ -316,7 +376,6 @@ function Dashboard() {
                       <TodaySummary
                         took={today.took}
                         total={today.total}
-                        scheduled={!ward.today}
                         needsAttention={routineList.some(routineNeedsAttention)}
                       />
                     )}
@@ -330,7 +389,7 @@ function Dashboard() {
                     </div>
                   ) : routineList.length === 0 ? (
                     // Guide to the ward page — routine management lives there
-                    <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                    <div className="relative z-10 flex flex-col gap-2 text-sm text-muted-foreground">
                       <p>{t("dashboard.noRoutinesYet")}</p>
                       <Button
                         asChild
@@ -352,28 +411,30 @@ function Dashboard() {
                     // Overview, not management: the ward page owns the full
                     // routine list — here only the next call and counts
                     <div className="flex flex-col gap-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarClock
-                          aria-hidden
-                          className="size-4 shrink-0 text-muted-foreground"
-                        />
-                        {nextCall ? (
-                          <span className="min-w-0 truncate">
-                            {t("dashboard.nextCall", {
-                              name: nextCall.routine_name,
-                              time: formatDashboardDateTime(
-                                nextCall.scheduled_at,
-                              ),
-                            })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {t("dashboard.noUpcoming")}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <CalendarClock aria-hidden className="size-4.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">
+                            {nextCall
+                              ? t("dashboard.nextCallLabel")
+                              : t("dashboard.noUpcoming")}
+                          </p>
+                          {nextCall && (
+                            <p className="truncate text-sm font-medium">
+                              {t("dashboard.nextCall", {
+                                name: nextCall.routine_name,
+                                time: formatDashboardDateTime(
+                                  nextCall.scheduled_at,
+                                ),
+                              })}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="font-normal">
+                        <Badge variant="success">
                           {t("dashboard.approvedCount", { approved })}
                         </Badge>
                         {drafts > 0 && (

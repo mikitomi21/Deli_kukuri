@@ -662,6 +662,10 @@ export type UserPublic = {
      * Created At
      */
     created_at?: string | null;
+    /**
+     * Admin Phone Number
+     */
+    admin_phone_number?: string | null;
 };
 
 /**
@@ -720,6 +724,10 @@ export type UserUpdateMe = {
      * Email
      */
     email?: string | null;
+    /**
+     * Admin Phone Number
+     */
+    admin_phone_number?: string | null;
 };
 
 /**
@@ -816,6 +824,10 @@ export type WardCreate = {
      * Tz
      */
     tz?: string;
+    /**
+     * Sms Notification Preference
+     */
+    sms_notification_preference?: 'always' | 'issues_only' | 'never';
 };
 
 /**
@@ -834,6 +846,10 @@ export type WardPublic = {
      * Tz
      */
     tz?: string;
+    /**
+     * Sms Notification Preference
+     */
+    sms_notification_preference: 'always' | 'issues_only' | 'never';
     /**
      * Id
      */
@@ -879,6 +895,10 @@ export type WardUpdate = {
      * Tz
      */
     tz?: string | null;
+    /**
+     * Sms Notification Preference
+     */
+    sms_notification_preference?: 'always' | 'issues_only' | 'never' | null;
 };
 
 /**
@@ -2094,6 +2114,18 @@ export type callsReadCallResponses = {
 };
 
 export type callsReadCallResponse = callsReadCallResponses[keyof callsReadCallResponses];
+
+export type callsSendCallSummarySmsData = {
+    body?: never;
+    path: { id: string };
+    query?: never;
+    url: '/api/v1/calls/{id}/sms';
+};
+
+export type callsSendCallSummarySmsErrors = { 422: HTTPValidationError };
+export type callsSendCallSummarySmsError = callsSendCallSummarySmsErrors[keyof callsSendCallSummarySmsErrors];
+export type callsSendCallSummarySmsResponses = { 200: Message };
+export type callsSendCallSummarySmsResponse = callsSendCallSummarySmsResponses[keyof callsSendCallSummarySmsResponses];
 
 export type callsReadStatsData = {
     body?: never;

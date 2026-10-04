@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AddRoutineDialog } from "@/components/Wards/AddRoutineDialog"
 import { RoutineActionsMenu } from "@/components/Wards/RoutineActionsMenu"
+import { RoutineHistoryCalendar } from "@/components/Wards/RoutineHistoryCalendar"
 import {
   RoutineStatusBadge,
   TodayOutcomeBadge,
@@ -217,6 +218,7 @@ function WardDetail() {
 
       <WardTabs
         wardId={wardId}
+        tz={ward.tz}
         addRoutineOpen={Boolean(addRoutine)}
         onAddRoutineOpenChange={(open) =>
           navigate({
@@ -239,10 +241,12 @@ function WardDetail() {
 
 function WardTabs({
   wardId,
+  tz,
   addRoutineOpen,
   onAddRoutineOpenChange,
 }: {
   wardId: string
+  tz: string
   addRoutineOpen: boolean
   onAddRoutineOpenChange: (open: boolean) => void
 }) {
@@ -261,6 +265,7 @@ function WardTabs({
       <TabsContent value="routines" className="mt-4">
         <RoutinesSection
           wardId={wardId}
+          tz={tz}
           addRoutineOpen={addRoutineOpen}
           onAddRoutineOpenChange={onAddRoutineOpenChange}
         />
@@ -415,7 +420,7 @@ function WardMedicationsSection({ wardId }: { wardId: string }) {
                       </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
+                  <div className="ml-auto flex shrink-0 items-center gap-2 pt-2 sm:pt-0">
                     {targetId ? (
                       <Button variant="outline" size="sm" asChild>
                         <Link
@@ -440,10 +445,12 @@ function WardMedicationsSection({ wardId }: { wardId: string }) {
 
 function RoutinesSection({
   wardId,
+  tz,
   addRoutineOpen,
   onAddRoutineOpenChange,
 }: {
   wardId: string
+  tz: string
   addRoutineOpen: boolean
   onAddRoutineOpenChange: (open: boolean) => void
 }) {
@@ -474,7 +481,17 @@ function RoutinesSection({
   }
 
   const routines = ward.routines ?? []
-  const upcoming = (callTasks ?? []).filter((task) => task.status === "pending")
+  const pending = (callTasks ?? []).filter((task) => task.status === "pending")
+  // Show only the nearest day of pending calls — later days stay scheduled but
+  // would only clutter the ward view (scheduler horizon spans multiple days).
+  const nearestDay = pending.length
+    ? new Date(
+        Math.min(...pending.map((task) => Date.parse(task.scheduled_at))),
+      ).toDateString()
+    : null
+  const upcoming = pending.filter(
+    (task) => new Date(task.scheduled_at).toDateString() === nearestDay,
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -495,7 +512,7 @@ function RoutinesSection({
           <CardContent>
             <ul className="space-y-2">
               {upcoming.map((task) => (
-                <ListRow key={task.id}>
+                <ListRow key={task.id} className="flex-wrap sm:flex-nowrap">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {task.routine_name}
@@ -504,7 +521,7 @@ function RoutinesSection({
                       {t("wardDetail.attemptNo", { number: task.attempt_no })}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="ml-auto flex max-w-full min-w-0 flex-wrap items-center justify-end gap-2">
                     <Clock
                       aria-hidden
                       className="size-3.5 text-muted-foreground"
@@ -562,7 +579,7 @@ function RoutinesSection({
           ) : (
             <ul className="space-y-2">
               {routines.map((routine) => (
-                <ListRow key={routine.id}>
+                <ListRow key={routine.id} className="flex-wrap sm:flex-nowrap">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {routine.name}
@@ -576,7 +593,7 @@ function RoutinesSection({
                         .join(", ")}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="ml-auto flex max-w-full min-w-0 flex-wrap items-center justify-end gap-2">
                     <span className="font-mono text-xs text-muted-foreground">
                       {routine.time_of_day}
                     </span>
@@ -592,6 +609,9 @@ function RoutinesSection({
           )}
         </CardContent>
       </Card>
+
+      {/* Intake calendar at the bottom: outcomes behind, the plan ahead */}
+      <RoutineHistoryCalendar wardId={wardId} tz={tz} />
     </div>
   )
 }

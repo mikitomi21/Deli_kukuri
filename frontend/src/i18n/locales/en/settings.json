@@ -15,6 +15,10 @@
     "email": "Email",
     "notAvailable": "N/A",
     "emailInvalid": "Invalid email address",
+    "adminPhoneNumber": "Administrator phone number",
+    "adminPhonePlaceholder": "+48 600 100 200",
+    "adminPhoneHint": "We will send an SMS to this number when a ward reports a medication was not taken. Include the country calling code.",
+    "phoneInvalid": "Enter a valid phone number.",
     "updated": "User updated successfully"
   },
   "changePassword": {

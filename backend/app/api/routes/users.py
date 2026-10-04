@@ -86,6 +86,13 @@ def update_user_me(
     Update own user.
     """
 
+    if (
+        "admin_phone_number" in user_in.model_fields_set
+        and not current_user.is_superuser
+    ):
+        raise HTTPException(
+            status_code=403, detail="Only administrators can update the SMS recipient"
+        )
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:

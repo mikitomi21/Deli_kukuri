@@ -2,6 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
+import type { callsSendCallSummarySmsData, callsSendCallSummarySmsErrors, callsSendCallSummarySmsResponses } from './types.gen';
 import type { callsCreateTestCallData, callsCreateTestCallErrors, callsCreateTestCallResponses, callsReadCallData, callsReadCallErrors, callsReadCallResponses, callsReadCallsData, callsReadCallsErrors, callsReadCallsResponses, callsReadCallTasksData, callsReadCallTasksErrors, callsReadCallTasksResponses, callsReadStatsData, callsReadStatsErrors, callsReadStatsResponses, itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, medicationsDeleteMedicationData, medicationsDeleteMedicationErrors, medicationsDeleteMedicationResponses, medicationsReadMedicationData, medicationsReadMedicationErrors, medicationsReadMedicationResponses, medicationsReadMedicationsData, medicationsReadMedicationsErrors, medicationsReadMedicationsResponses, medicationsUpdateMedicationData, medicationsUpdateMedicationErrors, medicationsUpdateMedicationResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, routinesApproveRoutineData, routinesApproveRoutineErrors, routinesApproveRoutineResponses, routinesCreateRoutineData, routinesCreateRoutineErrors, routinesCreateRoutineResponses, routinesDeleteRoutineData, routinesDeleteRoutineErrors, routinesDeleteRoutineResponses, routinesPauseRoutineData, routinesPauseRoutineErrors, routinesPauseRoutineResponses, routinesReadRoutinesForWardData, routinesReadRoutinesForWardErrors, routinesReadRoutinesForWardResponses, routinesUpdateRoutineData, routinesUpdateRoutineErrors, routinesUpdateRoutineResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, voicePersistVoiceEventData, voicePersistVoiceEventErrors, voicePersistVoiceEventResponses, wardsCreateWardData, wardsCreateWardErrors, wardsCreateWardResponses, wardsDeleteWardData, wardsDeleteWardErrors, wardsDeleteWardResponses, wardsReadWardData, wardsReadWardErrors, wardsReadWardResponses, wardsReadWardsData, wardsReadWardsErrors, wardsReadWardsResponses, wardsUpdateWardData, wardsUpdateWardErrors, wardsUpdateWardResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
@@ -655,6 +656,16 @@ export class CallsService {
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/calls/{id}',
+            ...options
+        });
+    }
+
+    /** Send Call Summary SMS */
+    public static sendCallSummarySms<ThrowOnError extends boolean = true>(options: Options<callsSendCallSummarySmsData, ThrowOnError>) {
+        return (options.client ?? client).post<callsSendCallSummarySmsResponses, callsSendCallSummarySmsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/calls/{id}/sms',
             ...options
         });
     }

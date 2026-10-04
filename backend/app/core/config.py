@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     MATERIALIZER_HORIZON_H: int = Field(default=48, ge=1)
     VOICE_SERVICE_URL: str = "http://voice:3000"
     VOICE_SERVICE_TOKEN: str = ""
+    # Seed demo data (2 wards, 4 routines, call history) at startup; set to 0
+    # to keep production-like environments empty.
+    SEED_DEMO_DATA: bool = True
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""
+    SMS_FROM: str = ""
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

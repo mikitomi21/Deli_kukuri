@@ -104,18 +104,93 @@ const smsClient = twilio(
 );
 
 function buildSummarySms(wynik) {
-  const lekiLine = LEKI.map(
-    (lek) => `${lek}: ${wynik.leki[lek] === 1 ? "przyjęty" : "NIEPRZYJĘTY"}`
-  ).join(", ");
-  const kto = wynik.imie ? `${wynik.imie} — ` : "";
+  const podsumowanie = String(wynik.podsumowanie || "").trim();
 
   return [
-    "Podsumowanie rozmowy o lekach:",
-    `${kto}${lekiLine}`,
-    wynik.podsumowanie
+    "DzwoniLek — raport z połączenia",
+    wynik.imie ? `Rozmówca: ${wynik.imie}` : "",
+    podsumowanie || "Nie udało się przygotować podsumowania rozmowy.",
   ]
-    .filter((part) => part && part.trim())
+    .filter(Boolean)
     .join("\n");
+}
+
+async function generateSmsSummaryFromTranscript(transcriptFile, wynik) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || !transcriptFile || !fs.existsSync(transcriptFile)) {
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
+  }
+
+  const turns = fs
+    .readFileSync(transcriptFile, "utf8")
+    .split("\n")
+    .filter((line) => /^\[[^\]]+\] (AI|USER): /.test(line));
+  if (turns.length === 0) {
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
+  }
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_FALLBACK_MODEL || "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Napisz jedno krótkie, naturalne podsumowanie po polsku na podstawie pełnego " +
+              "transkryptu i podanych statusów. Wymień, które leki rozmówca przyjął, a których " +
+              "nie przyjął lub których przyjęcia nie udało się potwierdzić. Przy nieprzyjętym " +
+              "leku podaj powód wyłącznie wtedy, gdy rozmówca wyraźnie go podał. Odróżniaj " +
+              "odmowę od braku potwierdzenia. Uwzględnij dolegliwości i złe samopoczucie " +
+              "zgłoszone przez podopiecznego, nawet jeśli wszystkie leki zostały przyjęte. " +
+              "Dolegliwości wymień w osobnym polu JSON i opisz także w podsumowaniu. Jeśli " +
+              "wszystkie leki przyjęto i nie zgłoszono dolegliwości, napisz krótko, że wszystko " +
+              "jest w porządku. Nie dopowiadaj faktów ani objawów. Dbaj o naturalną polszczyznę, " +
+              "poprawną odmianę i polskie znaki. Zwróć wyłącznie JSON: " +
+              "{\"podsumowanie\": \"1-3 zdania\", \"dolegliwosci\": [\"...\"]}."
+          },
+          {
+            role: "user",
+            content:
+              `Status leków (1 = przyjęty, 0 = niepotwierdzony): ${LEKI.map(
+                (lek) => `${lek}: ${wynik.leki[lek]}`
+              ).join("; ")}\n\n` +
+              `Pełny transkrypt rozmowy:\n${turns.join("\n")}`
+          }
+        ]
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || `HTTP ${response.status}`);
+    }
+    const result = JSON.parse(data.choices[0].message.content);
+    return {
+      podsumowanie: String(result.podsumowanie || "").trim() ||
+        "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: Array.isArray(result.dolegliwosci)
+        ? result.dolegliwosci.filter((item) => typeof item === "string" && item.trim())
+        : []
+    };
+  } catch (error) {
+    console.log("❌ Nie udało się wygenerować podsumowania SMS:", error.message);
+    return {
+      podsumowanie: "Nie udało się wygenerować podsumowania z transkryptu.",
+      dolegliwosci: []
+    };
+  }
 }
 
 const SMS_HINTS = {
@@ -432,8 +507,9 @@ końcu rozmowy. W parametrach end_call przekaż:
   np. „przyjęty o innej porze", „przyjął inną dawkę", „zamierza przyjąć później";
   pusty string, gdy nie ma uwag),
 - imie — imię rozmówcy, jeśli go podał, inaczej pusty string,
-- podsumowanie — 2-4 zdania po polsku: kto odebrał, które leki przyjęto w planowej
-  porze i dawce, które nie, jak przebiegała rozmowa.
+- podsumowanie — 1-2 zdania naturalną, poprawną polszczyzną o przebiegu rozmowy
+  i istotnym kontekście. Nie wymieniaj leków ani ich statusów — zostaną pokazane
+  osobno na końcu SMS-a. Nie dodawaj informacji, których nie ma w rozmowie.
 `.trim();
 }
 
@@ -540,7 +616,12 @@ function summarizeFromAi(args) {
   };
 }
 
-function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
+async function savePodsumowanie(
+  transcriptFile,
+  callSid,
+  wynik,
+  zrodlo
+) {
   const state = activeCalls.get(callSid);
 
   if (!transcriptFile || !fs.existsSync(transcriptFile)) {
@@ -552,6 +633,13 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
     return null;
   }
 
+  const summary = await generateSmsSummaryFromTranscript(transcriptFile, wynik);
+  wynik = {
+    ...wynik,
+    podsumowanie: summary.podsumowanie,
+    dolegliwosci: summary.dolegliwosci
+  };
+
   const podsumowanieFile = transcriptFile.replace(/\.txt$/, "_podsumowanie.json");
 
   const data = {
@@ -561,7 +649,8 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
     imie: wynik.imie,
     leki: wynik.leki,
     uwagi: wynik.uwagi || {},
-    podsumowanie: wynik.podsumowanie
+    podsumowanie: wynik.podsumowanie,
+    dolegliwosci: wynik.dolegliwosci
   };
 
   fs.writeFileSync(podsumowanieFile, JSON.stringify(data, null, 2) + "\n");
@@ -592,6 +681,7 @@ function savePodsumowanie(transcriptFile, callSid, wynik, zrodlo) {
   // Persist the result in the application when hosted by the gateway.
   if (process.send) process.send({ event: "summary", sid: callSid,
     medications: wynik.leki, notes: wynik.podsumowanie,
+    health_concerns: wynik.dolegliwosci,
     transcript: fs.readFileSync(transcriptFile, "utf8") });
 
   console.log("📝 Podsumowanie zapisane:", podsumowanieFile);
@@ -673,9 +763,7 @@ async function runFallbackSummarize(callSid, transcriptFile) {
               "leków. Zwróć WYŁĄCZNIE obiekt JSON postaci: {\"imie\": \"<imię rozmówcy — tylko " +
               "jeśli rozmówca je WYPOWIEDZIAŁ w rozmowie; NIGDY etykiety USER/AI z transkrypcji; " +
               "pusty string gdy brak>\", \"leki\": {\"<lek>\": 0 lub 1 dla każdego leku z listy, 0 gdy " +
-              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<2-4 zdania po polsku>\"}. " +
-              "Jeśli podano planową porę przyjęcia, uwzględnij w podsumowaniu, czy dawki " +
-              "przyjęto w planowej porze i dawce."
+              "brak jasnego potwierdzenia}, \"podsumowanie\": \"<1-2 naturalne zdania poprawną polszczyzną, bez nazw leków i ich statusów>\"}."
           },
           {
             role: "user",
@@ -711,7 +799,7 @@ async function runFallbackSummarize(callSid, transcriptFile) {
       wynik = JSON.parse(match[0]);
     }
 
-    savePodsumowanie(
+    await savePodsumowanie(
       transcriptFile,
       callSid,
       summarizeFromAi({
@@ -924,7 +1012,7 @@ wss.on("connection", (twilioWs) => {
   // OPENAI MESSAGES
   // ----------------------------------------------------------
 
-  openaiWs.on("message", (message) => {
+  openaiWs.on("message", async (message) => {
     try {
       const event = JSON.parse(message.toString());
 
@@ -1091,7 +1179,7 @@ wss.on("connection", (twilioWs) => {
 
       else if (event.type === "response.function_call_arguments.done") {
         if (event.name === "end_call") {
-          handleEndCall(event.call_id, event.arguments);
+          await handleEndCall(event.call_id, event.arguments);
         }
       }
 
@@ -1102,7 +1190,7 @@ wss.on("connection", (twilioWs) => {
         event.item.type === "function_call" &&
         event.item.name === "end_call"
       ) {
-        handleEndCall(event.item.call_id, event.item.arguments);
+        await handleEndCall(event.item.call_id, event.item.arguments);
       }
 
       // ------------------------------------------------------
@@ -1218,7 +1306,7 @@ wss.on("connection", (twilioWs) => {
     );
   }
 
-  function handleEndCall(callId, rawArguments) {
+  async function handleEndCall(callId, rawArguments) {
     if (!callId || handledFunctionCalls.has(callId)) {
       return;
     }
@@ -1233,7 +1321,7 @@ wss.on("connection", (twilioWs) => {
     }
 
     const wynik = summarizeFromAi(args);
-    savePodsumowanie(transcriptFile, callSid, wynik, "AI (end_call)");
+    await savePodsumowanie(transcriptFile, callSid, wynik, "AI (end_call)");
 
     console.log("");
     console.log("========== AI KONCZY ROZMOWE ==========");
